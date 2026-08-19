@@ -2,6 +2,7 @@ package com.shop.common.config;
 
 import com.shop.member.oauth.CustomOAuth2UserService;
 import com.shop.member.service.MemberService;
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -11,10 +12,16 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.crypto.factory.PasswordEncoderFactories;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.beans.factory.annotation.Value;
 
 @Configuration  // 설정 클래스
 @EnableWebSecurity  // 웹 보안 가능하게 하는 클래스
 public class SecurityConfig {
+
+    // application.properties에 설정한 React 주소를 가져옵니다.
+    @Value("${app.frontend-url}")
+    private String frontendUrl;
+
     @Autowired
     MemberService memberService;
 
@@ -28,25 +35,76 @@ public class SecurityConfig {
         http.authorizeHttpRequests(auth -> auth
                 .requestMatchers("/css/**", "/js/**", "/img/**", "/favicon.ico", "/error").permitAll()
                 .requestMatchers("/", "/members/**", "/item/**", "/images/**").permitAll()
-                        .requestMatchers("/api/public/**").permitAll()
+                        .requestMatchers("/api/public/**",
+                                "/api/auth/csrf",
+                                "/api/auth/login"
+                        ).permitAll()
                         .requestMatchers("/admin/**").hasRole("ADMIN")
                 .anyRequest().authenticated()
         )
+//        .formLogin(formLogin -> formLogin
+//                .loginPage("/members/login")
+//                .defaultSuccessUrl("/")
+//                .usernameParameter("email")
+//                .failureUrl("/members/login/error")
+//        )
+
         .formLogin(formLogin -> formLogin
-                .loginPage("/members/login")
-                .defaultSuccessUrl("/")
+
+                // React가 이메일과 비밀번호를 전송할 주소입니다.
+                // 이 주소를 MemberController가 아니라 Spring Security가 직접 처리합니다.
+                .loginProcessingUrl("/api/auth/login")
+
+                // 로그인할 때 사용자 아이디로 사용할 입력값의 이름입니다.
+                // 현재 MemberService가 이메일로 회원을 조회하므로 email을 사용합니다.
                 .usernameParameter("email")
-                .failureUrl("/members/login/error")
+
+                // 로그인이 성공하면 페이지를 이동시키지 않고
+                // React가 처리할 수 있도록 HTTP 200과 JSON을 반환합니다.
+                .successHandler((request, response, authentication) -> {
+                    response.setStatus(HttpServletResponse.SC_OK);
+                    response.setCharacterEncoding("UTF-8");
+                    response.setContentType("application/json");
+
+                    response.getWriter().write(
+                            "{\"message\":\"로그인되었습니다.\"}"
+                    );
+                })
+
+                // 이메일이나 비밀번호가 틀리면
+                // HTTP 401과 오류 메시지를 React에 반환합니다.
+                .failureHandler((request, response, exception) -> {
+                    response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                    response.setCharacterEncoding("UTF-8");
+                    response.setContentType("application/json");
+
+                    response.getWriter().write(
+                            "{\"message\":\"이메일 또는 비밀번호를 확인해주세요.\"}"
+                    );
+                })
         )
 
+//        .logout(logout -> logout
+//                .logoutUrl("/members/logout")   // import 필요
+//                .logoutSuccessUrl("/")
+//        )
+
         .logout(logout -> logout
-                .logoutUrl("/members/logout")   // import 필요
-                .logoutSuccessUrl("/")
+
+                // React가 로그아웃 요청을 전송할 주소입니다.
+                .logoutUrl("/api/auth/logout")
+
+                // 로그아웃이 완료되면 페이지를 이동시키지 않고
+                // 처리 성공을 의미하는 HTTP 204를 반환합니다.
+                .logoutSuccessHandler((request, response, authentication) -> {
+                    response.setStatus(HttpServletResponse.SC_NO_CONTENT);
+                })
         )
 
         // ---------------- [소셜 로그인 설정 추가] ---------------------------
         .oauth2Login(oauthLogin -> oauthLogin
-                .defaultSuccessUrl("/")      // 로그인 성공 시 이동할 페이지
+                // 소셜 로그인 성공 후 Thymeleaf가 아니라 React 메인으로 이동
+                .defaultSuccessUrl(frontendUrl + "/")      // 로그인 성공 시 이동할 페이지
                 .userInfoEndpoint(userInfoEndpointConfig -> userInfoEndpointConfig
                         .userService(customOAuth2UserService) // 소셜 사용자 정보 처리 서비스 등록
                 )

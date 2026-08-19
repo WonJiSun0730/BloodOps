@@ -47,9 +47,14 @@ public class OAuthAttributes {
         // 마찬가지로 profile(nickname, image_url.. 등) 정보가 담긴 값을 꺼냄.
         Map<String, Object> profile = (Map<String, Object>) kakao_account.get("profile");
 
+        // 이메일 권한 없이도 사용자를 구분할 수 있도록
+        // 카카오가 제공하는 고유 회원번호로 내부 식별값을 만듭니다.
+        String kakaoId = String.valueOf(attributes.get("id"));
+        String internalEmail = kakaoId + "@kakao.local";
+
         return new OAuthAttributes(attributes, userNameAttributeName,
                 (String) profile.get("nickname"),
-                (String) kakao_account.get("email"),
+                internalEmail,
                 (String) profile.get("profile_image_url"));
     }
 
