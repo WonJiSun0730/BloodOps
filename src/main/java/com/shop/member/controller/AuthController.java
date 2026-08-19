@@ -39,7 +39,7 @@ public class AuthController {
 
         // authentication.getName()에는 현재 로그인한 회원의 이메일이 들어 있습니다.
         return Map.of(
-                "email", authentication.getName(),
+                "identifier", authentication.getName(),
                 "roles", roles
         );
     }
