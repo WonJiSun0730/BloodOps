@@ -14,6 +14,7 @@ export async function apiRequest(url, options = {}) {
 
   if (!response.ok) {
     let message = `API 요청 실패: ${response.status}`
+    let fieldErrors = {}
 
     try {
       const errorData = await response.json()
@@ -21,11 +22,18 @@ export async function apiRequest(url, options = {}) {
       if (errorData.message) {
         message = errorData.message
       }
+      // 서버가 반환한 입력칸별 오류를 보관
+      if (errorData.errors) {
+        fieldErrors = errorData.errors
+      }
     } catch {
       // JSON 형태의 오류 응답이 아닌 경우 기본 메시지 사용
     }
+    // 회원가입 화면에서 입력칸 아래 오류를 표시할 때 사용
+    const requestError = new Error(message)
+    requestError.fieldErrors = fieldErrors
 
-    throw new Error(message)
+    throw requestError
   }
 
   if (response.status === 204) {
@@ -48,8 +56,8 @@ export function getCsrfToken() {
 }
 
 
-// 이메일과 비밀번호를 Spring Security로 전송합니다.
-export async function login(email, password) {
+// 아이디와 비밀번호를 Spring Security로 전송합니다.
+export async function login(loginId, password) {
   // 먼저 현재 세션에 해당하는 CSRF 토큰을 받아옵니다.
   const csrf = await getCsrfToken()
 
@@ -57,7 +65,8 @@ export async function login(email, password) {
   // HTML form과 같은 형태의 데이터를 받습니다.
   const loginData = new URLSearchParams()
 
-  loginData.append('email', email)
+  // SecurityConfig의 usernameParameter("loginId")와 이름이 같아야 합니다.
+  loginData.append('loginId', loginId)
   loginData.append('password', password)
 
   // 실제 로그인 요청을 전송합니다.
@@ -72,9 +81,55 @@ export async function login(email, password) {
       [csrf.headerName]: csrf.token,
     },
 
-    // 이메일과 비밀번호가 담긴 데이터입니다.
+    // 아이디와 비밀번호가 담긴 데이터입니다.
     body: loginData,
   })
+}
+
+/*
+ * React 회원가입 정보를 Spring에 JSON으로 전송합니다.
+ */
+export async function signup(memberData) {
+  const csrf = await getCsrfToken()
+
+  return apiRequest('/api/members/signup', {
+    method: 'POST',
+
+    headers: {
+      'Content-Type': 'application/json',
+      [csrf.headerName]: csrf.token,
+    },
+
+    body: JSON.stringify(memberData),
+  })
+}
+
+/*
+ * 아이디 중복 여부를 확인합니다.
+ *
+ * 반환 예:
+ * { available: true }
+ */
+export function checkLoginId(loginId) {
+  const encodedLoginId = encodeURIComponent(loginId)
+
+  return apiRequest(
+    `/api/members/check-login-id?loginId=${encodedLoginId}`
+  )
+}
+
+/*
+ * 이메일 중복 여부를 확인합니다.
+ *
+ * 반환 예:
+ * { available: false }
+ */
+export function checkEmail(email) {
+  const encodedEmail = encodeURIComponent(email)
+
+  return apiRequest(
+    `/api/members/check-email?email=${encodedEmail}`
+  )
 }
 
 // 현재 로그인 세션을 종료합니다.
@@ -93,7 +148,7 @@ export async function logout() {
 }
 
 // 현재 브라우저가 로그인된 상태인지 확인합니다.
-// 로그인 상태라면 이메일과 권한 목록을 반환합니다.
+// 로그인 상태라면 사용자 식별값과 권한 목록을 반환합니다.
 export function getCurrentUser() {
   return apiRequest('/api/auth/me')
 }

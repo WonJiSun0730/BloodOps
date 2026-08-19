@@ -34,20 +34,31 @@ public class SecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http.authorizeHttpRequests(auth -> auth
                 .requestMatchers("/css/**", "/js/**", "/img/**", "/favicon.ico", "/error").permitAll()
-                .requestMatchers("/", "/members/**", "/item/**", "/images/**").permitAll()
-                        .requestMatchers("/api/public/**",
+                .requestMatchers("/", "/item/**", "/images/**").permitAll()
+                        .requestMatchers(
+                                "/api/public/**",
+
+                                // 로그인 관련 공개 API
                                 "/api/auth/csrf",
-                                "/api/auth/login"
+                                "/api/auth/login",
+
+                                // React 회원가입 관련 공개 API
+                                "/api/members/signup",
+                                "/api/members/check-login-id",
+                                "/api/members/check-email"
                         ).permitAll()
-                        .requestMatchers("/admin/**").hasRole("ADMIN")
+                        // 관리자 전용 화면 및 API
+                        .requestMatchers(
+                                "/admin/**",
+                                "/api/admin/**"
+                        ).hasRole("ADMIN")
+                        // 의료인과 관리자만 사용할 수 있는 화면 및 API
+                        .requestMatchers(
+                                "/medical/**",
+                                "/api/medical/**"
+                        ).hasAnyRole("MEDICAL", "ADMIN")
                 .anyRequest().authenticated()
         )
-//        .formLogin(formLogin -> formLogin
-//                .loginPage("/members/login")
-//                .defaultSuccessUrl("/")
-//                .usernameParameter("email")
-//                .failureUrl("/members/login/error")
-//        )
 
         .formLogin(formLogin -> formLogin
 
@@ -56,8 +67,8 @@ public class SecurityConfig {
                 .loginProcessingUrl("/api/auth/login")
 
                 // 로그인할 때 사용자 아이디로 사용할 입력값의 이름입니다.
-                // 현재 MemberService가 이메일로 회원을 조회하므로 email을 사용합니다.
-                .usernameParameter("email")
+                // React 로그인 폼에서 loginId라는 이름으로 전송한 값을 일반 로그인 아이디로 사용합니다.
+                .usernameParameter("loginId")
 
                 // 로그인이 성공하면 페이지를 이동시키지 않고
                 // React가 처리할 수 있도록 HTTP 200과 JSON을 반환합니다.
@@ -71,23 +82,17 @@ public class SecurityConfig {
                     );
                 })
 
-                // 이메일이나 비밀번호가 틀리면
-                // HTTP 401과 오류 메시지를 React에 반환합니다.
+                // 이메일이나 비밀번호가 틀리면 HTTP 401과 오류 메시지를 React에 반환합니다.
                 .failureHandler((request, response, exception) -> {
                     response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
                     response.setCharacterEncoding("UTF-8");
                     response.setContentType("application/json");
 
                     response.getWriter().write(
-                            "{\"message\":\"이메일 또는 비밀번호를 확인해주세요.\"}"
+                            "{\"message\":\"아이디 또는 비밀번호를 확인해주세요.\"}"
                     );
                 })
         )
-
-//        .logout(logout -> logout
-//                .logoutUrl("/members/logout")   // import 필요
-//                .logoutSuccessUrl("/")
-//        )
 
         .logout(logout -> logout
 
