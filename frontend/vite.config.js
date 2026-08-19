@@ -10,6 +10,18 @@ export default defineConfig({
         target: 'http://localhost:80',
         changeOrigin: true,
       },
+
+      // 소셜 로그인 시작 요청을 Spring으로 전달합니다.
+      '/oauth2': {
+        target: 'http://127.0.0.1:80',
+        changeOrigin: false,
+      },
+
+      // 소셜 로그인 완료 후 전달되는 요청도 Spring으로 전달합니다.
+      '/login/oauth2': {
+        target: 'http://127.0.0.1:80',
+        changeOrigin: false,
+      },
     },
   },
 })
