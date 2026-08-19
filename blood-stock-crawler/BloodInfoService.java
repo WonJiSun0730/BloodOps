@@ -13,7 +13,9 @@ import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class BloodInfoService {
 
@@ -30,9 +32,6 @@ public class BloodInfoService {
         this.client = client;
     }
 
-    /**
-     * 외부에서 호출하여 파싱된 Document 객체를 얻는 메서드
-     */
     public Document fetchDocument() {
         LocalDate today = LocalDate.now();
         String formData = String.format("selRbcYear=%d&selRbcMon=%d&selRbcDay=%d&selRbcTerm=1",
@@ -61,14 +60,12 @@ public class BloodInfoService {
         }
     }
 
-    // 적혈구제제 BloodStock 인스턴스 생성(파싱)
     public BloodStock parseBloodStock(Document document, String titleName, String targetType) {
         Element title = findTitle(document, titleName);
         Element table = findNextTable(title);
         return parseBloodStockFromTable(table, targetType);
     }
 
-    // 혈소판제제 PlateletStock 인스턴스 생성(파싱)
     public PlateletStock parsePlatelets(Document document) {
         Element title = findTitle(document, "혈소판제제 보유 현황");
         Element table = findNextTable(title);
@@ -109,13 +106,88 @@ public class BloodInfoService {
             throw new RuntimeException((typePrefix != null ? typePrefix : "해당") + " 데이터를 찾을 수 없습니다.");
         }
 
-        int[] daily = extractNumbers(dailyRow);
-        int[] current = extractNumbers(currentRow);
+        // 동적으로 정확한 컬럼 위치 파악
+        Map<String, Integer> colMap = getHeaderColumnMap(table);
+
+        int[] daily = extractNumbersWithMap(dailyRow, colMap);
+        int[] current = extractNumbersWithMap(currentRow, colMap);
 
         return new BloodStock(
                 daily[0], daily[1], daily[2], daily[3], daily[4],
                 current[0], current[1], current[2], current[3], current[4]
         );
+    }
+
+    // [버그 수정] AB형 우선 체크 및 헤더 행 정밀 타겟팅
+    private Map<String, Integer> getHeaderColumnMap(Element table) {
+        Map<String, Integer> map = new HashMap<>();
+
+        // 혈액형 헤더("A형", "B형", "O형", "AB형")가 들어 있는 tr만 선별
+        Elements headerRows = table.select("thead tr, tbody tr");
+        Element targetHeaderRow = null;
+
+        for (Element tr : headerRows) {
+            String text = tr.text();
+            if (text.contains("A형") && text.contains("AB형")) {
+                targetHeaderRow = tr;
+                break;
+            }
+        }
+
+        if (targetHeaderRow == null) {
+            // 헤더를 못 찾은 경우 기본순서 (0:합계, 1:A, 2:B, 3:O, 4:AB) 세팅
+            map.put("TOTAL", 0); map.put("A", 1); map.put("B", 2); map.put("O", 3); map.put("AB", 4);
+            return map;
+        }
+
+        int dataColIndex = 0;
+        for (Element header : targetHeaderRow.select("th")) {
+            String text = header.text().trim();
+
+            if (text.contains("구분") || text.contains("제제")) continue;
+
+            if (text.contains("합계")) {
+                map.put("TOTAL", dataColIndex++);
+            } else if (text.contains("AB형") || text.equals("AB")) { // [중요] AB형을 A형보다 먼저 처리
+                map.put("AB", dataColIndex++);
+            } else if (text.contains("A형") || text.equals("A")) {
+                map.put("A", dataColIndex++);
+            } else if (text.contains("B형") || text.equals("B")) {
+                map.put("B", dataColIndex++);
+            } else if (text.contains("O형") || text.equals("O")) {
+                map.put("O", dataColIndex++);
+            }
+        }
+        return map;
+    }
+
+    private int[] extractNumbersWithMap(Element row, Map<String, Integer> colMap) {
+        List<Integer> numbers = new ArrayList<>();
+
+        for (Element cell : row.select("td")) {
+            String text = cell.text().trim();
+            if (text.contains("소요량") || text.contains("보유량")) continue;
+
+            String cleaned = text.replaceAll("[^0-9]", "");
+            if (!cleaned.isEmpty()) {
+                numbers.add(Integer.parseInt(cleaned));
+            }
+        }
+
+        int[] result = new int[5]; // [0:합계, 1:A, 2:B, 3:O, 4:AB]
+
+        if (colMap.containsKey("A") && colMap.get("A") < numbers.size()) result[1] = numbers.get(colMap.get("A"));
+        if (colMap.containsKey("B") && colMap.get("B") < numbers.size()) result[2] = numbers.get(colMap.get("B"));
+        if (colMap.containsKey("O") && colMap.get("O") < numbers.size()) result[3] = numbers.get(colMap.get("O"));
+        if (colMap.containsKey("AB") && colMap.get("AB") < numbers.size()) result[4] = numbers.get(colMap.get("AB"));
+
+        if (colMap.containsKey("TOTAL") && colMap.get("TOTAL") < numbers.size()) {
+            result[0] = numbers.get(colMap.get("TOTAL"));
+        } else {
+            result[0] = result[1] + result[2] + result[3] + result[4];
+        }
+
+        return result;
     }
 
     private Element findTitle(Document document, String title) {
@@ -135,42 +207,6 @@ public class BloodInfoService {
         throw new RuntimeException("테이블을 찾을 수 없습니다.");
     }
 
-    private int[] extractNumbers(Element row) {
-        List<Integer> numbers = new ArrayList<>();
-
-        for (Element cell : row.select("td")) {
-            String text = cell.text().trim();
-
-            if (text.contains("소요량") || text.contains("보유량")) {
-                continue;
-            }
-
-            String cleaned = text.replaceAll("[^0-9]", "");
-            if (!cleaned.isEmpty()) {
-                numbers.add(Integer.parseInt(cleaned));
-            }
-        }
-
-        int[] result = new int[5];
-
-        if (numbers.size() == 5) {
-            for (int i = 0; i < 5; i++) {
-                result[i] = numbers.get(i);
-            }
-        } else if (numbers.size() == 4) {
-            result[0] = -1; // 웹 표에 합계 셀이 없는 경우
-            result[1] = numbers.get(0);
-            result[2] = numbers.get(1);
-            result[3] = numbers.get(2);
-            result[4] = numbers.get(3);
-        } else {
-            throw new RuntimeException("데이터 셀 개수 파싱 에러 (개수: " + numbers.size() + ") - " + row.text());
-        }
-
-        return result;
-    }
-
-    // DTO 객체 (Record)
     public record BloodStock(
             int dailyTotal, int dailyA, int dailyB, int dailyO, int dailyAB,
             int total, int a, int b, int o, int ab
