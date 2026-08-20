@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Navigate } from 'react-router-dom'
 
 import { getCurrentUser } from '../api/apiClient.js'
+import AccessDeniedPage from '../pages/AccessDeniedPage.jsx'
 
 
 function AdminRoute({ children }) {
@@ -48,12 +49,7 @@ function AdminRoute({ children }) {
     currentUser.roles?.includes('ROLE_ADMIN')
 
   if (!isAdmin) {
-    return (
-      <Navigate
-        to="/"
-        replace
-      />
-    )
+    return <AccessDeniedPage />
   }
 
 

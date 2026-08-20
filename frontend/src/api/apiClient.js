@@ -220,3 +220,36 @@ export async function updateCenter(
     }
   )
 }
+
+/*
+ * ADMIN 회원 관리 화면에서 전체 회원 목록을 조회합니다.
+ */
+export function getAdminMembers() {
+  return apiRequest('/api/admin/members')
+}
+
+/*
+ * ADMIN이 회원의 권한을 변경합니다.
+ */
+export async function updateAdminMemberRole(
+  memberId,
+  role
+) {
+  const csrf = await getCsrfToken()
+
+  return apiRequest(
+    `/api/admin/members/${memberId}/role`,
+    {
+      method: 'PUT',
+
+      headers: {
+        'Content-Type': 'application/json',
+        [csrf.headerName]: csrf.token,
+      },
+
+      body: JSON.stringify({
+        role,
+      }),
+    }
+  )
+}
