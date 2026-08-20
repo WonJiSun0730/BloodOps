@@ -196,3 +196,81 @@ public class BloodDummyGenerator {
         }
     }
 }
+
+/*
+===================================================================================
+ [BloodDummyGenerator 사용 가이드] - 팀원 참고용 주석
+===================================================================================
+
+ 1. 클래스 개요
+    - 혈액 재고 수치(BloodInfoService.BloodStock)를 기반으로 DB(blood_units 테이블)에
+      랜덤 생성된 더미 데이터를 배치(Batch) 저장하는 클래스입니다.
+
+ 2. 인스턴스 생성 방법
+    - 기본 생성: DB 접속 정보(URL, ID, PW)를 전달하여 생성
+      BloodDummyGenerator generator = new BloodDummyGenerator(
+          "jdbc:mysql://localhost:3307/blood_db?serverTimezone=UTC&useSSL=false",
+          "root",
+          "1234"
+      );
+
+    - 시드(Seed) 고정 생성: 동일한 난수 패턴으로 테스트 데이터 작성이 필요할 때 사용
+      BloodDummyGenerator generator = new BloodDummyGenerator(dbUrl, dbUser, dbPassword, 12345L);
+
+ 3. 주요 메서드 사용 방법
+
+   1) initDatabase()
+      - blood_units 테이블을 기존에 존재하면 삭제(DROP) 후 새로 생성(CREATE)합니다.
+      - 컬럼: id, donor_id, blood_type, rh_type, gender, birth_date, unit_id, product_type, collection_date, expiration_date
+      - 예시:
+        generator.initDatabase();
+
+   2) saveUnitsFromStock(String productName, BloodInfoService.BloodStock stock)
+      - 특정 제제 이름("전혈", "혈장", "혈소판단종", "혈소판다종")과 BloodStock 객체를 넘겨받아 더미 데이터를 생성 및 DB에 저장합니다.
+      - 예시:
+        // 크롤링된 적혈구 객체로 전혈 더미 데이터 생성
+        generator.saveUnitsFromStock("전혈", redBloodStock);
+
+        // 적혈구 데이터를 가공해 만든 혈장 객체로 혈장 더미 데이터 생성
+        generator.saveUnitsFromStock("혈장", plasmaStock);
+
+        // 성분채혈혈소판 -> 혈소판단종으로 저장
+        generator.saveUnitsFromStock("혈소판단종", apheresisStock);
+
+        // 농축혈소판 -> 혈소판다종으로 저장
+        generator.saveUnitsFromStock("혈소판다종", concentratedStock);
+
+ 4. 지원하는 제제 명칭 및 유효기간 (ProductType Enum)
+    - "전혈"       : 유효기간 35일
+    - "혈장"       : 유효기간 365일
+    - "혈소판단종" : 유효기간 5일 (성분채혈혈소판)
+    - "혈소판다종" : 유효기간 5일 (농축혈소판)
+
+ 5. 전체 실행 흐름 예시 (Main 코드 참고용)
+    -------------------------------------------------------------------------------
+    BloodDummyGenerator generator = new BloodDummyGenerator(URL, USER, PW);
+
+    // Step 1. 테이블 초기화
+    generator.initDatabase();
+
+    // Step 2. 크롤링 및 수치 준비 (BloodInfoService 활용)
+    BloodInfoService service = new BloodInfoService();
+    Document doc = service.fetchDocument();
+    BloodInfoService.BloodStock redBlood = service.parseBloodStock(doc, "적혈구제제 보유 현황", null);
+    BloodInfoService.PlateletStock platelet = service.parsePlatelets(doc);
+
+    // Step 3. 혈장 객체 생성 (적혈구 대비 1.2배 추산)
+    BloodInfoService.BloodStock plasmaStock = new BloodInfoService.BloodStock(
+        redBlood.dailyTotal(), redBlood.dailyA(), redBlood.dailyB(), redBlood.dailyO(), redBlood.dailyAB(),
+        (int)(redBlood.total() * 1.2), (int)(redBlood.a() * 1.2), (int)(redBlood.b() * 1.2),
+        (int)(redBlood.o() * 1.2), (int)(redBlood.ab() * 1.2)
+    );
+
+    // Step 4. DB 더미 데이터 생성 저장
+    generator.saveUnitsFromStock("전혈", redBlood);
+    generator.saveUnitsFromStock("혈장", plasmaStock);
+    generator.saveUnitsFromStock("혈소판단종", platelet.apheresis());
+    generator.saveUnitsFromStock("혈소판다종", platelet.concentrated());
+    -------------------------------------------------------------------------------
+===================================================================================
+*/

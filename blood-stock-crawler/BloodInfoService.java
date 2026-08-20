@@ -218,33 +218,63 @@ public class BloodInfoService {
     ) {}
 }
 
-//  적혈구제제 BloodStock 인스턴스 생성(파싱)
-//  BloodInfoService.BloodStock redBloodCell = parseBloodStock(document, "적혈구제제 보유 현황", null);
-//
-//  혈소판제제 PlateletStock 인스턴스 생성(파싱)
-//  BloodInfoService.PlateletStock platelet = parsePlatelets(document);
-//
-//  PlateletStock 내부의 BloodStock 인스턴스 각각 꺼내기
-//  BloodInfoService.BloodStock concentrated = platelet.concentrated(); // 농축혈소판(혈소판다종)
-//  BloodInfoService.BloodStock apheresis = platelet.apheresis();       // 성분채혈혈소판(혈소판단종)
-//
-//1일 소요량 데이터
-//
-//stock.dailyTotal() : 1일 소요량 합계 (웹 표에 합계 셀이 없는 경우 -1 반환)
-//stock.dailyA() : 1일 소요량 A형
-//stock.dailyB() : 1일 소요량 B형
-//stock.dailyO() : 1일 소요량 O형
-//stock.dailyAB() : 1일 소요량 AB형
-//
-//현재 혈액보유량 데이터
-//
-//stock.total() : 현재 혈액보유량 합계
-//stock.a() : 현재 혈액보유량 A형
-//stock.b() : 현재 혈액보유량 B형
-//stock.o() : 현재 혈액보유량 O형
-//stock.ab() : 현재 혈액보유량 AB형
-//
-//사용 예시
-//redBloodCell.dailyTotal(); // 적혈구 1일 소요량 합계
-//concentrated.total();   // 농축혈소판(혈소판다종) 현재 보유량 합계
-//apheresis.ab();   // 성분채혈혈소판(혈소판단종) 현재 AB형 보유량
+/*
+===================================================================================
+ [BloodInfoService 사용 가이드] - 팀원 참고용 주석
+===================================================================================
+
+ 1. 클래스 개요
+    - 대한적십자사 혈액관리본부 웹페이지를 크롤링하여 적혈구/혈소판제제의
+      '1일 소요량' 및 '현재 혈액보유량' 수치를 BloodStock 객체로 파싱하는 서비스입니다.
+
+ 2. 기본 사용 방식 (Main 코드 예시)
+    -------------------------------------------------------------------------------
+    BloodInfoService service = new BloodInfoService();
+    Document doc = service.fetchDocument(); // 웹 문서 수집
+
+    // A. 적혈구제제 파싱 (BloodStock 반환)
+    BloodInfoService.BloodStock redBloodCell =
+        service.parseBloodStock(doc, "적혈구제제 보유 현황", null);
+
+    // B. 혈소판제제 파싱 (PlateletStock 래퍼 객체 반환)
+    BloodInfoService.PlateletStock platelet = service.parsePlatelets(doc);
+
+    // C. PlateletStock 내부의 개별 BloodStock 꺼내기
+    BloodInfoService.BloodStock concentrated = platelet.concentrated(); // 농축혈소판 (혈소판다종)
+    BloodInfoService.BloodStock apheresis = platelet.apheresis();       // 성분채혈혈소판 (혈소판단종)
+    -------------------------------------------------------------------------------
+
+ 3. BloodStock Record 데이터 접근 메서드 목록
+
+   [1일 소요량 데이터]
+    - stock.dailyTotal() : 1일 소요량 합계 (웹 표에 합계 셀이 없으면 수동 계산값 반환)
+    - stock.dailyA()     : 1일 소요량 A형
+    - stock.dailyB()     : 1일 소요량 B형
+    - stock.dailyO()     : 1일 소요량 O형
+    - stock.dailyAB()    : 1일 소요량 AB형
+
+   [현재 혈액보유량 데이터]
+    - stock.total()      : 현재 혈액보유량 합계
+    - stock.a()          : 현재 혈액보유량 A형
+    - stock.b()          : 현재 혈액보유량 B형
+    - stock.o()          : 현재 혈액보유량 O형
+    - stock.ab()         : 현재 혈액보유량 AB형
+
+ 4. 데이터 활용 및 조회 예시
+    -------------------------------------------------------------------------------
+    int dailyTotalRed = redBloodCell.dailyTotal(); // 적혈구제제 1일 소요량 합계
+    int totalConcentrated = concentrated.total();  // 농축혈소판(혈소판다종) 현재 보유량 합계
+    int apheresisAB = apheresis.ab();              // 성분채혈혈소판(혈소판단종) 현재 AB형 보유량
+
+    // 혈장(PLASMA) 더미 생성을 위한 적혈구 수치 기반 가공 예시 (1.2배 추산)
+    BloodInfoService.BloodStock plasmaStock = new BloodInfoService.BloodStock(
+        redBloodCell.dailyTotal(), redBloodCell.dailyA(), redBloodCell.dailyB(), redBloodCell.dailyO(), redBloodCell.dailyAB(),
+        (int)(redBloodCell.total() * 1.2),
+        (int)(redBloodCell.a() * 1.2),
+        (int)(redBloodCell.b() * 1.2),
+        (int)(redBloodCell.o() * 1.2),
+        (int)(redBloodCell.ab() * 1.2)
+    );
+    -------------------------------------------------------------------------------
+===================================================================================
+*/
