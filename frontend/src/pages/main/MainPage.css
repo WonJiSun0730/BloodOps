@@ -1,0 +1,2665 @@
+/* =========================================================
+   Main Page
+   ========================================================= */
+
+.main-page {
+  display: flex;
+  flex-direction: column;
+  gap: 56px;
+}
+
+
+/* =========================================================
+   Hero Layout
+   ========================================================= */
+
+.main-hero {
+  display: grid;
+  grid-template-columns:
+    minmax(0, 2fr)
+    minmax(320px, 0.95fr);
+
+  gap: 24px;
+  align-items: stretch;
+}
+
+
+/* =========================================================
+   Hero Banner
+   ========================================================= */
+
+.hero-banner {
+  position: relative;
+  min-height: 430px;
+
+  padding: 54px;
+
+  border: 1px solid var(--color-border);
+  border-radius: 26px;
+
+  overflow: hidden;
+
+  background-color: var(--color-surface);
+
+  isolation: isolate;
+}
+
+
+/*
+ * 배경 장식
+ * 별도 이미지 리소스 없이 도형만 사용합니다.
+ */
+
+.hero-banner::before {
+  position: absolute;
+  width: 360px;
+  height: 360px;
+
+  right: -90px;
+  top: -130px;
+
+  border-radius: 50%;
+
+  background:
+    color-mix(
+      in srgb,
+      var(--color-primary) 14%,
+      transparent
+    );
+
+  content: "";
+
+  z-index: -1;
+}
+
+
+.hero-banner::after {
+  position: absolute;
+  width: 250px;
+  height: 250px;
+
+  right: 100px;
+  bottom: -170px;
+
+  border: 45px solid
+    color-mix(
+      in srgb,
+      var(--color-primary) 9%,
+      transparent
+    );
+
+  border-radius: 50%;
+
+  content: "";
+
+  z-index: -1;
+}
+
+
+/* ================================
+   Banner Themes
+   ================================ */
+
+.hero-banner--primary {
+  background:
+    linear-gradient(
+      135deg,
+      color-mix(
+        in srgb,
+        var(--color-primary) 9%,
+        var(--color-background)
+      ),
+      var(--color-surface)
+    );
+}
+
+
+.hero-banner--soft {
+  background:
+    linear-gradient(
+      140deg,
+      var(--color-surface),
+      color-mix(
+        in srgb,
+        var(--color-primary) 5%,
+        var(--color-background)
+      )
+    );
+}
+
+
+.hero-banner--dark {
+  color: #ffffff;
+
+  background:
+    linear-gradient(
+      135deg,
+      #24262b,
+      #17191d
+    );
+}
+
+
+.hero-banner--dark h1,
+.hero-banner--dark p {
+  color: #ffffff;
+}
+
+
+.hero-banner--dark p {
+  opacity: 0.78;
+}
+
+
+/* ================================
+   Banner Text
+   ================================ */
+
+.hero-banner-content {
+  display: flex;
+  max-width: 620px;
+
+  flex-direction: column;
+
+  animation:
+    heroContentEnter
+    350ms
+    ease-out;
+}
+
+
+@keyframes heroContentEnter {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+
+.hero-eyebrow,
+.section-eyebrow {
+  color: var(--color-primary);
+
+  font-size: 0.76rem;
+  font-weight: 850;
+
+  letter-spacing: 0.12em;
+}
+
+
+.hero-banner h1 {
+  margin: 18px 0 0;
+
+  color: var(--color-text);
+
+  font-size: clamp(
+    2.35rem,
+    4vw,
+    4rem
+  );
+
+  font-weight: 900;
+
+  letter-spacing: -0.04em;
+  line-height: 1.13;
+}
+
+
+.hero-banner p {
+  max-width: 520px;
+
+  margin: 22px 0 0;
+
+  color: var(--color-text-muted);
+
+  font-size: 1rem;
+  line-height: 1.7;
+}
+
+
+/* ================================
+   CTA
+   ================================ */
+
+.hero-action {
+  display: inline-flex;
+
+  width: fit-content;
+
+  min-height: 48px;
+  margin-top: 30px;
+  padding: 0 20px;
+
+  border-radius: 10px;
+
+  align-items: center;
+  gap: 12px;
+
+  color: #ffffff;
+
+  background-color: var(--color-primary);
+
+  font-size: 0.92rem;
+  font-weight: 750;
+
+  transition:
+    background-color 0.18s ease,
+    transform 0.18s ease,
+    box-shadow 0.18s ease;
+}
+
+
+.hero-action:hover {
+  background-color: var(--color-primary-hover);
+
+  transform: translateY(-2px);
+
+  box-shadow:
+    0 10px 24px
+    color-mix(
+      in srgb,
+      var(--color-primary) 24%,
+      transparent
+    );
+}
+
+
+.hero-action span {
+  transition:
+    transform 0.18s ease;
+}
+
+
+.hero-action:hover span {
+  transform: translateX(3px);
+}
+
+
+/* ================================
+   Banner Controller
+   ================================ */
+
+.hero-controller {
+  position: absolute;
+
+  right: 32px;
+  bottom: 28px;
+
+  display: flex;
+
+  padding: 6px;
+
+  border: 1px solid
+    color-mix(
+      in srgb,
+      var(--color-border) 75%,
+      transparent
+    );
+
+  border-radius: 999px;
+
+  align-items: center;
+  gap: 8px;
+
+  background-color:
+    color-mix(
+      in srgb,
+      var(--color-background) 82%,
+      transparent
+    );
+
+  backdrop-filter: blur(10px);
+}
+
+
+.hero-controller > button {
+  display: inline-flex;
+
+  width: 34px;
+  height: 34px;
+
+  padding: 0;
+
+  border: 0;
+  border-radius: 50%;
+
+  align-items: center;
+  justify-content: center;
+
+  color: var(--color-text);
+
+  background: transparent;
+
+  cursor: pointer;
+
+  transition:
+    color 0.18s ease,
+    background-color 0.18s ease;
+}
+
+
+.hero-controller > button:hover {
+  color: var(--color-primary);
+
+  background-color: var(--color-surface);
+}
+
+
+/* ================================
+   Pagination
+   ================================ */
+
+.hero-pagination {
+  display: flex;
+
+  align-items: center;
+  gap: 6px;
+}
+
+
+.hero-pagination-dot {
+  width: 7px;
+  height: 7px;
+
+  padding: 0;
+
+  border: 0;
+  border-radius: 999px;
+
+  background-color:
+    color-mix(
+      in srgb,
+      var(--color-text-muted) 40%,
+      transparent
+    );
+
+  cursor: pointer;
+
+  transition:
+    width 0.2s ease,
+    background-color 0.2s ease;
+}
+
+
+.hero-pagination-dot.active {
+  width: 24px;
+
+  background-color: var(--color-primary);
+}
+
+
+/* =========================================================
+   Blood Status Card
+   ========================================================= */
+
+.blood-status-card {
+  display: flex;
+
+  min-height: 430px;
+  padding: 30px;
+
+  border: 1px solid var(--color-border);
+  border-radius: 26px;
+
+  flex-direction: column;
+
+  background-color: var(--color-surface);
+
+  box-shadow:
+    0 14px 36px rgba(0, 0, 0, 0.04);
+}
+
+
+/* ================================
+   Header
+   ================================ */
+
+.blood-status-header {
+  display: flex;
+
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+
+.blood-status-header h2 {
+  margin: 8px 0 0;
+
+  color: var(--color-text);
+
+  font-size: 1.3rem;
+  font-weight: 850;
+
+  letter-spacing: -0.02em;
+}
+
+
+.blood-status-date {
+  margin-top: 2px;
+
+  color: var(--color-text-muted);
+
+  font-size: 0.74rem;
+
+  white-space: nowrap;
+}
+
+
+/* ================================
+   Tabs
+   ================================ */
+
+.blood-status-tabs {
+  display: grid;
+
+  margin-top: 24px;
+  padding: 4px;
+
+  border-radius: 10px;
+
+  grid-template-columns: repeat(2, 1fr);
+
+  background-color: var(--color-background);
+}
+
+
+.blood-status-tabs button {
+  min-height: 38px;
+
+  border: 0;
+  border-radius: 8px;
+
+  color: var(--color-text-muted);
+
+  background: transparent;
+
+  font-size: 0.86rem;
+  font-weight: 700;
+
+  cursor: pointer;
+
+  transition:
+    color 0.18s ease,
+    background-color 0.18s ease,
+    box-shadow 0.18s ease;
+}
+
+
+.blood-status-tabs button.active {
+  color: var(--color-primary);
+
+  background-color: var(--color-surface);
+
+  box-shadow:
+    0 2px 10px rgba(0, 0, 0, 0.07);
+}
+
+
+/* ================================
+   Total Blood Days
+   ================================ */
+
+.blood-total {
+  margin-top: 24px;
+  padding-bottom: 22px;
+
+  border-bottom: 1px solid var(--color-border);
+}
+
+
+.blood-total > div {
+  display: flex;
+
+  align-items: baseline;
+  gap: 6px;
+}
+
+
+.blood-total > div > span:first-child {
+  margin-right: auto;
+
+  color: var(--color-text-muted);
+
+  font-size: 0.86rem;
+  font-weight: 650;
+}
+
+
+.blood-total strong {
+  color: var(--color-primary);
+
+  font-size: 3rem;
+  font-weight: 900;
+
+  letter-spacing: -0.05em;
+}
+
+
+.blood-total > div > span:last-child {
+  color: var(--color-text);
+
+  font-size: 0.9rem;
+  font-weight: 750;
+}
+
+
+.blood-total p {
+  margin: 8px 0 0;
+
+  color: var(--color-text-muted);
+
+  font-size: 0.78rem;
+  line-height: 1.5;
+}
+
+
+/* ================================
+   Blood Type Grid
+   ================================ */
+
+.blood-type-grid {
+  display: grid;
+
+  margin-top: 18px;
+
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+}
+
+
+.blood-type-item {
+  padding: 14px 10px;
+
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+
+  text-align: center;
+
+  background-color: var(--color-background);
+
+  transition:
+    border-color 0.18s ease,
+    transform 0.18s ease,
+    background-color 0.18s ease;
+}
+
+
+.blood-type-item:hover {
+  border-color:
+    color-mix(
+      in srgb,
+      var(--color-primary) 35%,
+      var(--color-border)
+    );
+
+  background-color:
+    color-mix(
+      in srgb,
+      var(--color-primary) 4%,
+      var(--color-background)
+    );
+
+  transform: translateY(-2px);
+}
+
+
+.blood-type-name {
+  display: block;
+
+  color: var(--color-primary);
+
+  font-size: 0.82rem;
+  font-weight: 850;
+}
+
+
+.blood-type-item div {
+  display: flex;
+
+  margin-top: 6px;
+
+  align-items: baseline;
+  justify-content: center;
+  gap: 3px;
+}
+
+
+.blood-type-item strong {
+  color: var(--color-text);
+
+  font-size: 1.1rem;
+  font-weight: 850;
+}
+
+
+.blood-type-item div span {
+  color: var(--color-text-muted);
+
+  font-size: 0.62rem;
+  font-weight: 700;
+}
+
+
+/* ================================
+   Detail
+   ================================ */
+
+.blood-status-detail {
+  display: flex;
+
+  margin-top: auto;
+  padding-top: 18px;
+
+  align-items: center;
+  justify-content: space-between;
+
+  color: var(--color-text);
+
+  font-size: 0.84rem;
+  font-weight: 700;
+
+  transition:
+    color 0.18s ease;
+}
+
+
+.blood-status-detail:hover {
+  color: var(--color-primary);
+}
+
+
+.blood-status-detail span {
+  transition:
+    transform 0.18s ease;
+}
+
+
+.blood-status-detail:hover span {
+  transform: translateX(4px);
+}
+
+/* =========================================================
+   Main Service Section
+   ========================================================= */
+
+.main-service-section {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+
+/* ================================
+   Section Header
+   ================================ */
+
+.main-section-header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 24px;
+}
+
+.main-section-header h2 {
+  margin: 8px 0 0;
+
+  color: var(--color-text);
+
+  font-size: 1.75rem;
+  font-weight: 850;
+
+  letter-spacing: -0.035em;
+}
+
+.main-section-header p {
+  margin: 8px 0 0;
+
+  color: var(--color-text-muted);
+
+  font-size: 0.92rem;
+  line-height: 1.6;
+}
+
+
+/* =========================================================
+   Service Grid
+   ========================================================= */
+
+.main-service-grid {
+  display: grid;
+
+  grid-template-columns:
+    repeat(3, minmax(0, 1fr));
+
+  gap: 14px;
+}
+
+
+/* =========================================================
+   Service Card
+   ========================================================= */
+
+.main-service-card {
+  position: relative;
+
+  display: grid;
+
+  min-height: 142px;
+  padding: 22px;
+
+  border: 1px solid var(--color-border);
+  border-radius: 18px;
+
+  grid-template-columns:
+    48px minmax(0, 1fr) 22px;
+
+  align-items: center;
+  gap: 16px;
+
+  color: var(--color-text);
+  background-color: var(--color-surface);
+
+  overflow: hidden;
+
+  transition:
+    border-color 0.2s ease,
+    background-color 0.2s ease,
+    box-shadow 0.2s ease,
+    transform 0.2s ease;
+}
+
+
+/*
+ * 카드 오른쪽 위의 아주 약한 장식.
+ * 이미지 리소스를 사용하지 않습니다.
+ */
+
+.main-service-card::before {
+  position: absolute;
+
+  width: 90px;
+  height: 90px;
+
+  top: -48px;
+  right: -44px;
+
+  border-radius: 50%;
+
+  background-color:
+    color-mix(
+      in srgb,
+      var(--color-primary) 5%,
+      transparent
+    );
+
+  content: "";
+
+  pointer-events: none;
+
+  transition:
+    width 0.25s ease,
+    height 0.25s ease,
+    background-color 0.25s ease;
+}
+
+
+/* ================================
+   Hover
+   ================================ */
+
+.main-service-card:hover {
+  border-color:
+    color-mix(
+      in srgb,
+      var(--color-primary) 32%,
+      var(--color-border)
+    );
+
+  background-color:
+    color-mix(
+      in srgb,
+      var(--color-primary) 3%,
+      var(--color-surface)
+    );
+
+  box-shadow:
+    0 12px 28px
+    color-mix(
+      in srgb,
+      var(--color-text) 8%,
+      transparent
+    );
+
+  transform: translateY(-3px);
+}
+
+.main-service-card:hover::before {
+  width: 120px;
+  height: 120px;
+
+  background-color:
+    color-mix(
+      in srgb,
+      var(--color-primary) 8%,
+      transparent
+    );
+}
+
+
+/* =========================================================
+   Priority Service
+   ========================================================= */
+
+/*
+ * 헌혈의 집 찾기 / 헌혈예약
+ *
+ * 다른 카드와 완전히 다른 디자인으로 만들지는 않고
+ * 빨간 accent만 조금 더 강하게 적용합니다.
+ */
+
+.main-service-card.priority {
+  border-color:
+    color-mix(
+      in srgb,
+      var(--color-primary) 20%,
+      var(--color-border)
+    );
+
+  background:
+    linear-gradient(
+      135deg,
+      color-mix(
+        in srgb,
+        var(--color-primary) 5%,
+        var(--color-surface)
+      ),
+      var(--color-surface) 65%
+    );
+}
+
+
+/* =========================================================
+   Service Icon
+   ========================================================= */
+
+.main-service-icon {
+  display: flex;
+
+  width: 54px;
+  height: 54px;
+
+  border-radius: 14px;
+
+  align-items: center;
+  justify-content: center;
+
+  background-color:
+    color-mix(
+      in srgb,
+      var(--color-primary) 8%,
+      var(--color-background)
+    );
+
+  transition:
+    background-color 0.2s ease,
+    transform 0.2s ease;
+}
+
+.service-svg-icon {
+  width: 38px;
+  height: 38px;
+
+  overflow: visible;
+}
+
+
+/* 일반 선 */
+
+.service-icon-line {
+  stroke: var(--service-icon-line);
+
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+
+  fill: none;
+
+  transition:
+    stroke 0.2s ease;
+}
+
+
+/* Red 포인트 - 선 */
+
+.service-icon-accent {
+  stroke: var(--service-icon-accent);
+
+  stroke-width: 2.2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+
+  fill: none;
+
+  transition:
+    stroke 0.2s ease,
+    fill 0.2s ease;
+}
+
+
+/* Red 포인트 - 채움 */
+
+.service-icon-accent-fill {
+  fill: var(--service-icon-accent);
+
+  transition:
+    fill 0.2s ease;
+}
+
+.main-service-card:hover .main-service-icon {
+  color: #ffffff;
+  background-color: var(--color-primary);
+
+  transform:
+    translateY(-2px)
+    scale(1.04);
+}
+
+
+/* =========================================================
+   Service Content
+   ========================================================= */
+
+.main-service-content {
+  min-width: 0;
+}
+
+.main-service-content h3 {
+  margin: 0;
+
+  color: var(--color-text);
+
+  font-size: 1rem;
+  font-weight: 800;
+
+  letter-spacing: -0.02em;
+}
+
+.main-service-content p {
+  margin: 8px 0 0;
+
+  color: var(--color-text-muted);
+
+  font-size: 0.8rem;
+  line-height: 1.5;
+}
+
+
+/* =========================================================
+   Service Arrow
+   ========================================================= */
+
+.main-service-arrow {
+  position: relative;
+  z-index: 1;
+
+  color: var(--color-text-muted);
+
+  font-size: 1rem;
+
+  opacity: 0.5;
+
+  transform: translateX(-2px);
+
+  transition:
+    color 0.2s ease,
+    opacity 0.2s ease,
+    transform 0.2s ease;
+}
+
+.main-service-card:hover .main-service-arrow {
+  color: var(--color-primary);
+
+  opacity: 1;
+
+  transform: translateX(3px);
+}
+
+/* =========================================================
+   Information Section
+   ========================================================= */
+
+.main-information-section {
+  display: grid;
+  grid-template-columns:
+    minmax(0, 1.8fr)
+    minmax(300px, 0.9fr);
+
+  gap: 20px;
+  align-items: stretch;
+}
+
+
+/* =========================================================
+   Common Panel
+   ========================================================= */
+
+.news-panel,
+.notice-panel {
+  padding: 28px;
+
+  border: 1px solid var(--color-border);
+  border-radius: 22px;
+
+  background-color: var(--color-surface);
+
+  transition:
+    background-color 0.2s ease,
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+
+.information-panel-header {
+  display: flex;
+
+  align-items: flex-start;
+  justify-content: space-between;
+
+  gap: 20px;
+}
+
+
+.information-panel-header h2 {
+  margin: 7px 0 0;
+
+  color: var(--color-text);
+
+  font-size: 1.45rem;
+  font-weight: 850;
+
+  letter-spacing: -0.03em;
+}
+
+
+/* =========================================================
+   More Link
+   ========================================================= */
+
+.information-more {
+  display: inline-flex;
+
+  align-items: center;
+  gap: 8px;
+
+  color: var(--color-text-muted);
+
+  font-size: 0.82rem;
+  font-weight: 700;
+
+  transition:
+    color 0.18s ease;
+}
+
+
+.information-more span {
+  transition:
+    transform 0.18s ease;
+}
+
+
+.information-more:hover {
+  color: var(--color-primary);
+}
+
+
+.information-more:hover span {
+  transform: translateX(3px);
+}
+
+
+/* =========================================================
+   News Tabs
+   ========================================================= */
+
+.news-tabs {
+  display: flex;
+
+  margin-top: 24px;
+
+  border-bottom: 1px solid var(--color-border);
+
+  gap: 4px;
+
+  overflow-x: auto;
+
+  scrollbar-width: none;
+}
+
+
+.news-tabs::-webkit-scrollbar {
+  display: none;
+}
+
+
+.news-tabs button {
+  position: relative;
+
+  min-height: 43px;
+  padding: 0 14px;
+
+  border: 0;
+
+  flex-shrink: 0;
+
+  color: var(--color-text-muted);
+  background: transparent;
+
+  font-size: 0.86rem;
+  font-weight: 700;
+
+  cursor: pointer;
+
+  transition:
+    color 0.18s ease;
+}
+
+
+.news-tabs button::after {
+  position: absolute;
+
+  right: 12px;
+  bottom: -1px;
+  left: 12px;
+
+  height: 2px;
+
+  border-radius: 999px;
+
+  background-color: var(--color-primary);
+
+  content: "";
+
+  opacity: 0;
+  transform: scaleX(0.4);
+
+  transition:
+    opacity 0.18s ease,
+    transform 0.2s ease;
+}
+
+
+.news-tabs button:hover,
+.news-tabs button.active {
+  color: var(--color-primary);
+}
+
+
+.news-tabs button.active::after {
+  opacity: 1;
+  transform: scaleX(1);
+}
+
+
+/* =========================================================
+   News List
+   ========================================================= */
+
+.news-list {
+  display: flex;
+
+  min-height: 250px;
+
+  flex-direction: column;
+}
+
+
+.news-item {
+  display: grid;
+
+  min-height: 62px;
+  padding: 0 10px;
+
+  border-bottom: 1px solid var(--color-border);
+
+  grid-template-columns:
+    82px minmax(0, 1fr) 88px;
+
+  align-items: center;
+  gap: 14px;
+
+  transition:
+    background-color 0.18s ease,
+    padding 0.18s ease;
+}
+
+
+.news-item:hover {
+  padding-right: 14px;
+  padding-left: 14px;
+
+  background-color:
+    color-mix(
+      in srgb,
+      var(--color-primary) 3%,
+      var(--color-background)
+    );
+}
+
+
+.news-category {
+  display: inline-flex;
+
+  width: fit-content;
+
+  padding: 5px 8px;
+
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+
+  color: var(--color-text-muted);
+
+  background-color: var(--color-background);
+
+  font-size: 0.72rem;
+  font-weight: 700;
+
+  white-space: nowrap;
+}
+
+
+.news-item strong {
+  min-width: 0;
+
+  overflow: hidden;
+
+  color: var(--color-text);
+
+  font-size: 0.88rem;
+  font-weight: 700;
+
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+
+.news-item time {
+  color: var(--color-text-muted);
+
+  font-size: 0.75rem;
+
+  text-align: right;
+}
+
+
+/* =========================================================
+   Notice Panel
+   ========================================================= */
+
+.notice-panel {
+  position: relative;
+
+  display: flex;
+
+  min-height: 370px;
+
+  flex-direction: column;
+
+  overflow: hidden;
+}
+
+
+.notice-panel::before {
+  position: absolute;
+
+  width: 230px;
+  height: 230px;
+
+  top: -120px;
+  right: -110px;
+
+  border-radius: 50%;
+
+  background-color:
+    color-mix(
+      in srgb,
+      var(--color-primary) 7%,
+      transparent
+    );
+
+  content: "";
+
+  pointer-events: none;
+}
+
+
+/* =========================================================
+   Notice Count
+   ========================================================= */
+
+.notice-count {
+  position: relative;
+  z-index: 1;
+
+  display: flex;
+
+  align-items: baseline;
+  gap: 5px;
+
+  color: var(--color-text-muted);
+
+  font-size: 0.75rem;
+}
+
+
+.notice-count strong {
+  color: var(--color-primary);
+
+  font-size: 1rem;
+  font-weight: 850;
+}
+
+
+/* =========================================================
+   Notice Card
+   ========================================================= */
+
+.notice-card {
+  position: relative;
+  z-index: 1;
+
+  display: flex;
+
+  margin-top: 34px;
+
+  flex: 1;
+  flex-direction: column;
+
+  animation:
+    noticeContentEnter
+    300ms
+    ease-out;
+}
+
+
+@keyframes noticeContentEnter {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+
+.notice-eyebrow {
+  color: var(--color-primary);
+
+  font-size: 0.72rem;
+  font-weight: 850;
+
+  letter-spacing: 0.12em;
+}
+
+
+.notice-card h3 {
+  margin: 14px 0 0;
+
+  color: var(--color-text);
+
+  font-size: 1.5rem;
+  font-weight: 850;
+
+  letter-spacing: -0.035em;
+  line-height: 1.3;
+}
+
+
+.notice-card p {
+  margin: 16px 0 0;
+
+  color: var(--color-text-muted);
+
+  font-size: 0.86rem;
+  line-height: 1.65;
+}
+
+
+/* =========================================================
+   Notice Action
+   ========================================================= */
+
+.notice-action {
+  display: inline-flex;
+
+  width: fit-content;
+
+  margin-top: auto;
+  padding-top: 24px;
+
+  align-items: center;
+  gap: 10px;
+
+  color: var(--color-text);
+
+  font-size: 0.84rem;
+  font-weight: 750;
+
+  transition:
+    color 0.18s ease;
+}
+
+
+.notice-action span {
+  color: var(--color-primary);
+
+  transition:
+    transform 0.18s ease;
+}
+
+
+.notice-action:hover {
+  color: var(--color-primary);
+}
+
+
+.notice-action:hover span {
+  transform: translateX(4px);
+}
+
+
+/* =========================================================
+   Notice Controller
+   ========================================================= */
+
+.notice-controller {
+  position: relative;
+  z-index: 1;
+
+  display: flex;
+
+  margin-top: 18px;
+
+  justify-content: flex-end;
+  gap: 6px;
+}
+
+
+.notice-controller button {
+  display: inline-flex;
+
+  width: 36px;
+  height: 36px;
+
+  padding: 0;
+
+  border: 1px solid var(--color-border);
+  border-radius: 50%;
+
+  align-items: center;
+  justify-content: center;
+
+  color: var(--color-text-muted);
+  background-color: var(--color-background);
+
+  cursor: pointer;
+
+  transition:
+    border-color 0.18s ease,
+    color 0.18s ease,
+    background-color 0.18s ease,
+    transform 0.18s ease;
+}
+
+
+.notice-controller button:hover {
+  border-color: var(--color-primary);
+
+  color: var(--color-primary);
+
+  background-color:
+    color-mix(
+      in srgb,
+      var(--color-primary) 5%,
+      var(--color-background)
+    );
+
+  transform: translateY(-1px);
+}
+
+/* =========================================================
+   Highlight Section
+   ========================================================= */
+
+.main-highlight-section {
+  display: grid;
+  grid-template-columns:
+    minmax(0, 1.45fr)
+    minmax(320px, 0.85fr);
+
+  gap: 20px;
+  align-items: stretch;
+}
+
+
+/* =========================================================
+   Hall of Fame
+   ========================================================= */
+
+.hall-of-fame-panel,
+.donation-tip-panel {
+  padding: 28px;
+
+  border: 1px solid var(--color-border);
+  border-radius: 22px;
+
+  background-color: var(--color-surface);
+
+  transition:
+    background-color 0.2s ease,
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+
+.hall-of-fame-list {
+  display: flex;
+
+  margin-top: 24px;
+
+  flex-direction: column;
+  gap: 10px;
+}
+
+
+.hall-of-fame-item {
+  display: grid;
+
+  min-height: 76px;
+  padding: 14px 16px;
+
+  border: 1px solid var(--color-border);
+  border-radius: 14px;
+
+  grid-template-columns:
+    44px minmax(0, 1fr) auto;
+
+  align-items: center;
+  gap: 14px;
+
+  background-color: var(--color-background);
+
+  transition:
+    border-color 0.18s ease,
+    background-color 0.18s ease,
+    transform 0.18s ease,
+    box-shadow 0.18s ease;
+}
+
+
+.hall-of-fame-item:hover {
+  border-color:
+    color-mix(
+      in srgb,
+      var(--color-primary) 26%,
+      var(--color-border)
+    );
+
+  background-color:
+    color-mix(
+      in srgb,
+      var(--color-primary) 3%,
+      var(--color-background)
+    );
+
+  transform: translateY(-2px);
+
+  box-shadow:
+    0 8px 20px
+    color-mix(
+      in srgb,
+      var(--color-text) 6%,
+      transparent
+    );
+}
+
+
+/* ================================
+   Rank
+   ================================ */
+
+.hall-rank {
+  display: flex;
+
+  width: 38px;
+  height: 38px;
+
+  border-radius: 12px;
+
+  align-items: center;
+  justify-content: center;
+
+  color: var(--color-text-muted);
+  background-color: var(--color-surface);
+
+  font-size: 0.9rem;
+  font-weight: 850;
+}
+
+
+.hall-of-fame-item:first-child .hall-rank {
+  color: #ffffff;
+  background-color: var(--color-primary);
+
+  box-shadow:
+    0 5px 16px
+    color-mix(
+      in srgb,
+      var(--color-primary) 24%,
+      transparent
+    );
+}
+
+
+/* ================================
+   Member Info
+   ================================ */
+
+.hall-member {
+  display: flex;
+
+  min-width: 0;
+
+  flex-direction: column;
+  gap: 5px;
+}
+
+
+.hall-member strong {
+  color: var(--color-text);
+
+  font-size: 0.98rem;
+  font-weight: 800;
+}
+
+
+.hall-member span {
+  color: var(--color-text-muted);
+
+  font-size: 0.76rem;
+}
+
+
+/* ================================
+   Donation Count
+   ================================ */
+
+.hall-count {
+  display: flex;
+
+  align-items: baseline;
+  gap: 4px;
+}
+
+
+.hall-count strong {
+  color: var(--color-primary);
+
+  font-size: 1.35rem;
+  font-weight: 900;
+
+  letter-spacing: -0.03em;
+}
+
+
+.hall-count span {
+  color: var(--color-text-muted);
+
+  font-size: 0.76rem;
+  font-weight: 700;
+}
+
+
+/* =========================================================
+   Donation Tip
+   ========================================================= */
+
+.donation-tip-panel {
+  position: relative;
+
+  display: flex;
+
+  min-height: 360px;
+
+  flex-direction: column;
+
+  overflow: hidden;
+}
+
+
+.donation-tip-panel::before {
+  position: absolute;
+
+  width: 220px;
+  height: 220px;
+
+  right: -110px;
+  bottom: -120px;
+
+  border-radius: 50%;
+
+  background-color:
+    color-mix(
+      in srgb,
+      var(--color-primary) 6%,
+      transparent
+    );
+
+  content: "";
+
+  pointer-events: none;
+}
+
+
+.donation-tip-card {
+  position: relative;
+  z-index: 1;
+
+  display: flex;
+
+  margin-top: 34px;
+
+  flex: 1;
+  flex-direction: column;
+
+  animation:
+    donationTipEnter
+    300ms
+    ease-out;
+}
+
+
+@keyframes donationTipEnter {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+
+.donation-tip-category {
+  display: inline-flex;
+
+  width: fit-content;
+
+  padding: 5px 8px;
+
+  border-radius: 999px;
+
+  color: var(--color-primary);
+
+  background-color:
+    color-mix(
+      in srgb,
+      var(--color-primary) 8%,
+      var(--color-background)
+    );
+
+  font-size: 0.7rem;
+  font-weight: 850;
+
+  letter-spacing: 0.08em;
+}
+
+
+.donation-tip-card h3 {
+  margin: 18px 0 0;
+
+  color: var(--color-text);
+
+  font-size: 1.45rem;
+  font-weight: 850;
+
+  letter-spacing: -0.035em;
+  line-height: 1.35;
+}
+
+
+.donation-tip-card p {
+  margin: 16px 0 0;
+
+  color: var(--color-text-muted);
+
+  font-size: 0.86rem;
+  line-height: 1.7;
+}
+
+/* =========================================================
+   Promotion + Social Section
+   ========================================================= */
+
+.main-promotion-section {
+  display: grid;
+
+  grid-template-columns:
+    minmax(0, 1.65fr)
+    minmax(300px, 0.75fr);
+
+  gap: 20px;
+  align-items: stretch;
+}
+
+
+/* =========================================================
+   Common Panels
+   ========================================================= */
+
+.promotion-panel,
+.social-panel {
+  padding: 28px;
+
+  border: 1px solid var(--color-border);
+  border-radius: 22px;
+
+  background-color: var(--color-surface);
+
+  transition:
+    background-color 0.2s ease,
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+
+/* =========================================================
+   Promotion Grid
+   ========================================================= */
+
+.promotion-grid {
+  display: grid;
+
+  margin-top: 24px;
+
+  grid-template-columns:
+    repeat(3, minmax(0, 1fr));
+
+  gap: 12px;
+}
+
+
+/* =========================================================
+   Promotion Card
+   ========================================================= */
+
+.promotion-card {
+  position: relative;
+
+  display: flex;
+
+  min-height: 220px;
+  padding: 22px;
+
+  border: 1px solid var(--color-border);
+  border-radius: 17px;
+
+  flex-direction: column;
+
+  color: var(--color-text);
+
+  background:
+    linear-gradient(
+      145deg,
+      color-mix(
+        in srgb,
+        var(--color-primary) 4%,
+        var(--color-background)
+      ),
+      var(--color-background)
+    );
+
+  overflow: hidden;
+
+  transition:
+    border-color 0.2s ease,
+    background-color 0.2s ease,
+    box-shadow 0.2s ease,
+    transform 0.2s ease;
+}
+
+
+.promotion-card::before {
+  position: absolute;
+
+  width: 150px;
+  height: 150px;
+
+  right: -80px;
+  bottom: -90px;
+
+  border: 28px solid
+    color-mix(
+      in srgb,
+      var(--color-primary) 7%,
+      transparent
+    );
+
+  border-radius: 50%;
+
+  content: "";
+
+  pointer-events: none;
+
+  transition:
+    width 0.25s ease,
+    height 0.25s ease,
+    border-color 0.25s ease;
+}
+
+
+.promotion-card:hover {
+  border-color:
+    color-mix(
+      in srgb,
+      var(--color-primary) 28%,
+      var(--color-border)
+    );
+
+  box-shadow:
+    0 12px 28px
+    color-mix(
+      in srgb,
+      var(--color-text) 7%,
+      transparent
+    );
+
+  transform: translateY(-3px);
+}
+
+
+.promotion-card:hover::before {
+  width: 175px;
+  height: 175px;
+
+  border-color:
+    color-mix(
+      in srgb,
+      var(--color-primary) 11%,
+      transparent
+    );
+}
+
+
+/* ================================
+   Promotion Category
+   ================================ */
+
+.promotion-category {
+  display: inline-flex;
+
+  width: fit-content;
+
+  padding: 5px 8px;
+
+  border-radius: 999px;
+
+  color: var(--color-primary);
+
+  background-color:
+    color-mix(
+      in srgb,
+      var(--color-primary) 8%,
+      var(--color-background)
+    );
+
+  font-size: 0.68rem;
+  font-weight: 850;
+
+  letter-spacing: 0.08em;
+}
+
+
+/* ================================
+   Promotion Content
+   ================================ */
+
+.promotion-card h3 {
+  position: relative;
+  z-index: 1;
+
+  margin: 20px 0 0;
+
+  color: var(--color-text);
+
+  font-size: 1.12rem;
+  font-weight: 850;
+
+  letter-spacing: -0.03em;
+  line-height: 1.35;
+}
+
+
+.promotion-card p {
+  position: relative;
+  z-index: 1;
+
+  margin: 12px 0 0;
+
+  color: var(--color-text-muted);
+
+  font-size: 0.8rem;
+  line-height: 1.6;
+}
+
+
+/* ================================
+   Promotion Arrow
+   ================================ */
+
+.promotion-arrow {
+  position: relative;
+  z-index: 1;
+
+  margin-top: auto;
+
+  color: var(--color-primary);
+
+  font-size: 1rem;
+
+  transition:
+    transform 0.18s ease;
+}
+
+
+.promotion-card:hover .promotion-arrow {
+  transform: translateX(4px);
+}
+
+
+/* =========================================================
+   Social Panel
+   ========================================================= */
+
+.social-panel {
+  display: flex;
+
+  min-height: 340px;
+
+  flex-direction: column;
+}
+
+
+.social-intro {
+  margin: 18px 0 0;
+
+  color: var(--color-text-muted);
+
+  font-size: 0.84rem;
+  line-height: 1.65;
+}
+
+
+/* =========================================================
+   Social Channels
+   ========================================================= */
+
+.social-channel-list {
+  display: flex;
+
+  margin-top: 24px;
+
+  flex-direction: column;
+  gap: 9px;
+}
+
+
+.social-channel {
+  display: grid;
+
+  width: 100%;
+  min-height: 68px;
+  padding: 11px 13px;
+
+  border: 1px solid var(--color-border);
+  border-radius: 14px;
+
+  grid-template-columns:
+    42px minmax(0, 1fr) 20px;
+
+  align-items: center;
+  gap: 12px;
+
+  color: var(--color-text);
+
+  background-color: var(--color-background);
+
+  text-align: left;
+
+  cursor: pointer;
+
+  transition:
+    border-color 0.18s ease,
+    background-color 0.18s ease,
+    transform 0.18s ease,
+    box-shadow 0.18s ease;
+}
+
+
+.social-channel:hover {
+  border-color:
+    color-mix(
+      in srgb,
+      var(--color-primary) 26%,
+      var(--color-border)
+    );
+
+  background-color:
+    color-mix(
+      in srgb,
+      var(--color-primary) 3%,
+      var(--color-background)
+    );
+
+  transform: translateY(-2px);
+
+  box-shadow:
+    0 8px 20px
+    color-mix(
+      in srgb,
+      var(--color-text) 6%,
+      transparent
+    );
+}
+
+
+/* ================================
+   Social Icon
+   ================================ */
+
+.social-channel-icon {
+  display: flex;
+
+  width: 42px;
+  height: 42px;
+
+  border-radius: 12px;
+
+  align-items: center;
+  justify-content: center;
+
+  color: var(--color-primary);
+
+  background-color:
+    color-mix(
+      in srgb,
+      var(--color-primary) 8%,
+      var(--color-background)
+    );
+
+  font-size: 0.95rem;
+  font-weight: 850;
+}
+
+
+/* ================================
+   Social Text
+   ================================ */
+
+.social-channel-text {
+  display: flex;
+
+  min-width: 0;
+
+  flex-direction: column;
+  gap: 4px;
+}
+
+
+.social-channel-text strong {
+  color: var(--color-text);
+
+  font-size: 0.88rem;
+  font-weight: 800;
+}
+
+
+.social-channel-text span {
+  color: var(--color-text-muted);
+
+  font-size: 0.72rem;
+}
+
+
+/* ================================
+   Social Arrow
+   ================================ */
+
+.social-channel-arrow {
+  color: var(--color-text-muted);
+
+  opacity: 0.55;
+
+  transition:
+    color 0.18s ease,
+    opacity 0.18s ease,
+    transform 0.18s ease;
+}
+
+
+.social-channel:hover .social-channel-arrow {
+  color: var(--color-primary);
+
+  opacity: 1;
+
+  transform: translateX(3px);
+}
+
+/* =========================================================
+   Large Desktop
+   ========================================================= */
+
+@media (min-width: 1440px) {
+  .hero-banner {
+    min-height: 460px;
+    padding: 62px;
+  }
+
+  .blood-status-card {
+    min-height: 460px;
+  }
+
+  .main-service-grid {
+    grid-template-columns:
+      repeat(3, minmax(0, 1fr));
+
+    gap: 16px;
+  }
+
+  .main-service-card {
+    min-height: 148px;
+    padding: 24px;
+  }
+}
+
+
+/* =========================================================
+   Tablet
+   ========================================================= */
+
+@media (max-width: 1024px) {
+
+  .promotion-grid {
+    grid-template-columns:
+      repeat(2, minmax(0, 1fr));
+  }
+
+  .main-promotion-section {
+    grid-template-columns: 1fr;
+  }
+
+
+  .social-panel {
+    min-height: auto;
+  }
+
+  .main-highlight-section {
+    grid-template-columns: 1fr;
+  }
+
+  .donation-tip-panel {
+    min-height: 320px;
+  }
+
+  .main-information-section {
+    grid-template-columns: 1fr;
+  }
+
+  .notice-panel {
+    min-height: 320px;
+  }
+
+  .main-service-grid {
+    grid-template-columns:
+      repeat(2, minmax(0, 1fr));
+  }
+
+  .main-service-card {
+    min-height: 136px;
+  }
+  .main-page {
+    gap: 46px;
+  }
+
+  .main-hero {
+    grid-template-columns: 1fr;
+  }
+
+  .hero-banner {
+    min-height: 390px;
+  }
+
+  .blood-status-card {
+    min-height: auto;
+  }
+
+  .blood-type-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+
+/* =========================================================
+   Mobile
+   ========================================================= */
+
+@media (max-width: 768px) {
+
+  .promotion-panel,
+  .social-panel {
+    padding: 22px;
+
+    border-radius: 18px;
+  }
+
+
+  .promotion-grid {
+    margin-top: 18px;
+
+    grid-template-columns: 1fr;
+
+    gap: 10px;
+  }
+
+
+  .promotion-card {
+    min-height: 170px;
+    padding: 19px;
+
+    border-radius: 15px;
+  }
+
+
+  .promotion-card h3 {
+    margin-top: 16px;
+
+    font-size: 1rem;
+  }
+
+
+  .social-intro {
+    margin-top: 14px;
+  }
+
+
+  .social-channel-list {
+    margin-top: 18px;
+  }
+
+
+  .social-channel {
+    min-height: 64px;
+  }
+
+  .hall-of-fame-panel,
+  .donation-tip-panel {
+    padding: 22px;
+
+    border-radius: 18px;
+  }
+
+
+  .hall-of-fame-list {
+    margin-top: 18px;
+  }
+
+
+  .hall-of-fame-item {
+    min-height: 68px;
+    padding: 12px 12px;
+
+    grid-template-columns:
+      38px minmax(0, 1fr) auto;
+
+    gap: 11px;
+  }
+
+
+  .hall-rank {
+    width: 34px;
+    height: 34px;
+
+    border-radius: 10px;
+  }
+
+
+  .hall-member strong {
+    font-size: 0.9rem;
+  }
+
+
+  .hall-count strong {
+    font-size: 1.15rem;
+  }
+
+
+  .donation-tip-panel {
+    min-height: 300px;
+  }
+
+
+  .donation-tip-card {
+    margin-top: 26px;
+  }
+
+
+  .donation-tip-card h3 {
+    font-size: 1.3rem;
+  }
+
+  .news-panel,
+  .notice-panel {
+    padding: 22px;
+
+    border-radius: 18px;
+  }
+
+
+  .information-panel-header h2 {
+    font-size: 1.3rem;
+  }
+
+
+  .news-tabs {
+    margin-top: 18px;
+  }
+
+
+  .news-tabs button {
+    min-height: 40px;
+    padding: 0 11px;
+
+    font-size: 0.8rem;
+  }
+
+
+  .news-list {
+    min-height: 0;
+  }
+
+
+  .news-item {
+    min-height: 72px;
+
+    padding: 10px 4px;
+
+    grid-template-columns:
+      minmax(0, 1fr)
+      auto;
+
+    gap: 5px 12px;
+  }
+
+
+  .news-category {
+    grid-column: 1 / -1;
+  }
+
+
+  .news-item strong {
+    font-size: 0.84rem;
+  }
+
+
+  .news-item time {
+    font-size: 0.7rem;
+  }
+
+
+  .notice-panel {
+    min-height: 310px;
+  }
+
+
+  .notice-card {
+    margin-top: 26px;
+  }
+
+
+  .notice-card h3 {
+    font-size: 1.35rem;
+  }
+
+  .main-page {
+    gap: 38px;
+  }
+
+  .main-hero {
+    gap: 16px;
+  }
+
+  .hero-banner {
+    min-height: 400px;
+
+    padding:
+      38px
+      26px
+      82px;
+
+    border-radius: 20px;
+  }
+
+  .hero-banner h1 {
+    font-size: 2.35rem;
+  }
+
+  .hero-banner p {
+    font-size: 0.92rem;
+  }
+
+  .hero-controller {
+    right: 20px;
+    bottom: 20px;
+  }
+
+  .blood-status-card {
+    padding: 24px;
+
+    border-radius: 20px;
+  }
+
+  .main-service-section {
+    gap: 18px;
+  }
+
+  .main-section-header h2 {
+    font-size: 1.5rem;
+  }
+
+  .main-section-header p {
+    font-size: 0.86rem;
+  }
+
+  .main-service-grid {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  .main-service-card {
+    min-height: 112px;
+    padding: 18px;
+
+    border-radius: 15px;
+
+    grid-template-columns:
+      44px minmax(0, 1fr) 20px;
+
+    gap: 14px;
+  }
+
+  .main-service-icon {
+    width: 44px;
+    height: 44px;
+
+    border-radius: 12px;
+
+    font-size: 1.1rem;
+  }
+
+  .main-service-content p {
+    margin-top: 5px;
+  }
+}
+
+
+/* =========================================================
+   Small Mobile
+   ========================================================= */
+
+@media (max-width: 480px) {
+  .hero-banner {
+    min-height: 420px;
+
+    padding:
+      32px
+      20px
+      82px;
+  }
+
+  .hero-banner h1 {
+    font-size: 2rem;
+  }
+
+  .hero-action {
+    width: 100%;
+
+    justify-content: space-between;
+  }
+
+  .blood-status-header {
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .blood-status-date {
+    margin: 0;
+  }
+
+  .blood-type-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .blood-type-item {
+    padding: 16px 10px;
+  }
+}
