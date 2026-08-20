@@ -28,6 +28,7 @@ public class BloodDummyGenerator {
         this.unitSequence = new AtomicInteger(100000 + random.nextInt(900000));
     }
 
+    // 1. [테이블 초기화] status 컬럼 한글 기본값('보유중') 설정
     public void initDatabase() {
         String sql = """
                 CREATE TABLE blood_units (
@@ -41,18 +42,20 @@ public class BloodDummyGenerator {
                     product_type VARCHAR(30) NOT NULL,
                     collection_date DATETIME NOT NULL,
                     expiration_date DATETIME NOT NULL,
+                    status VARCHAR(20) NOT NULL DEFAULT '보유중', -- 상태값 한글 적용 (보유중, 예약됨, 사용완료)
                     INDEX idx_donor_id (donor_id),
                     INDEX idx_blood_type (blood_type),
                     INDEX idx_rh_type (rh_type),
                     INDEX idx_product_type (product_type),
-                    INDEX idx_expiration_date (expiration_date)
+                    INDEX idx_expiration_date (expiration_date),
+                    INDEX idx_status (status)
                 )""";
 
         try (Connection conn = DriverManager.getConnection(dbUrl, dbUser, dbPassword);
              Statement stmt = conn.createStatement()) {
             stmt.executeUpdate("DROP TABLE IF EXISTS blood_units");
             stmt.executeUpdate(sql);
-            System.out.println("DB 테이블 초기화 완료");
+            System.out.println("DB 테이블 초기화 완료 (status: '보유중' 기본값 설정)");
         } catch (SQLException e) {
             throw new RuntimeException("DB 초기화 실패", e);
         }
@@ -87,12 +90,13 @@ public class BloodDummyGenerator {
         return result;
     }
 
+    // 2. [데이터 저장] status 컬럼에 '보유중' 주입
     private void saveToDatabase(List<BloodType> bloodTypes, ProductType productType) {
         String sql = """
                 INSERT INTO blood_units (
                     donor_id, blood_type, rh_type, gender, birth_date,
-                    unit_id, product_type, collection_date, expiration_date
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)""";
+                    unit_id, product_type, collection_date, expiration_date, status
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, '보유중')""";
 
         try (Connection conn = DriverManager.getConnection(dbUrl, dbUser, dbPassword);
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
@@ -166,7 +170,7 @@ public class BloodDummyGenerator {
 
     public enum ProductType {
         WHOLE_BLOOD("전혈", 35),
-        PLASMA("혈장", 365), // 혈장(유효기간 365일) 추가
+        PLASMA("혈장", 365),
         PLATELET_SINGLE("혈소판단종", 5),
         PLATELET_MULTI("혈소판다종", 5);
 
