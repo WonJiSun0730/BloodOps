@@ -1,3 +1,326 @@
+
+.admin-center-donation-options label {
+  display: flex;
+
+  min-height: 36px;
+  padding: 0 5px;
+
+  align-items: center;
+  justify-content: center;
+
+  gap: 4px;
+
+  font-size: 0.68rem;
+
+  white-space: nowrap;
+}
+
+
+.admin-center-donation-options label input {
+  width: 14px;
+  height: 14px;
+
+  flex: 0 0 auto;
+}
+
+.admin-center-time-range {
+  display: flex;
+
+  align-items: center;
+  gap: 8px;
+}
+
+
+.admin-center-time-range input {
+  width: 118px;
+  min-width: 0;
+
+  flex: 0 0 118px;
+
+  text-align: center;
+}
+
+
+.admin-center-time-range > span {
+  color: var(--color-text-muted);
+
+  font-size: 0.8rem;
+}
+
+.admin-center-time-range.error input {
+  border-color: var(--color-primary);
+}
+
+
+.admin-center-field-error {
+  display: block;
+
+  margin-top: 3px;
+
+  color: var(--color-primary);
+
+  font-size: 0.7rem;
+  font-weight: 650;
+  line-height: 1.4;
+}
+
+.admin-center-drawer-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 90;
+
+  border: 0;
+
+  background: rgba(0, 0, 0, 0.32);
+}
+
+
+.admin-center-drawer {
+  position: fixed;
+  top: 0;
+  right: 0;
+  z-index: 100;
+
+  display: flex;
+
+  width: min(460px, 92vw);
+  height: 100dvh;
+  padding: 28px;
+
+  flex-direction: column;
+
+  overflow-y: auto;
+
+  border-left: 1px solid var(--color-border);
+
+  color: var(--color-text);
+  background-color: var(--color-surface);
+
+  box-shadow: -16px 0 40px rgba(0, 0, 0, 0.14);
+}
+
+
+.admin-center-drawer-header {
+  display: flex;
+
+  justify-content: space-between;
+  gap: 20px;
+
+  padding-bottom: 20px;
+
+  border-bottom: 1px solid var(--color-border);
+}
+
+
+.admin-center-drawer-label {
+  color: var(--color-primary);
+
+  font-size: 0.75rem;
+  font-weight: 800;
+}
+
+
+.admin-center-drawer-header h2 {
+  margin: 6px 0;
+
+  font-size: 1.25rem;
+}
+
+
+.admin-center-drawer-header p {
+  margin: 0;
+
+  color: var(--color-text-muted);
+
+  font-size: 0.78rem;
+}
+
+.admin-center-public-info {
+  display: grid;
+
+  margin-top: 18px;
+  padding: 14px;
+
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+
+  grid-template-columns:
+    repeat(3, minmax(0, 1fr));
+
+  gap: 12px;
+
+  background-color: var(--color-background);
+}
+
+.admin-center-create-info
+.admin-center-edit-field:nth-child(4),
+.admin-center-create-info
+.admin-center-edit-field:nth-child(5) {
+  grid-column: 1 / -1;
+}
+
+.admin-center-public-info > div {
+  display: flex;
+
+  min-width: 0;
+
+  flex-direction: column;
+  gap: 5px;
+}
+
+
+.admin-center-public-info span {
+  color: var(--color-text-muted);
+
+  font-size: 0.68rem;
+  font-weight: 700;
+}
+
+
+.admin-center-public-info strong {
+  overflow: hidden;
+
+  color: var(--color-text);
+
+  font-size: 0.78rem;
+  font-weight: 750;
+
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.admin-center-drawer-close {
+  width: 38px;
+  height: 38px;
+
+  border: 0;
+
+  color: var(--color-text);
+  background: transparent;
+
+  font-size: 1.5rem;
+
+  cursor: pointer;
+}
+
+
+.admin-center-edit-form {
+  display: flex;
+
+  padding-top: 22px;
+
+  flex-direction: column;
+  gap: 18px;
+}
+
+
+.admin-center-edit-field {
+  display: flex;
+
+  flex-direction: column;
+  gap: 7px;
+}
+
+
+.admin-center-edit-field > span {
+  font-size: 0.76rem;
+  font-weight: 800;
+}
+
+
+.admin-center-edit-field input,
+.admin-center-edit-field textarea {
+  width: 100%;
+  padding: 11px 12px;
+
+  border: 1px solid var(--color-border);
+  border-radius: 9px;
+
+  color: var(--color-text);
+  background-color: var(--color-background);
+
+  font: inherit;
+}
+
+.admin-center-edit-field textarea {
+  height: 96px;
+  min-height: 96px;
+  max-height: 96px;
+
+  resize: none;
+
+  overflow-x: hidden;
+  overflow-y: auto;
+
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+
+  line-height: 1.55;
+}
+
+
+.admin-center-status-options {
+  display: grid;
+
+  grid-template-columns: 1fr 1fr;
+
+  gap: 8px;
+}
+
+
+.admin-center-status-options button {
+  min-height: 42px;
+
+  border: 1px solid var(--color-border);
+  border-radius: 9px;
+
+  color: var(--color-text);
+  background: transparent;
+
+  cursor: pointer;
+}
+
+
+.admin-center-status-options button.selected {
+  border-color: var(--color-primary);
+
+  color: var(--color-primary);
+
+  font-weight: 800;
+}
+
+
+.admin-center-drawer-actions {
+  display: grid;
+
+  margin-top: 10px;
+
+  grid-template-columns: 1fr 1fr;
+
+  gap: 10px;
+}
+
+
+.admin-center-drawer-actions button {
+  min-height: 44px;
+
+  border: 1px solid var(--color-border);
+  border-radius: 9px;
+
+  color: var(--color-text);
+  background: transparent;
+
+  cursor: pointer;
+}
+
+
+.admin-center-drawer-actions .primary {
+  border-color: var(--color-primary);
+
+  color: #fff;
+  background-color: var(--color-primary);
+}
+
 .admin-centers-page {
   width: min(
     calc(100% - (var(--page-padding) * 2)),
@@ -86,7 +409,45 @@
 
 
 .admin-center-search {
-  width: min(420px, 100%);
+  display: flex;
+
+  width: min(520px, 100%);
+
+  gap: 8px;
+}
+
+.admin-center-search-button {
+  min-width: 72px;
+  height: 44px;
+
+  padding: 0 14px;
+
+  border: 1px solid var(--color-primary);
+  border-radius: 10px;
+
+  color: #ffffff;
+  background-color: var(--color-primary);
+
+  font-size: 0.8rem;
+  font-weight: 750;
+
+  cursor: pointer;
+}
+
+
+.admin-center-message {
+  padding: 28px 18px;
+
+  color: var(--color-text-muted);
+
+  font-size: 0.84rem;
+
+  text-align: center;
+}
+
+
+.admin-center-message.error {
+  color: var(--color-primary);
 }
 
 
@@ -321,6 +682,64 @@
 
 
 @media (max-width: 768px) {
+
+  .admin-center-create-info {
+    grid-template-columns: 1fr;
+  }
+
+
+  .admin-center-create-info
+  .admin-center-edit-field {
+    grid-column: auto;
+  }
+
+  .admin-center-public-info {
+    grid-template-columns:
+      repeat(2, minmax(0, 1fr));
+  }
+
+
+  .admin-center-time-range input {
+    width: min(118px, 38vw);
+
+    flex-basis: min(118px, 38vw);
+  }
+
+
+  .admin-center-donation-options {
+    display: grid;
+
+    grid-template-columns:
+      repeat(4, max-content);
+
+    align-items: center;
+    justify-content: start;
+
+    gap: 8px;
+  }
+
+  .admin-center-drawer {
+    width: 100%;
+    max-width: none;
+
+    padding:
+      20px
+      max(18px, env(safe-area-inset-right))
+      max(20px, env(safe-area-inset-bottom))
+      max(18px, env(safe-area-inset-left));
+
+    border-left: 0;
+  }
+
+
+  .admin-center-drawer-actions {
+    position: sticky;
+    bottom: 0;
+
+    padding-top: 12px;
+
+    background-color: var(--color-surface);
+  }
 
   .admin-centers-page {
     padding-top: 38px;

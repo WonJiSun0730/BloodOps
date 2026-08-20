@@ -152,3 +152,71 @@ export async function logout() {
 export function getCurrentUser() {
   return apiRequest('/api/auth/me')
 }
+
+/*
+ * 헌혈센터 목록을 조회합니다.
+ *
+ * keyword가 없으면 전체 센터,
+ * 있으면 센터명 또는 주소 기준으로 검색합니다.
+ */
+export function getCenters(keyword = '') {
+  const trimmedKeyword = keyword.trim()
+
+  if (!trimmedKeyword) {
+    return apiRequest('/api/centers')
+  }
+
+  return apiRequest(
+    `/api/centers?keyword=${encodeURIComponent(trimmedKeyword)}`
+  )
+}
+
+
+/*
+ * 헌혈센터 한 곳의 상세 정보를 조회합니다.
+ */
+export function getCenter(centerId) {
+  return apiRequest(`/api/centers/${centerId}`)
+}
+
+/*
+ * ADMIN이 신규 헌혈센터를 등록합니다.
+ */
+export async function createCenter(centerData) {
+  const csrf = await getCsrfToken()
+
+  return apiRequest(
+    '/api/admin/centers',
+    {
+      method: 'POST',
+
+      headers: {
+        'Content-Type': 'application/json',
+        [csrf.headerName]: csrf.token,
+      },
+
+      body: JSON.stringify(centerData),
+    }
+  )
+}
+
+export async function updateCenter(
+  centerId,
+  centerData
+) {
+  const csrf = await getCsrfToken()
+
+  return apiRequest(
+    `/api/admin/centers/${centerId}`,
+    {
+      method: 'PUT',
+
+      headers: {
+        'Content-Type': 'application/json',
+        [csrf.headerName]: csrf.token,
+      },
+
+      body: JSON.stringify(centerData),
+    }
+  )
+}
