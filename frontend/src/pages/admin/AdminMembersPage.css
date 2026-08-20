@@ -1,3 +1,27 @@
+.admin-role-control {
+  display: flex;
+
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+
+.admin-role-control select {
+  height: 34px;
+
+  padding: 0 8px;
+
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+
+  color: var(--color-text);
+  background-color: var(--color-background);
+
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
 .admin-members-page {
   width: min(
     calc(100% - (var(--page-padding) * 2)),
@@ -166,8 +190,7 @@
     minmax(190px, 1.5fr)
     100px
     90px
-    80px
-    100px;
+    minmax(180px, 220px);
 
   align-items: center;
   gap: 12px;
@@ -221,9 +244,33 @@
 
 
 .admin-member-row strong {
+  display: flex;
+
+  align-items: center;
+  gap: 7px;
+
   color: var(--color-text);
 
   font-size: 0.84rem;
+}
+
+
+.admin-member-self {
+  padding: 3px 6px;
+
+  border-radius: 999px;
+
+  color: var(--color-primary);
+
+  background-color:
+    color-mix(
+      in srgb,
+      var(--color-primary) 10%,
+      var(--color-background)
+    );
+
+  font-size: 0.65rem;
+  font-weight: 750;
 }
 
 
@@ -238,8 +285,7 @@
    Role Badge
    ========================================================= */
 
-.admin-member-role,
-.admin-member-status {
+.admin-member-role {
   display: inline-flex;
 
   width: fit-content;
@@ -271,18 +317,6 @@
   background-color: var(--color-background);
 
   border: 1px solid var(--color-border);
-}
-
-
-.admin-member-status {
-  color: #17823b;
-
-  background-color:
-    color-mix(
-      in srgb,
-      #17823b 10%,
-      var(--color-background)
-    );
 }
 
 
@@ -334,9 +368,19 @@
 
 
   .admin-member-role,
-  .admin-member-status,
-  .admin-member-row .admin-row-action {
+  .admin-role-control {
     grid-column: 2;
+  }
+
+
+  .admin-role-control {
+    grid-row: span 2;
+  }
+
+  .admin-member-role.medical {
+    color: var(--color-text);
+    background-color: var(--color-background);
+    border: 1px solid var(--color-border);
   }
 
 }

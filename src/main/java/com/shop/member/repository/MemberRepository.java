@@ -1,6 +1,7 @@
 package com.shop.member.repository;
 
 import com.shop.member.constant.LoginProvider;
+import com.shop.member.constant.Role;
 import com.shop.member.entity.Member;
 import org.springframework.data.jpa.repository.JpaRepository;
 
@@ -40,4 +41,7 @@ public interface MemberRepository extends JpaRepository<Member,Long> {
             LoginProvider provider,
             String providerId
     );
+
+    //특정 권한을 가진 회원 수 조회, 마지막 관리자 권한 보호에 사용
+    long countByRole(Role role);
 }

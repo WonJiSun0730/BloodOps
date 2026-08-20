@@ -1157,3 +1157,50 @@ img {
     font-size: 0.875rem;
   }
 }
+
+.access-denied-page {
+  display: flex;
+
+  min-height: 60vh;
+
+  align-items: center;
+  justify-content: center;
+
+  padding: 48px var(--page-padding);
+}
+
+
+.access-denied-card {
+  width: min(100%, 520px);
+
+  padding: 48px;
+
+  border: 1px solid var(--color-border);
+  border-radius: 18px;
+
+  text-align: center;
+
+  background-color: var(--color-surface);
+}
+
+
+.access-denied-code {
+  color: var(--color-primary);
+
+  font-size: 0.8rem;
+  font-weight: 800;
+}
+
+
+.access-denied-card h1 {
+  margin: 12px 0;
+
+  color: var(--color-text);
+}
+
+
+.access-denied-card p {
+  margin: 0 0 28px;
+
+  color: var(--color-text-muted);
+}

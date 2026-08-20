@@ -1,5 +1,7 @@
 package com.shop.member.service;
 
+import com.shop.member.constant.Role;
+import com.shop.member.dto.AdminMemberResponseDto;
 import com.shop.member.entity.Member;
 import com.shop.member.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
@@ -9,6 +11,8 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
 
 @Service    // 서비스
 @Transactional  // 트랜잭션
@@ -67,5 +71,69 @@ public class MemberService implements UserDetailsService { //유저디테일서�
     @Transactional(readOnly = true)
     public boolean isEmailAvailable(String email) {
         return !memberRepository.existsByEmail(email);
+    }
+
+    /*
+     * ADMIN 회원 관리 화면에서 사용할 전체 회원 목록을 조회합니다.
+     *
+     * Member 엔티티를 그대로 반환하지 않고
+     * 관리자 화면에 필요한 정보만 DTO로 변환합니다.
+     */
+    @Transactional(readOnly = true)
+    public List<AdminMemberResponseDto> getAdminMemberList() {
+        return memberRepository.findAll()
+                .stream()
+                .map(AdminMemberResponseDto::new)
+                .toList();
+    }
+
+    /*
+     * ADMIN 회원 관리 화면에서 회원 권한을 변경합니다.
+     *
+     * 마지막 남은 ADMIN은 USER 또는 MEDICAL로 변경할 수 없습니다.
+     */
+    //MemberService 자체에 이미 @Transactional 이 붙어 있으므로
+    // 조회한 Member의 role을 변경하면 JPA 변경 감지로 트랜잭션 종료 시 UPDATE가 나갑니다.
+    public AdminMemberResponseDto updateMemberRole(
+            Long memberId,
+            Role newRole
+    ) {
+        if (newRole == null) {
+            throw new IllegalArgumentException(
+                    "변경할 권한을 선택해주세요."
+            );
+        }
+
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() ->
+                        new IllegalArgumentException(
+                                "회원을 찾을 수 없습니다."
+                        )
+                );
+
+        Role currentRole = member.getRole();
+
+        // 이미 같은 권한이면 별도 변경 없이 현재 정보를 반환합니다.
+        if (currentRole == newRole) {
+            return new AdminMemberResponseDto(member);
+        }
+
+        /*
+         * ADMIN → USER/MEDICAL 변경 시
+         * 현재 ADMIN이 한 명뿐이라면 변경을 막습니다.
+         */
+        if (
+                currentRole == Role.ADMIN
+                        && newRole != Role.ADMIN
+                        && memberRepository.countByRole(Role.ADMIN) <= 1
+        ) {
+            throw new IllegalStateException(
+                    "최소 1명의 관리자가 존재해야 합니다."
+            );
+        }
+
+        member.setRole(newRole);
+
+        return new AdminMemberResponseDto(member);
     }
 }
