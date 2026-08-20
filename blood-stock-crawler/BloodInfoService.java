@@ -219,14 +219,14 @@ public class BloodInfoService {
 }
 
 //  적혈구제제 BloodStock 인스턴스 생성(파싱)
-//  BloodInfoClient.BloodStock redBloodCell = parseBloodStock(document, "적혈구제제 보유 현황", null);
+//  BloodInfoService.BloodStock redBloodCell = parseBloodStock(document, "적혈구제제 보유 현황", null);
 //
 //  혈소판제제 PlateletStock 인스턴스 생성(파싱)
-//  BloodInfoClient.PlateletStock platelet = parsePlatelets(document);
+//  BloodInfoService.PlateletStock platelet = parsePlatelets(document);
 //
 //  PlateletStock 내부의 BloodStock 인스턴스 각각 꺼내기
-//  BloodInfoClient.BloodStock concentrated = platelet.concentrated(); // 농축혈소판
-//  BloodInfoClient.BloodStock apheresis = platelet.apheresis();       // 성분채혈혈소판
+//  BloodInfoService.BloodStock concentrated = platelet.concentrated(); // 농축혈소판(혈소판다종)
+//  BloodInfoService.BloodStock apheresis = platelet.apheresis();       // 성분채혈혈소판(혈소판단종)
 //
 //1일 소요량 데이터
 //
@@ -243,8 +243,8 @@ public class BloodInfoService {
 //stock.b() : 현재 혈액보유량 B형
 //stock.o() : 현재 혈액보유량 O형
 //stock.ab() : 현재 혈액보유량 AB형
-
+//
 //사용 예시
 //redBloodCell.dailyTotal(); // 적혈구 1일 소요량 합계
-//concentrated.total();   // 농축혈소판 현재 보유량 합계
-//apheresis.ab();   // 성분채혈혈소판 현재 AB형 보유량
+//concentrated.total();   // 농축혈소판(혈소판다종) 현재 보유량 합계
+//apheresis.ab();   // 성분채혈혈소판(혈소판단종) 현재 AB형 보유량
