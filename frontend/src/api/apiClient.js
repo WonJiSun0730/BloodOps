@@ -253,3 +253,100 @@ export async function updateAdminMemberRole(
     }
   )
 }
+
+/*
+ * ADMIN 예약 슬롯을 조회합니다.
+ */
+export function getAdminReservationSlots(
+  centerId,
+  reservationDate,
+  donationType
+) {
+  const params = new URLSearchParams({
+    centerId: String(centerId),
+    reservationDate,
+    donationType,
+  })
+
+  return apiRequest(
+    `/api/admin/reservation-slots?${params.toString()}`
+  )
+}
+
+
+/*
+ * ADMIN이 예약 슬롯을 일괄 생성합니다.
+ */
+export async function createAdminReservationSlots(
+  slotData
+) {
+  const csrf = await getCsrfToken()
+
+  return apiRequest(
+    '/api/admin/reservation-slots',
+    {
+      method: 'POST',
+
+      headers: {
+        'Content-Type': 'application/json',
+        [csrf.headerName]: csrf.token,
+      },
+
+      body: JSON.stringify(slotData),
+    }
+  )
+}
+
+
+/*
+ * ADMIN이 예약 슬롯의 정원 또는 활성 상태를 변경합니다.
+ */
+export async function updateAdminReservationSlot(
+  slotId,
+  slotData
+) {
+  const csrf = await getCsrfToken()
+
+  return apiRequest(
+    `/api/admin/reservation-slots/${slotId}`,
+    {
+      method: 'PATCH',
+
+      headers: {
+        'Content-Type': 'application/json',
+        [csrf.headerName]: csrf.token,
+      },
+
+      body: JSON.stringify(slotData),
+    }
+  )
+}
+
+/*
+ * ADMIN 전체 예약 목록을 조회합니다.
+ */
+export function getAdminReservations() {
+  return apiRequest(
+    '/api/admin/reservations'
+  )
+}
+
+/*
+ * ADMIN 예약 취소
+ */
+export async function cancelAdminReservation(
+  reservationId
+) {
+  const csrf = await getCsrfToken()
+
+  return apiRequest(
+    `/api/admin/reservations/${reservationId}/cancel`,
+    {
+      method: 'PATCH',
+
+      headers: {
+        [csrf.headerName]: csrf.token,
+      },
+    }
+  )
+}
