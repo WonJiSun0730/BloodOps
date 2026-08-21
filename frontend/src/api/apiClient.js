@@ -332,6 +332,43 @@ export function getAdminReservations() {
 }
 
 /*
+ * ADMIN 예약 상세 조회
+ */
+export function getAdminReservation(
+  reservationId
+) {
+  return apiRequest(
+    `/api/admin/reservations/${reservationId}`
+  )
+}
+
+/*
+ * ADMIN 예약 슬롯 변경
+ */
+export async function changeAdminReservationSlot(
+  reservationId,
+  slotId
+) {
+  const csrf = await getCsrfToken()
+
+  return apiRequest(
+    `/api/admin/reservations/${reservationId}/slot`,
+    {
+      method: 'PATCH',
+
+      headers: {
+        'Content-Type': 'application/json',
+        [csrf.headerName]: csrf.token,
+      },
+
+      body: JSON.stringify({
+        slotId,
+      }),
+    }
+  )
+}
+
+/*
  * ADMIN 예약 취소
  */
 export async function cancelAdminReservation(
