@@ -7,6 +7,9 @@ import MainPage from './pages/main/MainPage.jsx'
 import LoginPage from './pages/auth/LoginPage.jsx'
 import SignupPage from './pages/auth/SignupPage.jsx'
 
+import CenterSearchPage
+  from './pages/center/CenterSearchPage.jsx'
+
 import AdminPage from './pages/admin/AdminPage.jsx'
 import AdminRoute from './components/AdminRoute.jsx'
 
@@ -27,6 +30,11 @@ function App() {
 
         <Route path="/login" element={<LoginPage />} />
         <Route path="/signup" element={<SignupPage />} />
+
+        <Route
+          path="/centers"
+          element={<CenterSearchPage />}
+        />
 
         <Route
           path="/admin"
