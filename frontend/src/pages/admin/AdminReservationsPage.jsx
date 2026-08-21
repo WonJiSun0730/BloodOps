@@ -17,7 +17,7 @@ import {
 
 import './AdminReservationsPage.css'
 
-import ConfirmModal from '../../components/ConfirmModal.jsx'
+import ConfirmModal from '../../components/modal/ConfirmModal.jsx'
 
 
 const reservationStatuses = [
