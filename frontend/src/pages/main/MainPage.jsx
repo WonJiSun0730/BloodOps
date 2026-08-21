@@ -11,7 +11,7 @@ import {
   CertificateIcon,
   BloodHoldIcon,
   FaqIcon,
-} from '../../components/ServiceIcons.jsx'
+} from '../../components/icons/ServiceIcons.jsx'
 
 import './MainPage.css'
 

@@ -6,7 +6,7 @@ import {
   updateAdminMemberRole,
 } from '../../api/apiClient'
 
-import ConfirmModal from '../../components/ConfirmModal'
+import ConfirmModal from '../../components/modal/ConfirmModal'
 import './AdminMembersPage.css'
 
 

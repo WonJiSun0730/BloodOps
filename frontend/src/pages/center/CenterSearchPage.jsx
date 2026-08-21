@@ -9,7 +9,7 @@ import {
 } from '../../api/apiClient.js'
 
 import CenterMapArea
-  from '../../components/CenterMapArea.jsx'
+  from '../../components/center/CenterMapArea.jsx'
 
 import './CenterSearchPage.css'
 

@@ -1,107 +1,357 @@
-import { useState } from 'react'
-import { Link } from 'react-router-dom'
+import {
+  useState,
+} from 'react'
 
-// apiClient.js에서 만든 로그인 요청 함수를 가져옵니다.
-import { login } from '../../api/apiClient.js'
+import {
+  Link,
+} from 'react-router-dom'
+
+import {
+  login,
+} from '../../api/apiClient.js'
+
+import EyeIcon
+  from '../../components/icons/EyeIcon.jsx'
+
+import {
+  LoginLockIcon,
+} from '../../components/icons/ServiceIcons.jsx'
+
+import './LoginPage.css'
 
 function LoginPage() {
+  const [loginId, setLoginId] =
+    useState('')
 
-  // 일반 로그인은 이메일이 아니라 아이디를 사용합니다.
-  const [loginId, setLoginId] = useState('')
-  const [password, setPassword] = useState('')
-  const [errorMessage, setErrorMessage] = useState('')
-  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [password, setPassword] =
+    useState('')
 
-  // 로그인 버튼을 눌렀을 때 실행됩니다.
-  async function handleSubmit(event) {
-    // form 제출로 인한 페이지 새로고침을 막습니다.
+  const [
+    passwordVisible,
+    setPasswordVisible,
+  ] = useState(false)
+
+  const [
+    errorMessage,
+    setErrorMessage,
+  ] = useState('')
+
+  const [
+    fieldErrors,
+    setFieldErrors,
+  ] = useState({
+    loginId: '',
+    password: '',
+  })
+
+  const [
+    isSubmitting,
+    setIsSubmitting,
+  ] = useState(false)
+
+  function validateLoginForm() {
+    const nextErrors = {
+      loginId: '',
+      password: '',
+    }
+
+    if (!loginId.trim()) {
+      nextErrors.loginId =
+        '아이디를 입력해주세요.'
+    }
+
+    if (!password) {
+      nextErrors.password =
+        '비밀번호를 입력해주세요.'
+    }
+
+    setFieldErrors(
+      nextErrors
+    )
+
+    return (
+      !nextErrors.loginId
+      && !nextErrors.password
+    )
+  }
+
+  async function handleSubmit(
+    event
+  ) {
     event.preventDefault()
 
-    // 이전 로그인 실패 메시지를 지웁니다.
     setErrorMessage('')
+
+    if (!validateLoginForm()) {
+      return
+    }
+
     setIsSubmitting(true)
 
     try {
-      // Spring Security에 아이디와 비밀번호를 전송합니다.
-      await login(loginId, password)
+      await login(
+        loginId,
+        password
+      )
 
-      // 로그인 성공 후 메인 페이지로 이동합니다.
       window.location.href = '/'
     } catch (error) {
-      setErrorMessage(error.message)
+      setErrorMessage(
+        error.message
+      )
+
       setIsSubmitting(false)
     }
   }
 
   return (
-    <main>
-      <h1>로그인</h1>
+    <main className="login-page">
 
-      <form onSubmit={handleSubmit}>
-        <div>
-          <label htmlFor="loginId">아이디</label>
-          <input
-            id="loginId"
-            type="text"
-            name="loginId"
-            placeholder="아이디를 입력해주세요."
-            value={loginId}
-            onChange={(event) => setLoginId(event.target.value)}
-            autoComplete="username"
-          />
+      <section className="login-card">
+
+        <div className="login-heading">
+
+          <div className="login-heading-icon">
+            <LoginLockIcon />
+          </div>
+
+          <div className="login-heading-copy">
+            <span className="login-eyebrow">
+              BLOODOPS
+            </span>
+
+            <h1>
+              로그인
+            </h1>
+
+            <p>
+              헌혈 예약과 개인 기록을 편리하게 관리해보세요.
+            </p>
+          </div>
+
         </div>
 
-        <div>
-          <label htmlFor="password">비밀번호</label>
-          <input
-            id="password"
-            type="password"
-            name="password"
-            placeholder="비밀번호를 입력해주세요."
-            value={password}
-            onChange={(event) => setPassword(event.target.value)}
-            autoComplete="current-password"
-          />
-        </div>
-
-        {/* 로그인에 실패했을 때만 오류 메시지를 표시합니다. */}
-        {errorMessage && (
-          <p className="error-message">
-            {errorMessage}
-          </p>
-        )}
-
-        <button
-          type="submit"
-          disabled={isSubmitting}
+        <form
+          className="login-form"
+          onSubmit={handleSubmit}
         >
-          {isSubmitting ? '로그인 중...' : '로그인'}
-        </button>
+          <label
+            className="login-field"
+            htmlFor="loginId"
+          >
+            <span>
+              아이디
+            </span>
 
-        <Link to="/signup">
-          회원가입
-        </Link>
-      </form>
+            <input
+              id="loginId"
+              type="text"
+              name="loginId"
+              className={
+                fieldErrors.loginId
+                  ? 'login-input-error'
+                  : ''
+              }
+              placeholder="아이디를 입력해주세요."
+              value={loginId}
+              onChange={(event) => {
+                setLoginId(
+                  event.target.value
+                )
 
-      <div>
-        <p>소셜 계정으로 로그인</p>
+                setFieldErrors(
+                  (previous) => ({
+                    ...previous,
+                    loginId: '',
+                  })
+                )
+              }}
+              autoComplete="username"
+              aria-invalid={
+                Boolean(fieldErrors.loginId)
+              }
+            />
 
-        {/*
-          소셜 로그인은 React가 아이디와 비밀번호를 보내지 않고
-          Spring Security의 OAuth2 시작 주소로 이동합니다.
-        */}
-        <a href="/oauth2/authorization/kakao">
-          카카오 로그인
-        </a>
+            {fieldErrors.loginId && (
+              <small className="login-field-error">
+                {fieldErrors.loginId}
+              </small>
+            )}
+          </label>
 
-        <a href="/oauth2/authorization/naver">
-          네이버 로그인
-        </a>
+          <label
+            className="login-field"
+            htmlFor="password"
+          >
+            <span>
+              비밀번호
+            </span>
 
-        <a href="/oauth2/authorization/google">
-          구글 로그인
-        </a>
-      </div>
+            <div className="login-password-field">
+              <input
+                id="password"
+                type={
+                  passwordVisible
+                    ? 'text'
+                    : 'password'
+                }
+                name="password"
+                className={
+                  fieldErrors.password
+                    ? 'login-input-error'
+                    : ''
+                }
+                placeholder="비밀번호를 입력해주세요."
+                value={password}
+                onChange={(event) => {
+                  setPassword(
+                    event.target.value
+                  )
+
+                  setFieldErrors(
+                    (previous) => ({
+                      ...previous,
+                      password: '',
+                    })
+                  )
+                }}
+                autoComplete="current-password"
+                aria-invalid={
+                  Boolean(fieldErrors.password)
+                }
+              />
+
+              <button
+                type="button"
+                className="login-password-toggle"
+                onClick={() =>
+                  setPasswordVisible(
+                    (visible) => !visible
+                  )
+                }
+                aria-label={
+                  passwordVisible
+                    ? '비밀번호 숨기기'
+                    : '비밀번호 보기'
+                }
+                aria-pressed={passwordVisible}
+              >
+                <EyeIcon
+                  visible={passwordVisible}
+                />
+              </button>
+            </div>
+
+            {fieldErrors.password && (
+              <small className="login-field-error">
+                {fieldErrors.password}
+              </small>
+            )}
+
+          </label>
+
+          {errorMessage && (
+            <p className="login-error">
+              {errorMessage}
+            </p>
+          )}
+
+          <button
+            type="submit"
+            className="login-submit"
+            disabled={isSubmitting}
+          >
+            {isSubmitting
+              ? '로그인 중...'
+              : '로그인'}
+          </button>
+
+          <nav className="login-account-links">
+            <Link to="/signup">
+              회원가입
+            </Link>
+
+            <span aria-hidden="true">
+              ·
+            </span>
+
+            <button
+              type="button"
+              disabled
+              title="추후 제공 예정"
+            >
+              아이디 찾기
+            </button>
+
+            <span aria-hidden="true">
+              ·
+            </span>
+
+            <button
+              type="button"
+              disabled
+              title="추후 제공 예정"
+            >
+              비밀번호 변경
+            </button>
+          </nav>
+        </form>
+
+        <div className="login-social">
+
+          <div className="login-social-divider">
+            <span>
+              또는
+            </span>
+          </div>
+
+          <div className="login-social-list">
+
+            <a
+              className="login-social-button kakao"
+              href="/oauth2/authorization/kakao"
+            >
+              <span className="login-social-mark">
+                K
+              </span>
+
+              <span>
+                카카오로 계속하기
+              </span>
+            </a>
+
+            <a
+              className="login-social-button naver"
+              href="/oauth2/authorization/naver"
+            >
+              <span className="login-social-mark">
+                N
+              </span>
+
+              <span>
+                네이버로 계속하기
+              </span>
+            </a>
+
+            <a
+              className="login-social-button google"
+              href="/oauth2/authorization/google"
+            >
+              <span className="login-social-mark">
+                G
+              </span>
+
+              <span>
+                Google로 계속하기
+              </span>
+            </a>
+
+          </div>
+
+        </div>
+
+      </section>
+
     </main>
   )
 }

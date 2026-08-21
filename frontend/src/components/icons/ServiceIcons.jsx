@@ -327,3 +327,35 @@ export function FaqIcon() {
     </IconBase>
   )
 }
+
+export function LoginLockIcon() {
+  return (
+    <IconBase>
+      <rect
+        className="service-icon-line"
+        x="11"
+        y="21"
+        width="26"
+        height="20"
+        rx="4"
+      />
+
+      <path
+        className="service-icon-line"
+        d="M16 21V16C16 11.6 19.6 8 24 8C28.4 8 32 11.6 32 16V21"
+      />
+
+      <circle
+        className="service-icon-accent"
+        cx="24"
+        cy="30"
+        r="2"
+      />
+
+      <path
+        className="service-icon-accent"
+        d="M24 32V35"
+      />
+    </IconBase>
+  )
+}
