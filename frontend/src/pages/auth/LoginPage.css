@@ -1,4 +1,5 @@
 .login-page {
+  position: relative;
   display: grid;
 
   min-height:
@@ -13,6 +14,7 @@
 
   background:
     var(--color-background);
+  isolation: isolate;
 }
 
 .login-card {

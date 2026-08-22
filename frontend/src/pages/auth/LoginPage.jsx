@@ -19,6 +19,9 @@ import {
 
 import './LoginPage.css'
 
+import BackgroundOrbit
+  from '../../components/decorations/BackgroundOrbit.jsx'
+
 function LoginPage() {
   const [loginId, setLoginId] =
     useState('')
@@ -106,6 +109,8 @@ function LoginPage() {
 
   return (
     <main className="login-page">
+
+      <BackgroundOrbit />
 
       <section className="login-card">
 

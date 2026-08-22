@@ -6,6 +6,9 @@ import {
   updateCenter,
 } from '../../api/apiClient.js'
 
+import AdminSectionNav
+  from '../../components/admin/AdminSectionNav.jsx'
+
 import './AdminCentersPage.css'
 
 
@@ -531,6 +534,7 @@ function AdminCentersPage() {
 
       </section>
 
+      <AdminSectionNav />
 
       <section className="admin-centers-toolbar">
 
