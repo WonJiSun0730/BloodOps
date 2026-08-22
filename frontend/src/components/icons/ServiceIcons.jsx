@@ -22,37 +22,32 @@ export function CenterIcon() {
     <IconBase>
       <path
         className="service-icon-line"
-        d="M9 39V17H39V39"
+        d="M8 41V16H40V41"
       />
 
       <path
         className="service-icon-line"
-        d="M15 17V9H33V17"
-      />
-
-      <path
-        className="service-icon-line"
-        d="M19 14H23M27 14H31"
-      />
-
-      <path
-        className="service-icon-line"
-        d="M15 23H19M23 23H27M31 23H35"
-      />
-
-      <path
-        className="service-icon-line"
-        d="M15 29H19M31 29H35"
-      />
-
-      <path
-        className="service-icon-line"
-        d="M21 39V31H27V39"
+        d="M15 16V7H33V16"
       />
 
       <path
         className="service-icon-accent"
-        d="M23 9V5M21 7H25"
+        d="M24 9V14M21.5 11.5H26.5"
+      />
+
+      <path
+        className="service-icon-line"
+        d="M14 23H19M29 23H34"
+      />
+
+      <path
+        className="service-icon-line"
+        d="M14 29H19M29 29H34"
+      />
+
+      <path
+        className="service-icon-line"
+        d="M20 41V32H28V41"
       />
     </IconBase>
   )
@@ -120,12 +115,12 @@ export function QuestionnaireIcon() {
 
       <path
         className="service-icon-line"
-        d="M18 18H31M18 24H31M18 30H26"
+        d="M18 18H31M18 24H31M18 30H24"
       />
 
       <path
         className="service-icon-accent"
-        d="M27 35L30 38L37 30"
+        d="M25 35L28 38L35 31"
       />
     </IconBase>
   )
@@ -190,7 +185,7 @@ export function RecordsIcon() {
 
       <path
         className="service-icon-line"
-        d="M17 22H31M17 28H31M17 34H27"
+        d="M17 27H31M17 33H31M17 38H27"
       />
 
       <path
@@ -209,28 +204,46 @@ export function RecordsIcon() {
 export function ResultsIcon() {
   return (
     <IconBase>
-      <rect
-        className="service-icon-line"
-        x="8"
-        y="8"
-        width="32"
-        height="32"
-        rx="3"
-      />
-
-      <path
-        className="service-icon-line"
-        d="M14 16H34"
-      />
-
-      <path
-        className="service-icon-line"
-        d="M14 23H20M14 29H20M14 35H20"
-      />
-
       <path
         className="service-icon-accent"
-        d="M25 32L29 36L36 27"
+        d="M22 8H29V15H22V8Z"
+      />
+
+      <path
+        className="service-icon-line"
+        d="M25.5 15V21"
+      />
+
+      <path
+        className="service-icon-line"
+        d="M29 18C34 20 36 24 36 29C36 35 31 39 25 39"
+      />
+
+      <path
+        className="service-icon-line"
+        d="M17 22L24 29"
+      />
+
+      <path
+        className="service-icon-line"
+        d="M14 25L20 19"
+      />
+
+      <path
+        className="service-icon-line"
+        d="M13 39H38"
+      />
+
+      <path
+        className="service-icon-line"
+        d="M18 34H29"
+      />
+
+      <circle
+        className="service-icon-accent-fill"
+        cx="23"
+        cy="31"
+        r="2"
       />
     </IconBase>
   )
@@ -244,29 +257,41 @@ export function ResultsIcon() {
 export function CertificateIcon() {
   return (
     <IconBase>
+      {/* 출력되는 문서 */}
       <path
         className="service-icon-line"
-        d="M12 6H30L36 12V31H12V6Z"
+        d="M16 7H32V18H16V7Z"
+      />
+
+      {/* 프린터 본체 */}
+      <path
+        className="service-icon-line"
+        d="M11 18H37C39.2 18 41 19.8 41 22V33H34"
       />
 
       <path
         className="service-icon-line"
-        d="M30 6V12H36"
+        d="M14 33H7V22C7 19.8 8.8 18 11 18"
       />
 
+      {/* 출력된 증명서 */}
       <path
         className="service-icon-line"
-        d="M17 18H31M17 24H28"
+        d="M14 28H34V41H14V28Z"
       />
 
-      <path
-        className="service-icon-accent"
-        d="M18 31H37V40H18V31Z"
-      />
-
+      {/* 증명서 내용 */}
       <path
         className="service-icon-line"
-        d="M22 28V31M33 28V31"
+        d="M19 33H29M19 37H26"
+      />
+
+      {/* 프린터 상태 표시 */}
+      <circle
+        className="service-icon-accent-fill"
+        cx="35"
+        cy="23"
+        r="1.8"
       />
     </IconBase>
   )
@@ -294,7 +319,8 @@ export function BloodHoldIcon() {
 
       <path
         className="service-icon-accent"
-        d="M24 13C20.5 17.5 18.5 21 18.5 24C18.5 27 21 29.5 24 29.5C27 29.5 29.5 27 29.5 24C29.5 21 27.5 17.5 24 13Z"
+        d="M24 15C21 19 19.5 21.8 19.5 24.5C19.5 27.4 21.5 29.5 24 29.5C26.5 29.5 28.5 27.4 28.5 24.5C28.5 21.8 27 19 24 15Z"
+        transform="translate(0 1)"
       />
     </IconBase>
   )
@@ -310,19 +336,19 @@ export function FaqIcon() {
     <IconBase>
       <path
         className="service-icon-line"
-        d="M8 10H40V34H28L22 40V34H8V10Z"
+        d="M6 8H42V35H28L21 42V35H6V8Z"
       />
 
       <path
         className="service-icon-accent"
-        d="M20 19C20.5 16.5 22 15 24.5 15C27 15 29 16.5 29 19C29 21 28 22 25.5 23.5C24 24.5 24 25.5 24 27"
+        d="M20.5 18.5C21 16.2 22.4 15 24.5 15C26.8 15 28.5 16.4 28.5 18.5C28.5 20.3 27.5 21.3 25.5 22.5C24.2 23.3 24 24.2 24 25.5"
       />
 
       <circle
         className="service-icon-accent-fill"
         cx="24"
-        cy="31"
-        r="1.5"
+        cy="29.5"
+        r="1.3"
       />
     </IconBase>
   )
