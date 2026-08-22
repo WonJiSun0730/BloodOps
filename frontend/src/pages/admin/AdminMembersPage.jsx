@@ -7,6 +7,10 @@ import {
 } from '../../api/apiClient'
 
 import ConfirmModal from '../../components/modal/ConfirmModal'
+
+import AdminSectionNav
+  from '../../components/admin/AdminSectionNav.jsx'
+
 import './AdminMembersPage.css'
 
 
@@ -214,6 +218,7 @@ function AdminMembersPage() {
 
       </section>
 
+      <AdminSectionNav />
 
       <section className="admin-member-toolbar">
 

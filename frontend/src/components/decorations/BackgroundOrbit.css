@@ -1,0 +1,240 @@
+.background-orbit {
+    position: absolute;
+    z-index: -1;
+
+    width: 340px;
+    height: 340px;
+
+    border:
+            1.5px solid
+            color-mix(
+                    in srgb,
+                    var(--color-primary) 24%,
+                    transparent
+            );
+
+    border-radius: 50%;
+
+    background:
+            radial-gradient(
+                    circle,
+                    color-mix(
+                            in srgb,
+                            var(--color-primary) 7%,
+                            transparent
+                    )
+                    0 17px,
+                    transparent 18px
+            ),
+            radial-gradient(
+                    circle,
+                    transparent 0 56%,
+                    color-mix(
+                            in srgb,
+                            var(--color-primary) 12%,
+                            transparent
+                    )
+                    56.5% 57%,
+                    transparent 57.5%
+            ),
+            radial-gradient(
+                    circle,
+                    transparent 0 73%,
+                    color-mix(
+                            in srgb,
+                            var(--color-primary) 10%,
+                            transparent
+                    )
+                    73.5% 74%,
+                    transparent 74.5%
+            );
+
+    pointer-events: none;
+}
+
+.background-orbit::after {
+    position: absolute;
+
+    inset: -1px;
+
+    border-radius: 50%;
+
+    background:
+            conic-gradient(
+                    from 18deg,
+                    transparent 0deg 32deg,
+                    color-mix(
+                            in srgb,
+                            var(--color-primary) 52%,
+                            transparent
+                    )
+                    32deg 80deg,
+                    transparent 80deg 360deg
+            );
+
+    -webkit-mask:
+            radial-gradient(
+                    farthest-side,
+                    transparent calc(100% - 8px),
+                    #000 calc(100% - 7px)
+            );
+
+    mask:
+            radial-gradient(
+                    farthest-side,
+                    transparent calc(100% - 8px),
+                    #000 calc(100% - 7px)
+            );
+
+    content: "";
+
+    opacity: 0.82;
+}
+
+.background-orbit--left {
+    top: -105px;
+    left: calc(50% - 50vw + 24px);
+
+    transform: scale(1.06);
+}
+
+.background-orbit--right {
+    right: calc(50% - 50vw + 28px);
+    bottom: 80px;
+
+    width: 300px;
+    height: 300px;
+
+    opacity: 0.78;
+}
+
+.background-orbit--right::after {
+    background:
+            conic-gradient(
+                    from 192deg,
+                    transparent 0deg 35deg,
+                    color-mix(
+                            in srgb,
+                            var(--color-primary) 42%,
+                            transparent
+                    )
+                    35deg 72deg,
+                    transparent 72deg 360deg
+            );
+}
+
+.background-orbit-cross {
+    position: absolute;
+
+    top: 50%;
+    left: 50%;
+
+    width: 24px;
+    height: 24px;
+
+    animation:
+            backgroundOrbitCrossMove
+            22s
+            linear
+            infinite;
+}
+
+.background-orbit--right
+.background-orbit-cross {
+    animation:
+            backgroundOrbitCrossMoveRight
+            28s
+            linear
+            infinite;
+}
+
+.background-orbit-cross::before,
+.background-orbit-cross::after {
+    position: absolute;
+
+    top: 50%;
+    left: 50%;
+
+    border-radius: 999px;
+
+    background-color:
+            color-mix(
+                    in srgb,
+                    var(--color-primary) 72%,
+                    transparent
+            );
+
+    content: "";
+
+    box-shadow:
+            0 2px 7px
+            color-mix(
+                    in srgb,
+                    var(--color-primary) 14%,
+                    transparent
+            );
+}
+
+.background-orbit-cross::before {
+    width: 24px;
+    height: 5px;
+
+    transform:
+            translate(-50%, -50%);
+}
+
+.background-orbit-cross::after {
+    width: 5px;
+    height: 24px;
+
+    transform:
+            translate(-50%, -50%);
+}
+
+@keyframes backgroundOrbitCrossMove {
+    from {
+        transform:
+                translate(-50%, -50%)
+                rotate(0deg)
+                translateX(170px)
+                rotate(0deg);
+    }
+
+    to {
+        transform:
+                translate(-50%, -50%)
+                rotate(360deg)
+                translateX(170px)
+                rotate(-360deg);
+    }
+}
+
+@keyframes backgroundOrbitCrossMoveRight {
+    from {
+        transform:
+                translate(-50%, -50%)
+                rotate(0deg)
+                translateX(150px)
+                rotate(0deg);
+    }
+
+    to {
+        transform:
+                translate(-50%, -50%)
+                rotate(-360deg)
+                translateX(150px)
+                rotate(360deg);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .background-orbit-cross {
+        animation: none;
+    }
+}
+
+@media (max-width: 768px) {
+    .background-orbit {
+        display: none;
+    }
+}

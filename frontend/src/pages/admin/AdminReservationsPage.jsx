@@ -19,6 +19,9 @@ import './AdminReservationsPage.css'
 
 import ConfirmModal from '../../components/modal/ConfirmModal.jsx'
 
+import AdminSectionNav
+  from '../../components/admin/AdminSectionNav.jsx'
+
 
 const reservationStatuses = [
   '전체',
@@ -610,6 +613,8 @@ async function handleReservationCancel() {
         </div>
 
       </section>
+
+      <AdminSectionNav />
 
       <section className="admin-slot-management">
 

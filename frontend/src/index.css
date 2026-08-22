@@ -430,6 +430,9 @@ img {
 }
 
 .access-denied-page {
+  position: relative;
+  isolation: isolate;
+
   display: flex;
 
   min-height: 60vh;
