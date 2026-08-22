@@ -385,6 +385,20 @@ function MainPage() {
   return (
     <main className="main-page">
 
+      <div
+        className="main-background-orbit main-background-orbit--left"
+        aria-hidden="true"
+      >
+        <span className="main-orbit-cross" />
+      </div>
+
+      <div
+        className="main-background-orbit main-background-orbit--right"
+        aria-hidden="true"
+      >
+        <span className="main-orbit-cross" />
+      </div>
+
       {/* =================================================
           Hero
           ================================================= */}
