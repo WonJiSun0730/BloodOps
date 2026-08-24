@@ -9,6 +9,8 @@ import com.shop.reservation.entity.ReservationSlot;
 import com.shop.reservation.repository.ReservationRepository;
 import com.shop.reservation.repository.ReservationSlotRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -278,17 +280,25 @@ public class ReservationService {
         );
     }
 
-    /*
-     * ADMIN 예약 관리 화면의 전체 예약 목록을 조회합니다.
-     */
     @Transactional(readOnly = true)
-    public List<AdminReservationResponseDto>
-    getAdminReservations() {
+    public Page<AdminReservationResponseDto>
+    getAdminReservations(
+            String keyword,
+            ReservationStatus status,
+            Pageable pageable
+    ) {
+
+        String normalizedKeyword =
+                keyword == null
+                        ? ""
+                        : keyword.trim();
 
         return reservationRepository
-                .findAllByOrderByIdDesc()
-                .stream()
-                .map(AdminReservationResponseDto::new)
-                .toList();
+                .findAdminReservations(
+                        normalizedKeyword,
+                        status,
+                        pageable
+                )
+                .map(AdminReservationResponseDto::new);
     }
 }

@@ -1,9 +1,13 @@
 package com.shop.reservation.controller;
 
+import com.shop.reservation.constant.ReservationStatus;
 import com.shop.reservation.dto.AdminReservationResponseDto;
 import com.shop.reservation.dto.AdminReservationSlotChangeDto;
 import com.shop.reservation.service.ReservationService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -17,17 +21,28 @@ public class AdminReservationApiController {
             reservationService;
 
 
-    /*
-     * ADMIN 전체 예약 조회
-     *
-     * GET /api/admin/reservations
-     */
     @GetMapping
-    public List<AdminReservationResponseDto>
-    getReservations() {
+    public Page<AdminReservationResponseDto>
+    getReservations(
+            @RequestParam(required = false) String keyword,
+            @RequestParam(required = false)
+            ReservationStatus status,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size
+    ) {
+
+        Pageable pageable =
+                PageRequest.of(
+                        page,
+                        size
+                );
 
         return reservationService
-                .getAdminReservations();
+                .getAdminReservations(
+                        keyword,
+                        status,
+                        pageable
+                );
     }
 
     /*

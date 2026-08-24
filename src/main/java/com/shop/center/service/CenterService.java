@@ -7,6 +7,8 @@ import com.shop.center.dto.CenterUpdateRequestDto;
 import com.shop.center.entity.Center;
 import com.shop.center.repository.CenterRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -50,7 +52,40 @@ public class CenterService {
                 .toList();
     }
 
+    public Page<CenterResponseDto> getAdminCenters(
+            String keyword,
+            Pageable pageable
+    ) {
 
+        if (keyword == null || keyword.isBlank()) {
+            return centerRepository
+                    .findAll(pageable)
+                    .map(CenterResponseDto::from);
+        }
+
+        String trimmedKeyword =
+                keyword.trim();
+
+        Page<Center> nameMatches =
+                centerRepository
+                        .findByCenterNameContainingIgnoreCase(
+                                trimmedKeyword,
+                                pageable
+                        );
+
+        if (nameMatches.hasContent()) {
+            return nameMatches
+                    .map(CenterResponseDto::from);
+        }
+
+        return centerRepository
+                .findByAddressContainingIgnoreCase(
+                        trimmedKeyword,
+                        pageable
+                )
+                .map(CenterResponseDto::from);
+    }
+    
     public CenterResponseDto getCenter(Long centerId) {
 
         return centerRepository.findById(centerId)

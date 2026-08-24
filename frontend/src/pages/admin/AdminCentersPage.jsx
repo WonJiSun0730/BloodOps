@@ -2,9 +2,12 @@ import { useEffect, useState } from 'react'
 
 import {
   createCenter,
-  getCenters,
+  getAdminCenters,
   updateCenter,
 } from '../../api/apiClient.js'
+
+import AdminSectionNav
+  from '../../components/admin/AdminSectionNav.jsx'
 
 import './AdminCentersPage.css'
 
@@ -102,6 +105,19 @@ function getTimeRangeError(start, end) {
 function AdminCentersPage() {
   const [keyword, setKeyword] = useState('')
   const [centers, setCenters] = useState([])
+
+  const [centerPage, setCenterPage] =
+    useState(0)
+
+  const [centerLastPage, setCenterLastPage] =
+    useState(false)
+
+  const [totalCenters, setTotalCenters] =
+    useState(0)
+
+  const [loadingMore, setLoadingMore] =
+    useState(false)
+
   const [loading, setLoading] = useState(true)
   const [errorMessage, setErrorMessage] = useState('')
   const [selectedCenter, setSelectedCenter] = useState(null)
@@ -475,34 +491,97 @@ function AdminCentersPage() {
   }, [])
 
 
-  async function loadCenters(searchKeyword = '') {
+async function loadCenters(
+  searchKeyword = '',
+  page = 0,
+  append = false
+) {
+  if (append) {
+    setLoadingMore(true)
+  } else {
     setLoading(true)
-    setErrorMessage('')
+  }
 
-    try {
-      const data = await getCenters(searchKeyword)
-      setCenters(data)
-    } catch (error) {
-      console.error('헌혈센터 조회 실패:', error)
+  setErrorMessage('')
 
-      setErrorMessage(
-        '헌혈센터 정보를 불러오지 못했습니다.'
+  try {
+    const data =
+      await getAdminCenters(
+        searchKeyword,
+        page,
+        10
       )
-    } finally {
-      setLoading(false)
+
+    if (append) {
+      setCenters((previous) => [
+        ...previous,
+        ...data.content,
+      ])
+    } else {
+      setCenters(data.content)
     }
+
+    setCenterPage(data.number)
+    setCenterLastPage(data.last)
+    setTotalCenters(data.totalElements)
+  } catch (error) {
+    console.error(
+      '헌혈센터 조회 실패:',
+      error
+    )
+
+    setErrorMessage(
+      '헌혈센터 정보를 불러오지 못했습니다.'
+    )
+  } finally {
+    setLoading(false)
+    setLoadingMore(false)
+  }
+}
+
+
+function handleSearch(event) {
+  event.preventDefault()
+
+  loadCenters(
+    keyword,
+    0,
+    false
+  )
+}
+
+function handleCenterListScroll(event) {
+  if (
+    loading
+    || loadingMore
+    || centerLastPage
+  ) {
+    return
   }
 
+  const element = event.currentTarget
 
-  function handleSearch(event) {
-    event.preventDefault()
+  const distanceFromBottom =
+    element.scrollHeight
+    - element.scrollTop
+    - element.clientHeight
 
-    loadCenters(keyword)
+  if (distanceFromBottom > 80) {
+    return
   }
+
+  loadCenters(
+    keyword,
+    centerPage + 1,
+    true
+  )
+}
 
 
   return (
     <main className="admin-centers-page">
+
+      <AdminSectionNav />
 
       <section className="admin-centers-header">
 
@@ -531,7 +610,6 @@ function AdminCentersPage() {
 
       </section>
 
-
       <section className="admin-centers-toolbar">
 
         <form
@@ -557,13 +635,16 @@ function AdminCentersPage() {
         </form>
 
         <span className="admin-center-count">
-          총 {centers.length}개
+          총 {totalCenters}개
         </span>
 
       </section>
 
 
-      <section className="admin-center-list">
+      <section
+        className="admin-center-list"
+        onScroll={handleCenterListScroll}
+      >
 
         <div className="admin-center-list-header">
           <span>센터명</span>
@@ -632,6 +713,12 @@ function AdminCentersPage() {
             </button>
           </article>
         ))}
+
+      {loadingMore && (
+        <div className="admin-center-message">
+          센터를 더 불러오는 중입니다.
+        </div>
+      )}
 
       </section>
 

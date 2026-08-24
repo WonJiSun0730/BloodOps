@@ -1,18 +1,25 @@
 package com.shop.member.controller;
 
+import com.shop.member.entity.Member;
+import com.shop.member.repository.MemberRepository;
+import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.web.csrf.CsrfToken;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.time.format.DateTimeFormatter;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
 // HTML 화면이 아니라 React에 데이터를 전달하는 컨트롤러
 @RestController
 @RequestMapping("/api/auth")
+@RequiredArgsConstructor
 public class AuthController {
+    private final MemberRepository memberRepository;
 
     // React가 로그인 요청 전에 CSRF 토큰을 받아가는 주소
     // 최종 주소: GET /api/auth/csrf
@@ -26,21 +33,96 @@ public class AuthController {
         );
     }
 
-    // 현재 로그인한 사용자의 정보를 React에 반환합니다.
-// 최종 주소: GET /api/auth/me
     @GetMapping("/me")
-    public Map<String, Object> getCurrentUser(Authentication authentication) {
+    public Map<String, Object> getCurrentUser(
+            Authentication authentication
+    ) {
 
-        // 로그인한 사용자가 가진 권한을 문자열 목록으로 변환합니다.
-        List<String> roles = authentication.getAuthorities()
-                .stream()
-                .map(authority -> authority.getAuthority())
-                .toList();
+        List<String> roles =
+                authentication.getAuthorities()
+                        .stream()
+                        .map(authority ->
+                                authority.getAuthority()
+                        )
+                        .toList();
 
-        // authentication.getName()에는 현재 로그인한 회원의 이메일이 들어 있습니다.
-        return Map.of(
-                "identifier", authentication.getName(),
-                "roles", roles
+        String identifier =
+                authentication.getName();
+
+        Member member =
+                memberRepository.findByEmail(identifier);
+
+        if (member == null) {
+            throw new IllegalStateException(
+                    "회원 정보를 찾을 수 없습니다."
+            );
+        }
+
+        boolean additionalInfoRequired =
+                member.getBirthDate() == null
+                        || member.getPhone() == null
+                        || member.getPhone().isBlank();
+
+        Map<String, Object> response =
+                new LinkedHashMap<>();
+
+        response.put(
+                "identifier",
+                identifier
         );
+
+        response.put(
+                "roles",
+                roles
+        );
+
+        response.put(
+                "additionalInfoRequired",
+                additionalInfoRequired
+        );
+
+        response.put(
+                "provider",
+                member.getProvider() != null
+                        ? member.getProvider().name()
+                        : null
+        );
+
+        response.put(
+                "name",
+                member.getName()
+        );
+
+        response.put(
+                "email",
+                member.getEmail()
+        );
+
+        response.put(
+                "birthDate",
+                member.getBirthDate() != null
+                        ? member.getBirthDate()
+                        .format(
+                                DateTimeFormatter.BASIC_ISO_DATE
+                        )
+                        : null
+        );
+
+        response.put(
+                "phone",
+                member.getPhone()
+        );
+
+        response.put(
+                "smsAgreed",
+                member.isSmsAgreed()
+        );
+
+        response.put(
+                "emailAgreed",
+                member.isEmailAgreed()
+        );
+
+        return response;
     }
 }

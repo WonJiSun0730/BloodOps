@@ -30,6 +30,7 @@
 
   margin: 0 auto;
   padding: 56px 0 80px;
+  position: relative;
 }
 
 
@@ -170,16 +171,17 @@
    ========================================================= */
 
 .admin-member-list {
+  max-height: 600px;
   margin-top: 18px;
+
+  overflow-x: hidden;
+  overflow-y: auto;
 
   border: 1px solid var(--color-border);
   border-radius: 16px;
 
-  overflow: hidden;
-
   background-color: var(--color-surface);
 }
-
 
 .admin-member-list-header,
 .admin-member-row {
@@ -198,6 +200,11 @@
 
 
 .admin-member-list-header {
+
+  position: sticky;
+  top: 0;
+  z-index: 2;
+
   min-height: 46px;
   padding: 0 18px;
 
@@ -419,4 +426,8 @@
     align-self: flex-start;
   }
 
+}
+
+.page-content > main.admin-members-page {
+  padding-top: 20px;
 }

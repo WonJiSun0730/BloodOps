@@ -1,6 +1,8 @@
 package com.shop.common.config;
 
+import com.shop.member.entity.Member;
 import com.shop.member.oauth.CustomOAuth2UserService;
+import com.shop.member.repository.MemberRepository;
 import com.shop.member.service.MemberService;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,6 +29,9 @@ public class SecurityConfig {
 
     @Autowired
     CustomOAuth2UserService customOAuth2UserService;
+
+    @Autowired
+    MemberRepository memberRepository;
 
     // 허용여부 설정하는 메소드
     // @Bean 객체 -> 스프링 컨테이너 관리하고 사용하는 싱글톤
@@ -107,14 +112,46 @@ public class SecurityConfig {
         )
 
         // ---------------- [소셜 로그인 설정 추가] ---------------------------
-        .oauth2Login(oauthLogin -> oauthLogin
-                // 소셜 로그인 성공 후 Thymeleaf가 아니라 React 메인으로 이동
-                .defaultSuccessUrl(frontendUrl + "/")      // 로그인 성공 시 이동할 페이지
-                .userInfoEndpoint(userInfoEndpointConfig -> userInfoEndpointConfig
-                        .userService(customOAuth2UserService) // 소셜 사용자 정보 처리 서비스 등록
-                )
-        );
-        // -----------------------------------------------------------------
+                .oauth2Login(oauthLogin -> oauthLogin
+
+                        /*
+                         * 소셜 로그인 성공 후
+                         * 추가정보 입력 여부에 따라 이동할 화면을 결정합니다.
+                         */
+                        .successHandler((request, response, authentication) -> {
+
+                            String identifier =
+                                    authentication.getName();
+
+                            Member member =
+                                    memberRepository.findByEmail(identifier);
+
+                            boolean additionalInfoRequired =
+                                    member != null
+                                            && (
+                                            member.getBirthDate() == null
+                                                    || member.getPhone() == null
+                                                    || member.getPhone().isBlank()
+                                    );
+
+                            if (additionalInfoRequired) {
+                                response.sendRedirect(
+                                        frontendUrl + "/additional-info"
+                                );
+
+                                return;
+                            }
+
+                            response.sendRedirect(
+                                    frontendUrl + "/"
+                            );
+                        })
+
+                        .userInfoEndpoint(userInfoEndpointConfig ->
+                                userInfoEndpointConfig
+                                        .userService(customOAuth2UserService)
+                        )
+                );
 
         http.exceptionHandling(exception -> exception
                 .authenticationEntryPoint(new CustomAuthenticationEntryPoint())

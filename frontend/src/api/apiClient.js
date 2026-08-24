@@ -105,6 +105,27 @@ export async function signup(memberData) {
 }
 
 /*
+ * 로그인한 회원의 추가 정보를 저장합니다.
+ */
+export async function updateAdditionalInfo(memberData) {
+  const csrf = await getCsrfToken()
+
+  return apiRequest(
+    '/api/members/additional-info',
+    {
+      method: 'PUT',
+
+      headers: {
+        'Content-Type': 'application/json',
+        [csrf.headerName]: csrf.token,
+      },
+
+      body: JSON.stringify(memberData),
+    }
+  )
+}
+
+/*
  * 아이디 중복 여부를 확인합니다.
  *
  * 반환 예:
@@ -171,6 +192,30 @@ export function getCenters(keyword = '') {
   )
 }
 
+/*
+ * ADMIN 헌혈센터 목록을 페이지 단위로 조회합니다.
+ */
+export function getAdminCenters(
+  keyword = '',
+  page = 0,
+  size = 10
+) {
+  const params = new URLSearchParams({
+    page: String(page),
+    size: String(size),
+  })
+
+  const trimmedKeyword = keyword.trim()
+
+  if (trimmedKeyword) {
+    params.set('keyword', trimmedKeyword)
+  }
+
+  return apiRequest(
+    `/api/admin/centers?${params.toString()}`
+  )
+}
+
 
 /*
  * 헌혈센터 한 곳의 상세 정보를 조회합니다.
@@ -224,8 +269,30 @@ export async function updateCenter(
 /*
  * ADMIN 회원 관리 화면에서 전체 회원 목록을 조회합니다.
  */
-export function getAdminMembers() {
-  return apiRequest('/api/admin/members')
+export function getAdminMembers(
+  keyword = '',
+  role = '',
+  page = 0,
+  size = 10
+) {
+  const params = new URLSearchParams({
+    page: String(page),
+    size: String(size),
+  })
+
+  const trimmedKeyword = keyword.trim()
+
+  if (trimmedKeyword) {
+    params.set('keyword', trimmedKeyword)
+  }
+
+  if (role) {
+    params.set('role', role)
+  }
+
+  return apiRequest(
+    `/api/admin/members?${params.toString()}`
+  )
 }
 
 /*
@@ -325,9 +392,29 @@ export async function updateAdminReservationSlot(
 /*
  * ADMIN 전체 예약 목록을 조회합니다.
  */
-export function getAdminReservations() {
+export function getAdminReservations(
+  keyword = '',
+  status = '',
+  page = 0,
+  size = 10
+) {
+  const params = new URLSearchParams({
+    page: String(page),
+    size: String(size),
+  })
+
+  const trimmedKeyword = keyword.trim()
+
+  if (trimmedKeyword) {
+    params.set('keyword', trimmedKeyword)
+  }
+
+  if (status) {
+    params.set('status', status)
+  }
+
   return apiRequest(
-    '/api/admin/reservations'
+    `/api/admin/reservations?${params.toString()}`
   )
 }
 
@@ -387,3 +474,4 @@ export async function cancelAdminReservation(
     }
   )
 }
+

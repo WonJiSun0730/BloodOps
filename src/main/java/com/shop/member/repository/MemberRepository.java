@@ -3,7 +3,11 @@ package com.shop.member.repository;
 import com.shop.member.constant.LoginProvider;
 import com.shop.member.constant.Role;
 import com.shop.member.entity.Member;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import java.util.Optional;
 
@@ -44,4 +48,27 @@ public interface MemberRepository extends JpaRepository<Member,Long> {
 
     //특정 권한을 가진 회원 수 조회, 마지막 관리자 권한 보호에 사용
     long countByRole(Role role);
+
+    @Query("""
+        select m
+        from Member m
+        where (
+            :keyword is null
+            or :keyword = ''
+            or lower(m.name)
+                like lower(concat('%', :keyword, '%'))
+            or lower(m.email)
+                like lower(concat('%', :keyword, '%'))
+        )
+        and (
+            :role is null
+            or m.role = :role
+        )
+        order by m.id desc
+        """)
+    Page<Member> findAdminMembers(
+            @Param("keyword") String keyword,
+            @Param("role") Role role,
+            Pageable pageable
+    );
 }

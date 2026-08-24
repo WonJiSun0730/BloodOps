@@ -1,6 +1,5 @@
 import {
   useEffect,
-  useMemo,
   useState,
 } from 'react'
 
@@ -18,6 +17,9 @@ import {
 import './AdminReservationsPage.css'
 
 import ConfirmModal from '../../components/modal/ConfirmModal.jsx'
+
+import AdminSectionNav
+  from '../../components/admin/AdminSectionNav.jsx'
 
 
 const reservationStatuses = [
@@ -45,7 +47,33 @@ const donationTypes = [
   },
 ]
 
+function getTodayDateString() {
+  const now = new Date()
+
+  const year = now.getFullYear()
+  const month =
+    String(now.getMonth() + 1).padStart(2, '0')
+  const day =
+    String(now.getDate()).padStart(2, '0')
+
+  return `${year}-${month}-${day}`
+}
+
+function getReservationStatusValue(statusFilter) {
+  if (statusFilter === '예약완료') {
+    return 'RESERVED'
+  }
+
+  if (statusFilter === '취소') {
+    return 'CANCELED'
+  }
+
+  return ''
+}
+
 function AdminReservationsPage() {
+  const todayDate = getTodayDateString()
+
   const [keyword, setKeyword] = useState('')
   const [statusFilter, setStatusFilter] =
     useState('전체')
@@ -55,6 +83,20 @@ function AdminReservationsPage() {
 
   const [reservationLoading, setReservationLoading] =
     useState(true)
+
+  const [reservationPage, setReservationPage] =
+    useState(0)
+
+  const [reservationLastPage, setReservationLastPage] =
+    useState(false)
+
+  const [totalReservations, setTotalReservations] =
+    useState(0)
+
+  const [
+    reservationLoadingMore,
+    setReservationLoadingMore,
+  ] = useState(false)
 
   const [reservationError, setReservationError] =
     useState('')
@@ -113,6 +155,39 @@ function AdminReservationsPage() {
   const [selectedDate, setSelectedDate] =
     useState('')
 
+    function isPastSlot(slot) {
+      if (!selectedDate || !slot?.startTime) {
+        return false
+      }
+
+      const [
+        year,
+        month,
+        day,
+      ] = selectedDate
+        .split('-')
+        .map(Number)
+
+      const [
+        hour,
+        minute,
+      ] = slot.startTime
+        .slice(0, 5)
+        .split(':')
+        .map(Number)
+
+      const slotDateTime =
+        new Date(
+          year,
+          month - 1,
+          day,
+          hour,
+          minute
+        )
+
+      return slotDateTime < new Date()
+    }
+
   const [selectedDonationType, setSelectedDonationType] =
     useState('WHOLE_BLOOD')
 
@@ -167,68 +242,111 @@ function AdminReservationsPage() {
     loadCenters()
   }, [])
 
-  useEffect(() => {
-      async function loadReservations() {
-        try {
-          setReservationLoading(true)
-          setReservationError('')
+  async function loadReservations(
+    searchKeyword = '',
+    filter = '전체',
+    page = 0,
+    append = false
+  ) {
+    if (append) {
+      setReservationLoadingMore(true)
+    } else {
+      setReservationLoading(true)
+    }
 
-          const reservationData =
-            await getAdminReservations()
+    setReservationError('')
 
-          setReservations(reservationData)
-        } catch (error) {
-          setReservations([])
+    try {
+      const status =
+        getReservationStatusValue(filter)
 
-          setReservationError(
-            error.message
-            || '예약 목록을 불러오지 못했습니다.'
-          )
-        } finally {
-          setReservationLoading(false)
-        }
+      const data =
+        await getAdminReservations(
+          searchKeyword,
+          status,
+          page,
+          10
+        )
+
+      if (append) {
+        setReservations((current) => [
+          ...current,
+          ...data.content,
+        ])
+      } else {
+        setReservations(data.content)
       }
 
-      loadReservations()
-    }, [])
+      setReservationPage(data.number)
+      setReservationLastPage(data.last)
+      setTotalReservations(data.totalElements)
+    } catch (error) {
+      if (!append) {
+        setReservations([])
+      }
 
-const filteredReservations = useMemo(() => {
-  const normalizedKeyword =
-    keyword.trim().toLowerCase()
-
-  return reservations.filter(
-    (reservation) => {
-      const matchesKeyword =
-        !normalizedKeyword
-        ||
-        reservation.memberName
-          .toLowerCase()
-          .includes(normalizedKeyword)
-        ||
-        reservation.centerName
-          .toLowerCase()
-          .includes(normalizedKeyword)
-
-      const statusLabel =
-        reservation.status === 'RESERVED'
-          ? '예약완료'
-          : '취소'
-
-      const matchesStatus =
-        statusFilter === '전체'
-        ||
-        statusLabel === statusFilter
-
-      return matchesKeyword && matchesStatus
+      setReservationError(
+        error.message
+        || '예약 목록을 불러오지 못했습니다.'
+      )
+    } finally {
+      setReservationLoading(false)
+      setReservationLoadingMore(false)
     }
-  )
-}, [
-  reservations,
-  keyword,
-  statusFilter,
-])
+  }
+
+useEffect(() => {
+  const timer = setTimeout(() => {
+    loadReservations(
+      keyword,
+      statusFilter,
+      0,
+      false
+    )
+  }, 300)
+
+  return () => {
+    clearTimeout(timer)
+  }
+}, [keyword, statusFilter])
+
+function handleReservationListScroll(event) {
+    if (
+      reservationLoading
+      || reservationLoadingMore
+      || reservationLastPage
+    ) {
+      return
+    }
+
+    const element = event.currentTarget
+
+    const distanceFromBottom =
+      element.scrollHeight
+      - element.scrollTop
+      - element.clientHeight
+
+    if (distanceFromBottom > 80) {
+      return
+    }
+
+    loadReservations(
+      keyword,
+      statusFilter,
+      reservationPage + 1,
+      true
+    )
+  }
 
   async function handleSlotSearch() {
+    if (selectedDate && selectedDate < todayDate) {
+        setSlotError(
+          '지난 날짜의 예약 슬롯은 조회하거나 수정할 수 없습니다.'
+        )
+
+        return
+      }
+
     if (
       !selectedCenterId
       || !selectedDate
@@ -268,6 +386,14 @@ const filteredReservations = useMemo(() => {
   }
 
 async function handleSlotCreate() {
+  if (selectedDate && selectedDate < todayDate) {
+      setSlotError(
+        '지난 날짜에는 예약 슬롯을 생성할 수 없습니다.'
+      )
+
+      return
+    }
+
   if (
     !selectedCenterId
     || !selectedDate
@@ -314,6 +440,14 @@ async function handleSlotCreate() {
 }
 
 async function handleSlotCapacityUpdate(slot) {
+  if (isPastSlot(slot)) {
+      setSlotError(
+        '이미 지난 예약 슬롯은 수정할 수 없습니다.'
+      )
+
+      return
+    }
+
   const newCapacity =
     Number(
       slotCapacityDrafts[slot.id]
@@ -372,6 +506,14 @@ async function handleSlotCapacityUpdate(slot) {
 }
 
 async function handleSlotActiveToggle(slot) {
+  if (isPastSlot(slot)) {
+      setSlotError(
+        '이미 지난 예약 슬롯의 상태는 변경할 수 없습니다.'
+      )
+
+      return
+    }
+
   try {
     setUpdatingSlotId(slot.id)
     setSlotError('')
@@ -592,6 +734,8 @@ async function handleReservationCancel() {
   return (
     <main className="admin-reservations-page">
 
+      <AdminSectionNav />
+
       <section className="admin-reservations-header">
 
         <div>
@@ -656,6 +800,7 @@ async function handleReservationCancel() {
         <input
           type="date"
           value={selectedDate}
+          min={todayDate}
           onChange={(event) =>
             setSelectedDate(event.target.value)
           }
@@ -820,6 +965,7 @@ async function handleReservationCancel() {
                 }
                 disabled={
                   updatingSlotId === slot.id
+                  || isPastSlot(slot)
                 }
               />
 
@@ -831,6 +977,7 @@ async function handleReservationCancel() {
                 }
                 disabled={
                   updatingSlotId === slot.id
+                  || isPastSlot(slot)
                   ||
                   Number(
                     slotCapacityDrafts[slot.id]
@@ -864,6 +1011,7 @@ async function handleReservationCancel() {
               }
               disabled={
                 updatingSlotId === slot.id
+                || isPastSlot(slot)
               }
             >
               {updatingSlotId === slot.id
@@ -919,13 +1067,16 @@ async function handleReservationCancel() {
 
 
         <span className="admin-reservation-count">
-          총 {filteredReservations.length}건
+          총 {totalReservations}건
         </span>
 
       </section>
 
 
-      <section className="admin-reservation-list">
+      <section
+        className="admin-reservation-list"
+        onScroll={handleReservationListScroll}
+      >
 
         <div className="admin-reservation-list-header">
           <span>회원</span>
@@ -951,13 +1102,13 @@ async function handleReservationCancel() {
 
         {!reservationLoading
           && !reservationError
-          && filteredReservations.length === 0 && (
+          && reservations.length === 0 && (
             <p className="admin-slot-empty">
               조회된 예약이 없습니다.
             </p>
         )}
 
-        {filteredReservations.map(
+        {reservations.map(
           (reservation) => (
             <article
               key={reservation.id}

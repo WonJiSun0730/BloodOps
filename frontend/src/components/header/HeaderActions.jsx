@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { Link } from 'react-router-dom'
 
 import {
@@ -16,6 +17,18 @@ function HeaderActions({
   onSearchKeywordChange,
   onSearch,
 }) {
+  const [accountMenuOpen, setAccountMenuOpen] =
+    useState(false)
+
+  const isAdmin =
+    currentUser?.roles?.includes('ROLE_ADMIN')
+    ?? false
+
+  function handleAccountLogout() {
+    setAccountMenuOpen(false)
+    onLogout()
+  }
+
   return (
     <div className="header-actions">
       {currentUser ? (
@@ -24,7 +37,13 @@ function HeaderActions({
             {currentUser.name ?? currentUser.email}
           </span>
 
-          <div className="header-account-links">
+          <div
+            className={
+              isAdmin
+                ? 'header-account-links header-account-links--admin'
+                : 'header-account-links'
+            }
+          >
             <Link
               className="header-text-button"
               to="/mypage"
@@ -39,7 +58,7 @@ function HeaderActions({
               ·
             </span>
 
-            {currentUser.roles?.includes('ROLE_ADMIN') && (
+            {isAdmin && (
               <>
                 <Link
                   className="header-admin-link"
@@ -65,6 +84,77 @@ function HeaderActions({
               로그아웃
             </button>
           </div>
+
+          {isAdmin && (
+            <div className="header-account-menu">
+              <button
+                type="button"
+                className="header-account-menu-button"
+                aria-haspopup="menu"
+                aria-expanded={accountMenuOpen}
+                aria-label="계정 메뉴 열기"
+                onClick={() =>
+                  setAccountMenuOpen((current) => !current)
+                }
+              >
+                <span>내 계정</span>
+
+                <span
+                  className="header-account-menu-chevron"
+                  aria-hidden="true"
+                />
+              </button>
+
+              {accountMenuOpen && (
+                <div
+                  className="header-account-dropdown"
+                  role="menu"
+                >
+                  <div className="header-account-dropdown-profile">
+                    <strong>
+                      {currentUser.name ?? 'BloodOps 회원'}
+                    </strong>
+
+                    <span>
+                      {currentUser.email
+                        ?? currentUser.identifier
+                        ?? ''}
+                    </span>
+                  </div>
+                  <Link
+                    to="/mypage"
+                    role="menuitem"
+                    className="header-account-dropdown-link"
+                    onClick={() =>
+                      setAccountMenuOpen(false)
+                    }
+                  >
+                    마이페이지
+                  </Link>
+
+                  <Link
+                    to="/admin"
+                    role="menuitem"
+                    className="header-account-dropdown-link admin"
+                    onClick={() =>
+                      setAccountMenuOpen(false)
+                    }
+                  >
+                    관리자 페이지
+                  </Link>
+
+                  <button
+                    type="button"
+                    role="menuitem"
+                    className="header-account-dropdown-link logout"
+                    onClick={handleAccountLogout}
+                  >
+                    로그아웃
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
         </>
       ) : (
         <>

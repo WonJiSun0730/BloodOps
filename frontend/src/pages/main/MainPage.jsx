@@ -15,6 +15,9 @@ import {
 
 import './MainPage.css'
 
+import BackgroundOrbit
+  from '../../components/decorations/BackgroundOrbit.jsx'
+
 
 /*
  * 메인 이벤트 배너
@@ -385,20 +388,7 @@ function MainPage() {
   return (
     <main className="main-page">
 
-      <div
-        className="main-background-orbit main-background-orbit--left"
-        aria-hidden="true"
-      >
-        <span className="main-orbit-cross" />
-      </div>
-
-      <div
-        className="main-background-orbit main-background-orbit--right"
-        aria-hidden="true"
-      >
-        <span className="main-orbit-cross" />
-      </div>
-
+      <BackgroundOrbit />
       {/* =================================================
           Hero
           ================================================= */}
