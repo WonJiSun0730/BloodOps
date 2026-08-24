@@ -31,4 +31,9 @@ public class BloodUnit {
     private LocalDateTime collectionDate;
     private LocalDateTime expirationDate;
     private String status;
+
+    @Column(nullable = false)
+    private String dataSource = "REAL";
+
+    private LocalDate dummyGenerationDate;
 }
