@@ -33,7 +33,7 @@ public class BloodUnit {
     private String status;
 
     @Column(nullable = false)
-    private String dataSource;
+    private String dataSource = "REAL";
 
     private LocalDate dummyGenerationDate;
 }
