@@ -21,15 +21,16 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class BloodInfoService {
 
-    private static final String TARGET_URL = "https://www.bloodinfo.net/knredcross/blood_stock.do";
+    /** 대한적십자사 혈액관리본부 혈액보유현황 페이지 */
+    private static final String TARGET_URL = "https://bloodinfo.net/knrcbs/main.do";
+
+    /** 공식 전국 현황을 blood_stocks에 저장할 때 사용하는 예약 centerId */
+    public static final long NATIONAL_CENTER_ID = 0L;
 
     private final DummyStockGenerator dummyStockGenerator;
 
-    @Value("${crawler.use-dummy:true}")
+    @Value("${crawler.use-dummy:false}")
     private boolean useDummy;
-
-    @Value("${crawler.default-center-id:1}")
-    private Long defaultCenterId;
 
     @Value("${crawler.timeout-ms:10000}")
     private int timeoutMs;
@@ -46,23 +47,27 @@ public class BloodInfoService {
                     .timeout(timeoutMs)
                     .get();
 
-            List<RawStockData> result = parseStockTable(doc);
+            List<RawStockData> result = parseOfficialStockTable(doc);
             if (result.isEmpty()) {
-                throw new IllegalStateException("혈액 재고 데이터를 추출하지 못했습니다. HTML 구조를 확인하세요.");
+                throw new IllegalStateException("대한적십자사 공식 혈액보유현황에서 현재 혈액보유량을 추출하지 못했습니다. HTML 구조를 확인하세요.");
             }
 
-            log.info("[크롤러] 혈액 재고 {}건 수집 완료", result.size());
+            log.info("[크롤러] 대한적십자사 공식 혈액보유량 {}건 수집 완료", result.size());
             return result;
         } catch (Exception e) {
-            log.error("[크롤러] 데이터 수집 실패", e);
-            throw new IllegalStateException("혈액 재고 크롤링에 실패했습니다.", e);
+            log.error("[크롤러] 대한적십자사 혈액보유현황 수집 실패", e);
+            throw new IllegalStateException("대한적십자사 혈액보유현황 크롤링에 실패했습니다.", e);
         }
     }
 
-    private List<RawStockData> parseStockTable(Document doc) {
-        Elements tables = doc.select("table.stock_table, table");
+    /**
+     * 공식 페이지의 '적혈구제제 보유 현황' 표에서 '현재 혈액보유량' 행만 읽는다.
+     * 표 구조는 합계/A형/B형/O형/AB형이며, 합계는 DB에 저장하지 않는다.
+     */
+    private List<RawStockData> parseOfficialStockTable(Document doc) {
+        Elements tables = doc.select("table");
         for (Element table : tables) {
-            List<RawStockData> parsed = parseTable(table);
+            List<RawStockData> parsed = parseOfficialTable(table);
             if (!parsed.isEmpty()) {
                 return parsed;
             }
@@ -70,99 +75,91 @@ public class BloodInfoService {
         return List.of();
     }
 
-    private List<RawStockData> parseTable(Element table) {
-        Elements rows = table.select("tbody tr");
-        if (rows.isEmpty()) rows = table.select("tr");
+    private List<RawStockData> parseOfficialTable(Element table) {
+        Elements rows = table.select("tr");
+        if (rows.isEmpty()) {
+            return List.of();
+        }
 
-        Map<String, Integer> headerIndex = buildHeaderIndex(table);
+        Map<String, Integer> bloodTypeIndexes = findOfficialHeaderIndexes(rows);
+        if (bloodTypeIndexes.size() != 4) {
+            return List.of();
+        }
+
+        Element currentStockRow = findCurrentStockRow(rows);
+        if (currentStockRow == null) {
+            return List.of();
+        }
+
+        Elements cells = currentStockRow.select("th, td");
         List<RawStockData> result = new ArrayList<>();
 
-        for (Element row : rows) {
-            Elements cells = row.select("th, td");
-            if (cells.isEmpty()) continue;
-
-            Long centerId = extractCenterId(row);
-            if (centerId == null) centerId = defaultCenterId;
-
-            // 8종(A+/A-/B+/B-/O+/O-/AB+/AB-) 헤더 기반 표
-            if (!headerIndex.isEmpty()) {
-                for (Map.Entry<String, Integer> entry : headerIndex.entrySet()) {
-                    int index = entry.getValue();
-                    if (index >= cells.size()) continue;
-                    Integer quantity = parseInteger(cells.get(index).text());
-                    if (quantity != null) {
-                        result.add(new RawStockData(centerId, entry.getKey(), quantity));
-                    }
-                }
-                continue;
+        for (Map.Entry<String, Integer> entry : bloodTypeIndexes.entrySet()) {
+            int index = entry.getValue();
+            if (index >= cells.size()) {
+                return List.of();
             }
 
-            // 행 자체가 "A+ 10" 같은 구조인 경우
-            for (Element cell : cells) {
-                BloodTypeToken bloodType = parseBloodType(cell.text());
-                if (bloodType == null) continue;
-
-                Integer quantity = parseQuantity(cell.text(), bloodType.value());
-                if (quantity != null) {
-                    result.add(new RawStockData(centerId, bloodType.value(), quantity));
-                }
+            Integer quantity = parseInteger(cells.get(index).text());
+            if (quantity == null || quantity < 0) {
+                return List.of();
             }
+
+            result.add(new RawStockData(NATIONAL_CENTER_ID, entry.getKey(), quantity));
         }
 
         return deduplicate(result);
     }
 
-    private Map<String, Integer> buildHeaderIndex(Element table) {
+    private Map<String, Integer> findOfficialHeaderIndexes(Elements rows) {
         Map<String, Integer> result = new LinkedHashMap<>();
-        Elements headerRows = table.select("thead tr");
-        if (headerRows.isEmpty()) headerRows = table.select("tr");
-        if (headerRows.isEmpty()) return result;
 
-        // 여러 헤더 행 중 혈액형이 가장 많이 포함된 행을 선택
-        Element best = headerRows.stream()
-                .max((a, b) -> Integer.compare(countBloodTypes(a), countBloodTypes(b)))
-                .orElse(null);
-        if (best == null) return result;
+        for (Element row : rows) {
+            Elements cells = row.select("th, td");
+            Map<String, Integer> candidate = new LinkedHashMap<>();
 
-        Elements headers = best.select("th, td");
-        for (int i = 0; i < headers.size(); i++) {
-            BloodTypeToken token = parseBloodType(headers.get(i).text());
-            if (token != null) result.putIfAbsent(token.value(), i);
+            for (int i = 0; i < cells.size(); i++) {
+                String bloodType = parseOfficialBloodType(cells.get(i).text());
+                if (bloodType != null) {
+                    candidate.putIfAbsent(bloodType, i);
+                }
+            }
+
+            if (candidate.size() == 4) {
+                result.putAll(candidate);
+                return result;
+            }
         }
+
         return result;
     }
 
-    private int countBloodTypes(Element row) {
-        int count = 0;
-        for (Element cell : row.select("th, td")) {
-            if (parseBloodType(cell.text()) != null) count++;
-        }
-        return count;
-    }
-
-    private Integer parseQuantity(String text, String bloodType) {
-        String normalized = text.replace(bloodType, "");
-        return parseInteger(normalized);
-    }
-
-    private Long extractCenterId(Element element) {
-        String[] keys = {"data-center-id", "data-centerid", "center-id", "centerId"};
-        for (String key : keys) {
-            String value = element.attr(key);
-            if (!value.isBlank()) {
-                try {
-                    return Long.valueOf(value.trim());
-                } catch (NumberFormatException ignored) {
-                    log.debug("[크롤러] centerId 파싱 실패: {}={}", key, value);
-                }
+    private Element findCurrentStockRow(Elements rows) {
+        for (Element row : rows) {
+            String text = normalize(row.text());
+            if (text.contains("현재혈액보유량") || text.contains("현재보유량")) {
+                return row;
             }
         }
         return null;
     }
 
+    private String parseOfficialBloodType(String text) {
+        String value = normalize(text);
+        return switch (value) {
+            case "A", "A형" -> "A";
+            case "B", "B형" -> "B";
+            case "O", "O형" -> "O";
+            case "AB", "AB형" -> "AB";
+            default -> null;
+        };
+    }
+
     private Integer parseInteger(String text) {
         String digits = text.replaceAll("[^0-9-]", "");
-        if (digits.isBlank() || "-".equals(digits)) return null;
+        if (digits.isBlank() || "-".equals(digits)) {
+            return null;
+        }
         try {
             return Integer.valueOf(digits);
         } catch (NumberFormatException e) {
@@ -174,29 +171,14 @@ public class BloodInfoService {
         return text == null ? "" : text.replaceAll("\\s+", "").toUpperCase(Locale.ROOT);
     }
 
-    private BloodTypeToken parseBloodType(String text) {
-        String value = normalize(text);
-        return switch (value) {
-            case "A+", "A＋", "A_POSITIVE", "A형+", "A형양성" -> new BloodTypeToken("A_POSITIVE");
-            case "A-", "A－", "A_NEGATIVE", "A형-", "A형음성" -> new BloodTypeToken("A_NEGATIVE");
-            case "B+", "B＋", "B_POSITIVE", "B형+", "B형양성" -> new BloodTypeToken("B_POSITIVE");
-            case "B-", "B－", "B_NEGATIVE", "B형-", "B형음성" -> new BloodTypeToken("B_NEGATIVE");
-            case "O+", "O＋", "O_POSITIVE", "O형+", "O형양성" -> new BloodTypeToken("O_POSITIVE");
-            case "O-", "O－", "O_NEGATIVE", "O형-", "O형음성" -> new BloodTypeToken("O_NEGATIVE");
-            case "AB+", "AB＋", "AB_POSITIVE", "AB형+", "AB형양성" -> new BloodTypeToken("AB_POSITIVE");
-            case "AB-", "AB－", "AB_NEGATIVE", "AB형-", "AB형음성" -> new BloodTypeToken("AB_NEGATIVE");
-            default -> null;
-        };
-    }
-
     private List<RawStockData> deduplicate(List<RawStockData> data) {
         Map<String, RawStockData> unique = new LinkedHashMap<>();
         for (RawStockData item : data) {
-            if (item.getCenterId() == null || item.getBloodType() == null || item.getQuantity() == null) continue;
+            if (item.getCenterId() == null || item.getBloodType() == null || item.getQuantity() == null) {
+                continue;
+            }
             unique.put(item.getCenterId() + ":" + item.getBloodType(), item);
         }
         return new ArrayList<>(unique.values());
     }
-
-    private record BloodTypeToken(String value) {}
 }
