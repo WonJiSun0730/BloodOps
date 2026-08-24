@@ -1,4 +1,13 @@
 
+.admin-center-donation-options {
+  display: flex;
+
+  flex-wrap: wrap;
+  align-items: center;
+
+  gap: 8px;
+}
+
 .admin-center-donation-options label {
   display: flex;
 
@@ -322,13 +331,15 @@
 }
 
 .admin-centers-page {
+  position: relative;
+
   width: min(
     calc(100% - (var(--page-padding) * 2)),
     var(--content-max-width)
   );
 
   margin: 0 auto;
-  padding: 56px 0 80px;
+  padding: 36px 0 80px;
 }
 
 
@@ -491,12 +502,14 @@
 
 
 .admin-center-list {
+  max-height: 600px;
   margin-top: 18px;
+
+  overflow-x: hidden;
+  overflow-y: auto;
 
   border: 1px solid var(--color-border);
   border-radius: 16px;
-
-  overflow: hidden;
 
   background-color: var(--color-surface);
 }
@@ -520,6 +533,11 @@
 
 
 .admin-center-list-header {
+
+  position: sticky;
+  top: 0;
+  z-index: 2;
+
   min-height: 46px;
   padding: 0 18px;
 

@@ -2,9 +2,11 @@ package com.shop.reservation.repository;
 
 import com.shop.reservation.constant.ReservationStatus;
 import com.shop.reservation.entity.Reservation;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
-
-import java.util.List;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 public interface ReservationRepository
         extends JpaRepository<Reservation, Long> {
@@ -29,9 +31,29 @@ public interface ReservationRepository
             ReservationStatus status
     );
 
-    /*
-     * ADMIN 예약 관리 화면에서
-     * 최근 생성된 예약부터 조회합니다.
-     */
-    List<Reservation> findAllByOrderByIdDesc();
+    @Query("""
+        select r
+        from Reservation r
+        join r.member m
+        join r.slot s
+        join s.center c
+        where (
+            :keyword is null
+            or :keyword = ''
+            or lower(m.name)
+                like lower(concat('%', :keyword, '%'))
+            or lower(c.centerName)
+                like lower(concat('%', :keyword, '%'))
+        )
+        and (
+            :status is null
+            or r.status = :status
+        )
+        order by r.id desc
+        """)
+    Page<Reservation> findAdminReservations(
+            @Param("keyword") String keyword,
+            @Param("status") ReservationStatus status,
+            Pageable pageable
+    );
 }

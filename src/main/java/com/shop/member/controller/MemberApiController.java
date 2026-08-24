@@ -1,5 +1,6 @@
 package com.shop.member.controller;
 
+import com.shop.member.dto.MemberAdditionalInfoDto;
 import com.shop.member.dto.MemberFormDto;
 import com.shop.member.entity.Member;
 import com.shop.member.service.MemberService;
@@ -7,6 +8,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
@@ -139,5 +141,73 @@ public class MemberApiController {
                 memberService.isEmailAvailable(email);
 
         return Map.of("available", available);
+    }
+
+    @PutMapping("/additional-info")
+    public ResponseEntity<Map<String, Object>> updateAdditionalInfo(
+            @Valid @RequestBody MemberAdditionalInfoDto dto,
+            BindingResult bindingResult,
+            Authentication authentication
+    ) {
+
+        if (bindingResult.hasErrors()) {
+            Map<String, String> fieldErrors =
+                    new LinkedHashMap<>();
+
+            for (FieldError fieldError
+                    : bindingResult.getFieldErrors()) {
+
+                fieldErrors.putIfAbsent(
+                        fieldError.getField(),
+                        fieldError.getDefaultMessage()
+                );
+            }
+
+            return ResponseEntity.badRequest().body(
+                    Map.of(
+                            "message",
+                            "입력 내용을 확인해주세요.",
+                            "errors",
+                            fieldErrors
+                    )
+            );
+        }
+
+        try {
+            memberService.updateAdditionalInfo(
+                    authentication.getName(),
+                    dto
+            );
+
+            return ResponseEntity.ok(
+                    Map.of(
+                            "message",
+                            "추가 정보가 저장되었습니다."
+                    )
+            );
+
+        } catch (DateTimeException e) {
+
+            return ResponseEntity.badRequest().body(
+                    Map.of(
+                            "message",
+                            "입력 내용을 확인해주세요.",
+                            "errors",
+                            Map.of(
+                                    "birthDate",
+                                    "존재하지 않는 생년월일입니다."
+                            )
+                    )
+            );
+
+        } catch (IllegalArgumentException e) {
+
+            return ResponseEntity.badRequest().body(
+                    Map.of(
+                            "message",
+                            e.getMessage()
+                    )
+            );
+        }
     }
 }

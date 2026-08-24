@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useState } from 'react'
 
 import {
   getAdminMembers,
@@ -26,6 +26,18 @@ function AdminMembersPage() {
   const [members, setMembers] = useState([])
   const [currentUser, setCurrentUser] = useState(null)
 
+  const [memberPage, setMemberPage] =
+    useState(0)
+
+  const [memberLastPage, setMemberLastPage] =
+    useState(false)
+
+  const [totalMembers, setTotalMembers] =
+    useState(0)
+
+  const [loadingMore, setLoadingMore] =
+    useState(false)
+
   const [keyword, setKeyword] = useState('')
   const [roleFilter, setRoleFilter] =
     useState('전체')
@@ -48,46 +60,132 @@ function AdminMembersPage() {
   const [notice, setNotice] =
     useState(null)
 
-  useEffect(() => {
-    let isMounted = true
+      useEffect(() => {
+        let isMounted = true
 
-    async function loadMembers() {
-      try {
-        setIsLoading(true)
-        setErrorMessage('')
+        async function loadCurrentUser() {
+          try {
+            const data = await getCurrentUser()
 
-        const [
-          memberData,
-          currentUserData,
-        ] = await Promise.all([
-          getAdminMembers(),
-          getCurrentUser(),
-        ])
-
-        if (isMounted) {
-          setMembers(memberData)
-          setCurrentUser(currentUserData)
+            if (isMounted) {
+              setCurrentUser(data)
+            }
+          } catch (error) {
+            console.error(
+              '현재 사용자 조회 실패:',
+              error
+            )
+          }
         }
-      } catch (error) {
-        if (isMounted) {
-          setErrorMessage(
-            error.message
-            || '회원 목록을 불러오지 못했습니다.'
+
+        loadCurrentUser()
+
+        return () => {
+          isMounted = false
+        }
+      }, [])
+
+    async function loadMembers(
+      searchKeyword = '',
+      filter = '전체',
+      page = 0,
+      append = false
+    ) {
+      if (append) {
+        setLoadingMore(true)
+      } else {
+        setIsLoading(true)
+      }
+
+      setErrorMessage('')
+
+      try {
+        const role =
+          filter === '전체'
+            ? ''
+            : filter
+
+        const memberData =
+          await getAdminMembers(
+            searchKeyword,
+            role,
+            page,
+            10
+          )
+
+        if (append) {
+          setMembers((current) => [
+            ...current,
+            ...memberData.content,
+          ])
+        } else {
+          setMembers(
+            memberData.content ?? []
           )
         }
-      } finally {
-        if (isMounted) {
-          setIsLoading(false)
+
+        setMemberPage(memberData.number)
+        setMemberLastPage(memberData.last)
+        setTotalMembers(
+          memberData.totalElements
+        )
+      } catch (error) {
+        if (!append) {
+          setMembers([])
         }
+
+        setErrorMessage(
+          error.message
+          || '회원 목록을 불러오지 못했습니다.'
+        )
+      } finally {
+        setIsLoading(false)
+        setLoadingMore(false)
       }
     }
 
-    loadMembers()
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      loadMembers(
+        keyword,
+        roleFilter,
+        0,
+        false
+      )
+    }, 300)
 
     return () => {
-      isMounted = false
+      clearTimeout(timer)
     }
-  }, [])
+  }, [keyword, roleFilter])
+
+    function handleMemberListScroll(event) {
+      if (
+        isLoading
+        || loadingMore
+        || memberLastPage
+      ) {
+        return
+      }
+
+      const element = event.currentTarget
+
+      const distanceFromBottom =
+        element.scrollHeight
+        - element.scrollTop
+        - element.clientHeight
+
+      if (distanceFromBottom > 80) {
+        return
+      }
+
+      loadMembers(
+        keyword,
+        roleFilter,
+        memberPage + 1,
+        true
+      )
+    }
 
     async function handleRoleChange(member) {
       const newRole =
@@ -169,35 +267,10 @@ function AdminMembersPage() {
       }
     }
 
-
-    const filteredMembers = useMemo(() => {
-    const normalizedKeyword =
-      keyword.trim().toLowerCase()
-
-    return members.filter((member) => {
-      const matchesKeyword =
-        !normalizedKeyword
-        ||
-        member.name
-          .toLowerCase()
-          .includes(normalizedKeyword)
-        ||
-        member.email
-          .toLowerCase()
-          .includes(normalizedKeyword)
-
-      const matchesRole =
-        roleFilter === '전체'
-        ||
-        member.role === roleFilter
-
-      return matchesKeyword && matchesRole
-    })
-  }, [members, keyword, roleFilter])
-
-
   return (
     <main className="admin-members-page">
+
+      <AdminSectionNav />
 
       <section className="admin-members-header">
 
@@ -217,8 +290,6 @@ function AdminMembersPage() {
         </div>
 
       </section>
-
-      <AdminSectionNav />
 
       <section className="admin-member-toolbar">
 
@@ -259,13 +330,16 @@ function AdminMembersPage() {
 
 
         <span className="admin-member-count">
-          총 {filteredMembers.length}명
+          총 {totalMembers}명
         </span>
 
       </section>
 
 
-      <section className="admin-member-list">
+      <section
+        className="admin-member-list"
+        onScroll={handleMemberListScroll}
+      >
 
         <div className="admin-member-list-header">
           <span>회원</span>
@@ -292,7 +366,7 @@ function AdminMembersPage() {
 
         {!isLoading
           && !errorMessage
-          && filteredMembers.map((member) => (
+          && members.map((member) => (
           <article
             key={member.id}
             className="admin-member-row"
@@ -375,6 +449,12 @@ function AdminMembersPage() {
             </div>
           </article>
         ))}
+
+    {loadingMore && (
+              <p>
+                회원을 더 불러오는 중입니다.
+              </p>
+            )}
 
       </section>
 

@@ -22,6 +22,9 @@ public class OAuthAttributes {
     private String email;
     private String picture;
 
+    private String birthDate;
+    private String phone;
+
     // GOOGLE, NAVER, KAKAO 구분
     private LoginProvider provider;
 
@@ -34,6 +37,8 @@ public class OAuthAttributes {
             String name,
             String email,
             String picture,
+            String birthDate,
+            String phone,
             LoginProvider provider,
             String providerId){
         this.attributes = attributes;
@@ -41,6 +46,8 @@ public class OAuthAttributes {
         this.name = name;
         this.email = email;
         this.picture = picture;
+        this.birthDate = birthDate;
+        this.phone = phone;
         this.provider = provider;
         this.providerId = providerId;
     }
@@ -71,6 +78,51 @@ public class OAuthAttributes {
         // 카카오의 고유 회원번호
         String providerId = String.valueOf(attributes.get("id"));
 
+        String birthyear =
+                (String) kakaoAccount.get("birthyear");
+
+        String birthday =
+                (String) kakaoAccount.get("birthday");
+
+        String birthDate = null;
+
+        if (
+                birthyear != null
+                        && birthday != null
+        ) {
+            birthDate =
+                    birthyear + birthday;
+        }
+
+
+        String rawPhone =
+                (String) kakaoAccount.get("phone_number");
+
+        String phone = null;
+
+        if (rawPhone != null) {
+            String normalized =
+                    rawPhone.replaceAll("\\D", "");
+
+            /*
+             * 국내 번호:
+             * +82 010-1234-5678
+             * → 8201012345678
+             * → 01012345678
+             */
+            if (normalized.startsWith("82")) {
+                normalized =
+                        normalized.substring(2);
+
+                if (normalized.startsWith("10")) {
+                    normalized =
+                            "0" + normalized;
+                }
+            }
+
+            phone = normalized;
+        }
+
         /*
          * 카카오 이메일 제공 동의 여부와 관계없이
          * 내부에서 사용할 수 있는 고유 이메일 값을 만듭니다.
@@ -83,6 +135,8 @@ public class OAuthAttributes {
                 (String) profile.get("nickname"),
                 internalEmail,
                 (String) profile.get("profile_image_url"),
+                birthDate,
+                phone,
                 LoginProvider.KAKAO,
                 providerId
         );
@@ -95,12 +149,40 @@ public class OAuthAttributes {
         // 네이버의 고유 회원 식별값
         String providerId = String.valueOf(response.get("id"));
 
+        String birthyear =
+                (String) response.get("birthyear");
+
+        String birthday =
+                (String) response.get("birthday");
+
+        String birthDate = null;
+
+        if (
+                birthyear != null
+                        && birthday != null
+        ) {
+            birthDate =
+                    birthyear
+                            + birthday.replace("-", "");
+        }
+
+
+        String mobile =
+                (String) response.get("mobile");
+
+        String phone =
+                mobile != null
+                        ? mobile.replaceAll("\\D", "")
+                        : null;
+
         return new OAuthAttributes(
                 attributes,
                 userNameAttributeName,
                 (String) response.get("name"),
                 (String) response.get("email"),
                 (String) response.get("profile_image"),
+                birthDate,
+                phone,
                 LoginProvider.NAVER,
                 providerId
         );
@@ -117,6 +199,8 @@ public class OAuthAttributes {
                 (String) attributes.get("name"),
                 (String) attributes.get("email"),
                 (String) attributes.get("picture"),
+                null,
+                null,
                 LoginProvider.GOOGLE,
                 providerId
         );
@@ -134,6 +218,23 @@ public class OAuthAttributes {
         member.setName(name);
         member.setEmail(email);
         member.setPicture(picture);
+
+        if (birthDate != null && birthDate.length() == 8) {
+            member.setBirthDate(
+                    java.time.LocalDate.parse(
+                            birthDate,
+                            java.time.format.DateTimeFormatter.BASIC_ISO_DATE
+                    )
+            );
+        }
+
+        if (
+                phone != null
+                        && !phone.isBlank()
+        ) {
+            member.setPhone(phone);
+        }
+
         member.setProvider(provider);
         member.setProviderId(providerId);
         member.setRole(Role.USER);

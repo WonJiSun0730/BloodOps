@@ -5,6 +5,9 @@ import com.shop.member.dto.AdminMemberResponseDto;
 import com.shop.member.dto.AdminMemberRoleUpdateDto;
 import com.shop.member.service.MemberService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -29,8 +32,24 @@ public class AdminMemberApiController {
      * GET /api/admin/members
      */
     @GetMapping
-    public List<AdminMemberResponseDto> getMembers() {
-        return memberService.getAdminMemberList();
+    public Page<AdminMemberResponseDto> getMembers(
+            @RequestParam(required = false) String keyword,
+            @RequestParam(required = false) Role role,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size
+    ) {
+
+        Pageable pageable =
+                PageRequest.of(
+                        page,
+                        size
+                );
+
+        return memberService.getAdminMemberList(
+                keyword,
+                role,
+                pageable
+        );
     }
 
     /*

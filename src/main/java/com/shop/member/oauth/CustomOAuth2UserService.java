@@ -116,6 +116,30 @@ public class CustomOAuth2UserService
             member.setName(attributes.getName());
             member.setPicture(attributes.getPicture());
 
+            if (
+                    member.getBirthDate() == null
+                            && attributes.getBirthDate() != null
+                            && attributes.getBirthDate().length() == 8
+            ) {
+                member.setBirthDate(
+                        java.time.LocalDate.parse(
+                                attributes.getBirthDate(),
+                                java.time.format.DateTimeFormatter.BASIC_ISO_DATE
+                        )
+                );
+            }
+
+            if (
+                    (member.getPhone() == null
+                            || member.getPhone().isBlank())
+                            && attributes.getPhone() != null
+                            && !attributes.getPhone().isBlank()
+            ) {
+                member.setPhone(
+                        attributes.getPhone()
+                );
+            }
+
             /*
              * 기존 회원에게 제공자 정보가 없는 경우에만 연결합니다.
              * LOCAL 회원의 로그인 방식은 유지합니다.

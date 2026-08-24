@@ -2,17 +2,18 @@ package com.shop.member.service;
 
 import com.shop.member.constant.Role;
 import com.shop.member.dto.AdminMemberResponseDto;
+import com.shop.member.dto.MemberAdditionalInfoDto;
 import com.shop.member.entity.Member;
 import com.shop.member.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.List;
 
 @Service    // 서비스
 @Transactional  // 트랜잭션
@@ -80,11 +81,24 @@ public class MemberService implements UserDetailsService { //유저디테일서�
      * 관리자 화면에 필요한 정보만 DTO로 변환합니다.
      */
     @Transactional(readOnly = true)
-    public List<AdminMemberResponseDto> getAdminMemberList() {
-        return memberRepository.findAll()
-                .stream()
-                .map(AdminMemberResponseDto::new)
-                .toList();
+    public Page<AdminMemberResponseDto> getAdminMemberList(
+            String keyword,
+            Role role,
+            Pageable pageable
+    ) {
+
+        String normalizedKeyword =
+                keyword == null
+                        ? ""
+                        : keyword.trim();
+
+        return memberRepository
+                .findAdminMembers(
+                        normalizedKeyword,
+                        role,
+                        pageable
+                )
+                .map(AdminMemberResponseDto::new);
     }
 
     /*
@@ -135,5 +149,27 @@ public class MemberService implements UserDetailsService { //유저디테일서�
         member.setRole(newRole);
 
         return new AdminMemberResponseDto(member);
+    }
+
+    @Transactional
+    public void updateAdditionalInfo(
+            String email,
+            MemberAdditionalInfoDto dto
+    ) {
+        Member member =
+                memberRepository.findByEmail(email);
+
+        if (member == null) {
+            throw new IllegalArgumentException(
+                    "회원 정보를 찾을 수 없습니다."
+            );
+        }
+
+        member.updateAdditionalInfo(
+                dto.getBirthDate(),
+                dto.getPhone(),
+                dto.isSmsAgreed(),
+                dto.isEmailAgreed()
+        );
     }
 }

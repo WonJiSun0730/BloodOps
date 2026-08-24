@@ -27,15 +27,24 @@ function AdminSectionNav() {
         >
             {adminSections.map((section) => (
                 <NavLink
-                    key={section.to}
-                    to={section.to}
-                    className={({ isActive }) =>
-                        isActive
-                            ? 'admin-section-nav__link active'
-                            : 'admin-section-nav__link'
-                    }
+                  key={section.to}
+                  to={section.to}
+                  className={({ isActive }) =>
+                    isActive
+                      ? 'admin-section-nav__link active'
+                      : 'admin-section-nav__link'
+                  }
                 >
+                  <span>
                     {section.label}
+                  </span>
+
+                  <span
+                    className="admin-section-nav__arrow"
+                    aria-hidden="true"
+                  >
+                    ›
+                  </span>
                 </NavLink>
             ))}
         </nav>

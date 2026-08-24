@@ -7,6 +7,9 @@ import MainPage from './pages/main/MainPage.jsx'
 import LoginPage from './pages/auth/LoginPage.jsx'
 import SignupPage from './pages/auth/SignupPage.jsx'
 
+import AdditionalInfoPage
+  from './pages/auth/AdditionalInfoPage.jsx'
+
 import CenterSearchPage
   from './pages/center/CenterSearchPage.jsx'
 
@@ -30,6 +33,10 @@ function App() {
 
         <Route path="/login" element={<LoginPage />} />
         <Route path="/signup" element={<SignupPage />} />
+        <Route
+          path="/additional-info"
+          element={<AdditionalInfoPage />}
+        />
 
         <Route
           path="/centers"

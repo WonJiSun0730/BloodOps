@@ -110,6 +110,18 @@ public class Member extends BaseEntity {
         return member;
     }
 
+    public void updateAdditionalInfo(
+            String birthDate,
+            String phone,
+            boolean smsAgreed,
+            boolean emailAgreed
+    ) {
+        this.birthDate = parseBirthDate(birthDate);
+        this.phone = phone;
+        this.smsAgreed = smsAgreed;
+        this.emailAgreed = emailAgreed;
+    }
+
     /*
      * 6자리 또는 8자리 생년월일 문자열을 LocalDate로 변환합니다.
      *
