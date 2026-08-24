@@ -10,7 +10,13 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "blood_stocks")
+@Table(
+        name = "blood_stocks",
+        uniqueConstraints = @UniqueConstraint(
+                name = "uk_blood_stock_center_type",
+                columnNames = {"center_id", "blood_type"}
+        )
+)
 @EntityListeners(AuditingEntityListener.class)
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -40,6 +46,9 @@ public class BloodStock {
     private LocalDateTime modifiedAt;
 
     public void updateQuantity(Integer newQuantity) {
+        if (newQuantity == null || newQuantity < 0) {
+            throw new IllegalArgumentException("재고 수량은 0 이상이어야 합니다.");
+        }
         this.quantity = newQuantity;
     }
 }
