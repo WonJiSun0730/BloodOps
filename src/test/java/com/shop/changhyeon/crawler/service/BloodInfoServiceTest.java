@@ -27,27 +27,44 @@ class BloodInfoServiceTest {
     }
 
     @Test
-    void officialFixture_parsesCurrentBloodStockForFourBloodTypes() throws Exception {
+    void officialFixture_parsesCurrentBloodStockForAllProductsAndBloodTypes() throws Exception {
         Document document = loadFixture();
 
         @SuppressWarnings("unchecked")
         List<RawStockData> result = (List<RawStockData>) ReflectionTestUtils.invokeMethod(
                 service,
-                "parseOfficialStockTable",
+                "parseProductStock",
                 document
         );
 
-        assertThat(result).hasSize(4);
+        assertThat(result).hasSize(12);
         assertThat(result).allMatch(item -> item.getCenterId().equals(BloodInfoService.NATIONAL_CENTER_ID));
 
-        Map<String, Integer> stocks = result.stream()
-                .collect(Collectors.toMap(RawStockData::getBloodType, RawStockData::getQuantity));
+        Map<String, Map<String, Integer>> stocks = result.stream()
+                .collect(Collectors.groupingBy(
+                        RawStockData::getProductType,
+                        Collectors.toMap(RawStockData::getBloodType, RawStockData::getQuantity)
+                ));
 
-        assertThat(stocks)
-                .containsEntry("A", 6625)
-                .containsEntry("B", 10258)
-                .containsEntry("O", 7998)
-                .containsEntry("AB", 2942);
+        assertThat(stocks).containsKeys("전혈", "혈소판단종", "혈소판다종");
+
+        assertThat(stocks.get("전혈"))
+                .containsEntry("A", 5038)
+                .containsEntry("B", 8790)
+                .containsEntry("O", 6388)
+                .containsEntry("AB", 2337);
+
+        assertThat(stocks.get("혈소판다종"))
+                .containsEntry("A", 1863)
+                .containsEntry("B", 1505)
+                .containsEntry("O", 1701)
+                .containsEntry("AB", 543);
+
+        assertThat(stocks.get("혈소판단종"))
+                .containsEntry("A", 493)
+                .containsEntry("B", 395)
+                .containsEntry("O", 355)
+                .containsEntry("AB", 172);
     }
 
     @Test
@@ -57,22 +74,17 @@ class BloodInfoServiceTest {
         @SuppressWarnings("unchecked")
         List<RawStockData> result = (List<RawStockData>) ReflectionTestUtils.invokeMethod(
                 service,
-                "parseOfficialStockTable",
+                "parseProductStock",
                 document
         );
 
-        Map<String, Integer> stocks = result.stream()
-                .collect(Collectors.toMap(RawStockData::getBloodType, RawStockData::getQuantity));
-
-        assertThat(stocks)
-                .doesNotContainValue(1732)
-                .doesNotContainValue(1334)
-                .doesNotContainValue(1432)
-                .doesNotContainValue(554)
-                .doesNotContainValue(38)
-                .doesNotContainValue(77)
-                .doesNotContainValue(56)
-                .doesNotContainValue(53);
+        assertThat(result).hasSize(12);
+        assertThat(result)
+                .extracting(RawStockData::getQuantity)
+                .doesNotContain(
+                        5052, 1732, 1334, 1432, 554,
+                        5, 4, 6, 7
+                );
     }
 
     private Document loadFixture() throws IOException {
