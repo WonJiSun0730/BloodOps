@@ -11,7 +11,7 @@ import java.util.Random;
 public class DummyStockGenerator {
 
     private final Random random = new Random();
-    private final String[] bloodTypes = {"A_POSITIVE", "A_NEGATIVE", "B_POSITIVE", "B_NEGATIVE", "O_POSITIVE", "O_NEGATIVE", "AB_POSITIVE", "AB_NEGATIVE"};
+    private final String[] bloodTypes = {"A", "B", "O", "AB"};
 
     public List<RawStockData> generateDummyData() {
         List<RawStockData> dummyList = new ArrayList<>();
