@@ -11,6 +11,7 @@ import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -41,7 +42,14 @@ public class DailyBloodDummyService {
      */
     @EventListener(ApplicationReadyEvent.class)
     public void generateOnStartup() {
-        generateTodayIfNeeded();
+        try {
+            generateTodayIfNeeded();
+        } catch (Exception e) {
+            log.error(
+                    "[더미 생성] 시작 시 혈액정보 크롤링/생성 실패 - 서버는 계속 실행합니다.",
+                    e
+            );
+        }
     }
 
     /** 매일 00:10 KST에 최신 공식 보유량으로 갱신한다. */
