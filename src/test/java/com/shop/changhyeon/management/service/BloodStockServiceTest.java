@@ -30,53 +30,54 @@ class BloodStockServiceTest {
 
     @Test
     void syncStockData_insertsNewStocks_andUpdatesExistingStocks() {
-        BloodStockSyncDto initialA = new BloodStockSyncDto(101L, BloodType.A_POSITIVE, 12);
-        BloodStockSyncDto initialO = new BloodStockSyncDto(101L, BloodType.O_POSITIVE, 24);
-        BloodStockSyncDto otherCenter = new BloodStockSyncDto(102L, BloodType.A_POSITIVE, 8);
+        BloodStockSyncDto initialA = new BloodStockSyncDto(0L, BloodType.A, 6625);
+        BloodStockSyncDto initialO = new BloodStockSyncDto(0L, BloodType.O, 7998);
+        BloodStockSyncDto initialB = new BloodStockSyncDto(0L, BloodType.B, 10258);
+        BloodStockSyncDto initialAb = new BloodStockSyncDto(0L, BloodType.AB, 2942);
 
-        bloodStockService.syncStockData(List.of(initialA, initialO, otherCenter));
+        bloodStockService.syncStockData(List.of(initialA, initialO, initialB, initialAb));
 
-        assertThat(bloodStockRepository.count()).isEqualTo(3);
-        assertThat(bloodStockRepository.findByCenterIdAndBloodType(101L, BloodType.A_POSITIVE))
+        assertThat(bloodStockRepository.count()).isEqualTo(4);
+        assertThat(bloodStockRepository.findByCenterIdAndBloodType(0L, BloodType.A))
                 .get()
                 .extracting(BloodStock::getQuantity)
-                .isEqualTo(12);
+                .isEqualTo(6625);
 
-        BloodStockSyncDto updatedA = new BloodStockSyncDto(101L, BloodType.A_POSITIVE, 31);
+        BloodStockSyncDto updatedA = new BloodStockSyncDto(0L, BloodType.A, 7000);
         bloodStockService.syncStockData(List.of(updatedA));
 
-        assertThat(bloodStockRepository.count()).isEqualTo(3);
-        assertThat(bloodStockRepository.findByCenterIdAndBloodType(101L, BloodType.A_POSITIVE))
+        assertThat(bloodStockRepository.count()).isEqualTo(4);
+        assertThat(bloodStockRepository.findByCenterIdAndBloodType(0L, BloodType.A))
                 .get()
                 .extracting(BloodStock::getQuantity)
-                .isEqualTo(31);
+                .isEqualTo(7000);
     }
 
     @Test
     void getStocksByCenter_returnsOnlyRequestedCenterAndMapsToResponseDto() {
         bloodStockService.syncStockData(List.of(
-                new BloodStockSyncDto(101L, BloodType.A_POSITIVE, 12),
-                new BloodStockSyncDto(101L, BloodType.O_NEGATIVE, 4),
-                new BloodStockSyncDto(102L, BloodType.B_POSITIVE, 9)
+                new BloodStockSyncDto(0L, BloodType.A, 6625),
+                new BloodStockSyncDto(0L, BloodType.O, 7998),
+                new BloodStockSyncDto(1L, BloodType.A, 12)
         ));
 
-        List<BloodStockResponseDto> result = bloodStockService.getStocksByCenter(101L);
+        List<BloodStockResponseDto> result = bloodStockService.getStocksByCenter(0L);
 
         assertThat(result).hasSize(2);
         assertThat(result)
                 .extracting(BloodStockResponseDto::getCenterId)
-                .containsOnly(101L);
+                .containsOnly(0L);
         assertThat(result)
                 .extracting(BloodStockResponseDto::getBloodType)
-                .containsExactlyInAnyOrder(BloodType.A_POSITIVE, BloodType.O_NEGATIVE);
+                .containsExactlyInAnyOrder(BloodType.A, BloodType.O);
         assertThat(result)
                 .extracting(BloodStockResponseDto::getQuantity)
-                .containsExactlyInAnyOrder(12, 4);
+                .containsExactlyInAnyOrder(6625, 7998);
     }
 
     @Test
     void syncStockData_rejectsNegativeQuantity() {
-        BloodStockSyncDto invalid = new BloodStockSyncDto(101L, BloodType.A_POSITIVE, -1);
+        BloodStockSyncDto invalid = new BloodStockSyncDto(0L, BloodType.A, -1);
 
         org.assertj.core.api.Assertions.assertThatThrownBy(() -> bloodStockService.syncStockData(List.of(invalid)))
                 .isInstanceOf(IllegalArgumentException.class)
