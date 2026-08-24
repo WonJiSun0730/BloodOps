@@ -61,17 +61,32 @@ public class BloodInfoService {
     }
 
     /**
-     * 공식 페이지의 '적혈구제제 보유 현황' 표에서 '현재 혈액보유량' 행만 읽는다.
-     * 표 구조는 합계/A형/B형/O형/AB형이며, 합계는 DB에 저장하지 않는다.
+     * 공식 페이지의 적혈구제제 보유 현황에서 '현재 혈액보유량' 행만 읽는다.
+     * 공식 표는 합계/A형/B형/O형/AB형이며, 합계와 보유상태(일수)는 저장하지 않는다.
      */
     private List<RawStockData> parseOfficialStockTable(Document doc) {
         Elements tables = doc.select("table");
+
+        for (Element table : tables) {
+            String tableText = normalize(table.text());
+            if (!tableText.contains("적혈구제제")) {
+                continue;
+            }
+
+            List<RawStockData> parsed = parseOfficialTable(table);
+            if (!parsed.isEmpty()) {
+                return parsed;
+            }
+        }
+
+        // HTML 구조가 바뀌어 표 제목이 table 밖으로 분리된 경우를 위한 fallback
         for (Element table : tables) {
             List<RawStockData> parsed = parseOfficialTable(table);
             if (!parsed.isEmpty()) {
                 return parsed;
             }
         }
+
         return List.of();
     }
 
