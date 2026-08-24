@@ -34,7 +34,7 @@ public class BloodStockService {
     @PersistenceContext
     private final EntityManager em;
 
-    // 0-1. 크롤러 수집 데이터 동기화
+    // 0-1. 대한적십자사 공식 전국 혈액보유량 동기화
     @Transactional
     public void syncStockData(List<BloodStockSyncDto> dtoList) {
         log.info("[재고 관리] 데이터 동기화 요청 - 건수: {}", dtoList == null ? 0 : dtoList.size());
@@ -70,13 +70,13 @@ public class BloodStockService {
         log.info("[재고 관리] 데이터 동기화 완료 - 신규: {}, 갱신: {}", created, updated);
     }
 
-    // 0-2. 센터별 재고 조회
+    // 0-2. 센터/전국 재고 조회 (centerId=0은 대한적십자사 전국 공식 현황)
     public List<BloodStockResponseDto> getStocksByCenter(Long centerId) {
-        if (centerId == null || centerId <= 0) {
-            throw new IllegalArgumentException("센터 ID는 1 이상의 값이어야 합니다.");
+        if (centerId == null || centerId < 0) {
+            throw new IllegalArgumentException("센터 ID는 0 이상의 값이어야 합니다. 0은 전국 공식 현황입니다.");
         }
 
-        log.info("[재고 관리] 센터 ID 기반 재고 조회: {}", centerId);
+        log.info("[재고 관리] 재고 조회: {} (0=전국 공식 현황)", centerId);
 
         return bloodStockRepository.findByCenterId(centerId).stream()
                 .map(BloodStockResponseDto::from)
@@ -87,7 +87,7 @@ public class BloodStockService {
         if (dto == null) {
             throw new IllegalArgumentException("재고 데이터가 null입니다.");
         }
-        if (dto.getCenterId() == null || dto.getCenterId() <= 0) {
+        if (dto.getCenterId() == null || dto.getCenterId() < 0) {
             throw new IllegalArgumentException("유효하지 않은 centerId입니다: " + dto.getCenterId());
         }
         if (dto.getBloodType() == null) {
