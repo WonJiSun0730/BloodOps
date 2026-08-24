@@ -5,7 +5,9 @@ import com.shop.changhyeon.management.dto.BloodStockSyncDto;
 import com.shop.changhyeon.management.dto.BloodUnitRegisterDto;
 import com.shop.changhyeon.management.dto.StockSummaryDto;
 import com.shop.changhyeon.management.dto.TodayReservationDto;
+import com.shop.changhyeon.management.entity.BloodStock;
 import com.shop.changhyeon.management.entity.BloodUnit;
+import com.shop.changhyeon.management.repository.BloodStockRepository;
 import com.shop.changhyeon.management.repository.BloodUnitRepository;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
@@ -26,26 +28,74 @@ import java.util.concurrent.ThreadLocalRandom;
 @Transactional(readOnly = true)
 public class BloodStockService {
 
+    private final BloodStockRepository bloodStockRepository;
     private final BloodUnitRepository bloodUnitRepository;
 
     @PersistenceContext
     private final EntityManager em;
 
-    // 0-1. 수집 데이터 동기화 (StockAdminController 연동)
+    // 0-1. 크롤러 수집 데이터 동기화
     @Transactional
     public void syncStockData(List<BloodStockSyncDto> dtoList) {
-        log.info("[재고 관리] 데이터 동기화 요청 - 건수: {}", dtoList != null ? dtoList.size() : 0);
+        log.info("[재고 관리] 데이터 동기화 요청 - 건수: {}", dtoList == null ? 0 : dtoList.size());
+
         if (dtoList == null || dtoList.isEmpty()) {
             return;
         }
-        // TODO: dtoList 수집 데이터 저장/갱신 로직 구현
+
+        int created = 0;
+        int updated = 0;
+
+        for (BloodStockSyncDto dto : dtoList) {
+            validateSyncDto(dto);
+
+            BloodStock stock = bloodStockRepository
+                    .findByCenterIdAndBloodType(dto.getCenterId(), dto.getBloodType())
+                    .orElse(null);
+
+            if (stock == null) {
+                BloodStock newStock = BloodStock.builder()
+                        .centerId(dto.getCenterId())
+                        .bloodType(dto.getBloodType())
+                        .quantity(dto.getQuantity())
+                        .build();
+                bloodStockRepository.save(newStock);
+                created++;
+            } else {
+                stock.updateQuantity(dto.getQuantity());
+                updated++;
+            }
+        }
+
+        log.info("[재고 관리] 데이터 동기화 완료 - 신규: {}, 갱신: {}", created, updated);
     }
 
-    // 0-2. 센터별 재고 조회 (StockApiController 연동)
+    // 0-2. 센터별 재고 조회
     public List<BloodStockResponseDto> getStocksByCenter(Long centerId) {
+        if (centerId == null || centerId <= 0) {
+            throw new IllegalArgumentException("센터 ID는 1 이상의 값이어야 합니다.");
+        }
+
         log.info("[재고 관리] 센터 ID 기반 재고 조회: {}", centerId);
-        // TODO: Repository 조회 후 BloodStockResponseDto 변환 로직 구현
-        return List.of();
+
+        return bloodStockRepository.findByCenterId(centerId).stream()
+                .map(BloodStockResponseDto::from)
+                .toList();
+    }
+
+    private void validateSyncDto(BloodStockSyncDto dto) {
+        if (dto == null) {
+            throw new IllegalArgumentException("재고 데이터가 null입니다.");
+        }
+        if (dto.getCenterId() == null || dto.getCenterId() <= 0) {
+            throw new IllegalArgumentException("유효하지 않은 centerId입니다: " + dto.getCenterId());
+        }
+        if (dto.getBloodType() == null) {
+            throw new IllegalArgumentException("bloodType은 필수입니다.");
+        }
+        if (dto.getQuantity() == null || dto.getQuantity() < 0) {
+            throw new IllegalArgumentException("재고 수량은 0 이상이어야 합니다: " + dto.getQuantity());
+        }
     }
 
     // 1. 금일 헌혈 예약자 목록 조회
@@ -107,9 +157,13 @@ public class BloodStockService {
         return unitId;
     }
 
-    // 3. FIFO 원칙 기반 혈액 예약
+    // 3. FEFO 원칙 기반 혈액 예약
     @Transactional
     public List<String> reserveBloodForCrossMatching(String productType, String bloodType, int count) {
+        if (count <= 0) {
+            throw new IllegalArgumentException("예약 수량은 1개 이상이어야 합니다.");
+        }
+
         List<BloodUnit> availableUnits = bloodUnitRepository.findAvailableStockForUpdate(productType, bloodType);
 
         if (availableUnits.size() < count) {
