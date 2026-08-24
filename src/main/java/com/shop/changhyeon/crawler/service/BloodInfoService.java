@@ -10,23 +10,20 @@ import org.jsoup.select.Elements;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
+import java.util.*;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class BloodInfoService {
 
-    private static final String TARGET_URL = "https://bloodinfo.net/knrcbs/main.do";
-    public static final long NATIONAL_CENTER_ID = 0L;
+    private static final String TARGET_URL = "https://www.bloodinfo.net/knrcbs/bi/info/bldHoldSttus.do?mi=1046";
+    public static final Long NATIONAL_CENTER_ID = 0L;
+    private static final List<String> BLOOD_TYPES = List.of("A", "B", "O", "AB");
 
     private final DummyStockGenerator dummyStockGenerator;
 
-    @Value("${crawler.use-dummy:false}")
+    @Value("${crawler.use-dummy:true}")
     private boolean useDummy;
 
     @Value("${crawler.timeout-ms:10000}")
@@ -34,128 +31,156 @@ public class BloodInfoService {
 
     public List<RawStockData> fetchStockData() {
         if (useDummy) {
+            log.info("[크롤러] 더미 모드로 혈액보유현황을 생성합니다.");
             return dummyStockGenerator.generateDummyData();
         }
 
+        log.info("[크롤러] 대한적십자사 혈액보유현황 크롤링 시작 target={}", TARGET_URL);
+
         try {
             Document doc = Jsoup.connect(TARGET_URL)
-                    .userAgent("Mozilla/5.0 BloodOpsCrawler/1.0")
+                    .userAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/131.0 BloodOpsCrawler/1.0")
+                    .referrer("https://www.bloodinfo.net/")
                     .timeout(timeoutMs)
                     .get();
 
-            List<RawStockData> result = parseOfficialStockTable(doc);
-            validateOfficialResult(result);
-            log.info("[크롤러] 대한적십자사 공식 혈액보유량 수집 완료: {}", result);
+            List<RawStockData> result = parseBloodStock(doc);
+            validateResult(result);
+
+            log.info("[크롤러] 혈액보유현황 크롤링 완료: {}건", result.size());
+            result.forEach(stock -> log.info("[크롤러] centerId={}, bloodType={}, quantity={}",
+                    stock.getCenterId(), stock.getBloodType(), stock.getQuantity()));
+
             return result;
         } catch (Exception e) {
-            log.error("[크롤러] 대한적십자사 혈액보유현황 수집 실패", e);
+            log.error("[크롤러] 대한적십자사 혈액보유현황 크롤링 실패", e);
             throw new IllegalStateException("대한적십자사 혈액보유현황 크롤링에 실패했습니다.", e);
         }
     }
 
-    /**
-     * 공식 적혈구제제 표에서 '현재 혈액보유량'의 Unit 값을 읽는다.
-     * 공식 공개 혈액형은 A/B/O/AB 4종이다.
-     */
-    private List<RawStockData> parseOfficialStockTable(Document doc) {
-        for (Element table : doc.select("table")) {
-            String tableText = normalize(table.text());
-            if (!tableText.contains("적혈구제제")) {
-                continue;
-            }
-            List<RawStockData> parsed = parseOfficialTable(table);
-            if (!parsed.isEmpty()) {
-                return parsed;
+    private List<RawStockData> parseBloodStock(Document document) {
+        Elements tables = document.select("table");
+        if (tables.isEmpty()) return List.of();
+
+        // 1차: 혈액보유현황 전용 표 식별 시도 후 파싱
+        for (Element table : tables) {
+            if (isBloodStockTable(table)) {
+                List<RawStockData> result = parseStockTable(table);
+                if (!result.isEmpty()) return result;
             }
         }
+        // 2차: 식별 실패 시 전체 표 순회 파싱
+        for (Element table : tables) {
+            List<RawStockData> result = parseStockTable(table);
+            if (!result.isEmpty()) return result;
+        }
+
         return List.of();
     }
 
-    private List<RawStockData> parseOfficialTable(Element table) {
+    private boolean isBloodStockTable(Element table) {
+        String text = normalize(table.text());
+        boolean hasBloodType = BLOOD_TYPES.stream().anyMatch(type -> text.contains(type + "형") || text.contains(type));
+        boolean hasCurrentStock = text.contains("현재혈액보유량") || text.contains("현재보유량") || text.contains("혈액보유량");
+        return hasBloodType && hasCurrentStock;
+    }
+
+    private List<RawStockData> parseStockTable(Element table) {
         Elements rows = table.select("tr");
-        Element currentRow = findCurrentStockRow(rows);
-        if (currentRow == null) {
-            return List.of();
+        if (rows.isEmpty()) return List.of();
+
+        Map<String, Integer> colMap = findBloodTypeColumns(rows);
+        if (colMap.size() < 4) return List.of();
+
+        Element targetRow = findCurrentStockRow(rows);
+        if (targetRow == null) return List.of();
+
+        Elements cells = targetRow.select("th, td");
+        List<RawStockData> result = new ArrayList<>();
+
+        for (Map.Entry<String, Integer> entry : colMap.entrySet()) {
+            int idx = entry.getValue();
+            if (idx >= cells.size()) continue;
+
+            Integer quantity = parseQuantity(cells.get(idx).text());
+            if (quantity != null) {
+                result.add(new RawStockData(NATIONAL_CENTER_ID, entry.getKey(), quantity));
+            }
         }
 
-        /*
-         * 공식 표의 현재 혈액보유량 행은
-         *   현재 혈액보유량 | 합계 | A형 | B형 | O형 | AB형
-         * 순서다. rowspan/colspan 때문에 header의 DOM index를 그대로
-         * 데이터 행에 적용하지 않고, 현재 행의 숫자 5개를 직접 읽는다.
-         */
-        List<Integer> values = numericCells(currentRow);
-        if (values.size() != 5) {
-            log.warn("[크롤러] 현재 혈액보유량 행의 숫자 개수가 5개가 아닙니다. values={}, row={}", values, currentRow.text());
-            return List.of();
+        return result.size() == 4 ? result : List.of();
+    }
+
+    private Map<String, Integer> findBloodTypeColumns(Elements rows) {
+        Map<String, Integer> result = new LinkedHashMap<>();
+        for (Element row : rows) {
+            Elements cells = row.select("th, td");
+            for (int i = 0; i < cells.size(); i++) {
+                String bloodType = parseBloodType(cells.get(i).text());
+                if (bloodType != null) {
+                    result.putIfAbsent(bloodType, i);
+                }
+            }
+            if (result.size() == 4) break;
         }
-
-        int total = values.get(0);
-        int a = values.get(1);
-        int b = values.get(2);
-        int o = values.get(3);
-        int ab = values.get(4);
-
-        // 공식 표의 합계와 혈액형 4종 합계가 다르면 잘못된 표를 읽은 것으로 보고 저장하지 않는다.
-        if (total != a + b + o + ab) {
-            log.warn("[크롤러] 공식 혈액보유량 합계 불일치. total={}, detailSum={}", total, a + b + o + ab);
-            return List.of();
-        }
-
-        return List.of(
-                new RawStockData(NATIONAL_CENTER_ID, "A", a),
-                new RawStockData(NATIONAL_CENTER_ID, "B", b),
-                new RawStockData(NATIONAL_CENTER_ID, "O", o),
-                new RawStockData(NATIONAL_CENTER_ID, "AB", ab)
-        );
+        return result;
     }
 
     private Element findCurrentStockRow(Elements rows) {
-        for (Element row : rows) {
-            String text = normalize(row.text());
-            if (text.contains("현재혈액보유량")) {
-                return row;
-            }
-        }
-        return null;
+        return rows.stream()
+                .filter(row -> {
+                    String text = normalize(row.text());
+                    return text.contains("현재혈액보유량") || text.contains("현재보유량");
+                })
+                .findFirst()
+                .orElse(null);
     }
 
-    private List<Integer> numericCells(Element row) {
-        List<Integer> values = new ArrayList<>();
-        for (Element cell : row.select("th, td")) {
-            String text = cell.text().replace(",", "").trim();
-            if (!text.matches("\\d+")) {
-                continue;
-            }
-            try {
-                values.add(Integer.parseInt(text));
-            } catch (NumberFormatException e) {
-                return List.of();
-            }
-        }
-        return values;
+    private String parseBloodType(String text) {
+        String val = normalize(text);
+        return switch (val) {
+            case "A", "A형" -> "A";
+            case "B", "B형" -> "B";
+            case "O", "O형" -> "O";
+            case "AB", "AB형" -> "AB";
+            default -> null;
+        };
     }
 
-    private void validateOfficialResult(List<RawStockData> result) {
-        if (result.size() != 4) {
-            throw new IllegalStateException("공식 혈액보유현황은 A/B/O/AB 4건이어야 합니다. actual=" + result.size());
-        }
+    private Integer parseQuantity(String text) {
+        if (text == null || text.isBlank()) return null;
+        String value = text.replace(",", "").replaceAll("[^0-9-]", "");
+        if (value.isBlank() || "-".equals(value)) return null;
 
-        Map<String, RawStockData> byType = new LinkedHashMap<>();
-        for (RawStockData item : result) {
-            if (item.getCenterId() == null || item.getCenterId() != NATIONAL_CENTER_ID
-                    || item.getBloodType() == null || item.getQuantity() == null || item.getQuantity() < 0) {
-                throw new IllegalStateException("공식 혈액보유현황 데이터가 유효하지 않습니다: " + item);
-            }
-            byType.put(item.getBloodType(), item);
-        }
-
-        if (!byType.keySet().containsAll(List.of("A", "B", "O", "AB"))) {
-            throw new IllegalStateException("공식 혈액보유현황 혈액형이 A/B/O/AB로 완성되지 않았습니다: " + byType.keySet());
+        try {
+            int quantity = Integer.parseInt(value);
+            return quantity >= 0 ? quantity : null;
+        } catch (NumberFormatException e) {
+            return null;
         }
     }
 
     private String normalize(String text) {
-        return text == null ? "" : text.replaceAll("\\s+", "").toUpperCase(Locale.ROOT);
+        return text == null ? "" : text.replace('\u00A0', ' ').replaceAll("\\s+", "").toUpperCase(Locale.ROOT);
+    }
+
+    private void validateResult(List<RawStockData> result) {
+        if (result.size() != 4) {
+            throw new IllegalStateException("혈액보유현황 데이터가 4건이 아닙니다. count=" + result.size());
+        }
+
+        long distinctTypes = result.stream()
+                .peek(stock -> {
+                    if (!NATIONAL_CENTER_ID.equals(stock.getCenterId()) || stock.getQuantity() == null || stock.getQuantity() < 0) {
+                        throw new IllegalStateException("유효하지 않은 혈액보유 데이터 존재");
+                    }
+                })
+                .map(RawStockData::getBloodType)
+                .distinct()
+                .count();
+
+        if (distinctTypes != 4) {
+            throw new IllegalStateException("혈액형 중복 또는 누락이 존재합니다.");
+        }
     }
 }
