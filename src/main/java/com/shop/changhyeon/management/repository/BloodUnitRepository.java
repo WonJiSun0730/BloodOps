@@ -30,7 +30,7 @@ public interface BloodUnitRepository extends JpaRepository<BloodUnit, Long> {
     Optional<BloodUnit> findByUnitId(String unitId);
 
     @Query("""
-        SELECT new com.stock.dto.StockSummaryDto(b.productType, b.bloodType, CAST(COUNT(b) AS int))
+        SELECT new com.shop.changhyeon.management.dto.StockSummaryDto(b.productType, b.bloodType, CAST(COUNT(b) AS int))
         FROM BloodUnit b
         WHERE b.status = :status AND b.expirationDate > CURRENT_TIMESTAMP
         GROUP BY b.productType, b.bloodType
