@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { Navigate, useParams } from 'react-router-dom'
+import { Link, Navigate, useParams } from 'react-router-dom'
 import {
   getMedicalDonorConfirmation,
   updateMedicalDonorConfirmation,
@@ -188,6 +188,14 @@ function DonorCheckPage() {
   return (
     <main className="donor-check-page">
       <header>
+        <Link
+          to="/medical/donor_identity"
+          className="donor-check-back-link"
+          aria-label="헌혈자 신분 확인 화면으로 돌아가기"
+        >
+          <span aria-hidden="true">←</span>
+          헌혈자 신분 확인으로 돌아가기
+        </Link>
         <p>MEDICAL · DONOR CONFIRMATION</p>
         <h1>헌혈자 정보 및 전자문진 확인</h1>
       </header>
