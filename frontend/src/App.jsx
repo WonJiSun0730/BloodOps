@@ -15,9 +15,11 @@ import AdminMembersPage from './pages/admin/AdminMembersPage.jsx'
 import BloodUnitsManagementPage from './pages/medical/BloodUnitsManagementPage.jsx'
 import DonorIdentityPage from './pages/medical/DonorIdentityPage.jsx'
 import DonorCheckPage from './pages/medical/DonorCheckPage.jsx'
+import MedicalMyPage from './pages/medical/MedicalMyPage.jsx'
 
 function App() { return <Routes><Route element={<MainLayout />}>
   <Route path="/" element={<MainPage />} /><Route path="/login" element={<LoginPage />} /><Route path="/signup" element={<SignupPage />} /><Route path="/additional-info" element={<AdditionalInfoPage />} /><Route path="/centers" element={<CenterSearchPage />} />
+  <Route path="/mypage" element={<MedicalRoute><MedicalMyPage /></MedicalRoute>} />
   <Route path="/medical/blood_units_management" element={<MedicalRoute><BloodUnitsManagementPage /></MedicalRoute>} />
   <Route path="/medical/donor_identity" element={<MedicalRoute><DonorIdentityPage /></MedicalRoute>} />
   <Route path="/medical/donor_check/:confirmationId" element={<MedicalRoute><DonorCheckPage /></MedicalRoute>} />
