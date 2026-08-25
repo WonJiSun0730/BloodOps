@@ -22,7 +22,7 @@ export default function BloodUnitsManagementPage(){
   <section className="blood-units-filters">
    <input name="keyword" value={filters.keyword} onChange={field} placeholder="Unit ID 또는 헌혈자 ID" />
    <select name="bloodType" value={filters.bloodType} onChange={field}><option value="">전체 혈액형</option>{['A','B','O','AB'].map(v=><option key={v}>{v}</option>)}</select>
-   <select name="productType" value={filters.productType} onChange={field}><option value="">전체 제제</option>{['전혈','적혈구','혈장','혈소판 단종','혈소판 다종'].map(v=><option key={v}>{v}</option>)}</select>
+   <select name="productType" value={filters.productType} onChange={field}><option value="">전체 제제</option>{['전혈','혈장','혈소판단종','혈소판다종'].map(v=><option key={v}>{v}</option>)}</select>
    <select name="status" value={filters.status} onChange={field}><option value="">전체 상태</option>{['보유중','예약','보류','폐기'].map(v=><option key={v}>{v}</option>)}</select>
    <label>채혈 시작<input name="collectionFrom" type="date" value={filters.collectionFrom} onChange={field}/></label><label>채혈 종료<input name="collectionTo" type="date" value={filters.collectionTo} onChange={field}/></label>
    <label>유효 시작<input name="expirationFrom" type="date" value={filters.expirationFrom} onChange={field}/></label><label>유효 종료<input name="expirationTo" type="date" value={filters.expirationTo} onChange={field}/></label>
