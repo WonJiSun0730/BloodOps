@@ -38,9 +38,4 @@ public class ManagementController {
         response.put("message", "헌혈자 정보 및 서명이 성공적으로 저장되었습니다.");
         return ResponseEntity.ok(response);
     }
-
-    @GetMapping("/blood_units_management")
-    public String showBloodUnitsManagementPage() {
-        return "changhyeon/management/blood_units_management";
-    }
 }

@@ -475,3 +475,17 @@ export async function cancelAdminReservation(
   )
 }
 
+
+/*
+ * 의료진 혈액 재고 관리 화면에서 blood_units DB 데이터를 페이지 단위로 조회합니다.
+ */
+export function getMedicalBloodUnits(page = 0, size = 20) {
+  const params = new URLSearchParams({
+    page: String(page),
+    size: String(size),
+  })
+
+  return apiRequest(
+    `/api/medical/blood-units?${params.toString()}`
+  )
+}
