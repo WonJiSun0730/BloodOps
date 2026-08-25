@@ -10,7 +10,8 @@ import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "blood_units")
-@Getter @Setter
+@Getter
+@Setter
 @NoArgsConstructor
 public class BloodUnit {
 
@@ -18,22 +19,33 @@ public class BloodUnit {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(name = "donor_id")
     private String donorId;
+
+    @Column(name = "blood_type")
     private String bloodType;
+
+    @Column(name = "rh_type")
     private String rhType;
+
+    @Column(name = "gender")
     private String gender;
+
+    @Column(name = "birth_date")
     private LocalDate birthDate;
 
-    @Column(unique = true, nullable = false)
+    @Column(name = "unit_id", unique = true, nullable = false)
     private String unitId;
 
+    @Column(name = "product_type")
     private String productType;
+
+    @Column(name = "collection_date")
     private LocalDateTime collectionDate;
+
+    @Column(name = "expiration_date")
     private LocalDateTime expirationDate;
+
+    @Column(name = "status")
     private String status;
-
-    @Column(nullable = false)
-    private String dataSource = "REAL";
-
-    private LocalDate dummyGenerationDate;
 }
