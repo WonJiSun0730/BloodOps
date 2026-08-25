@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { useParams } from 'react-router-dom'
+import { Navigate, useParams } from 'react-router-dom'
 import {
   getMedicalDonorConfirmation,
   updateMedicalDonorConfirmation,
@@ -27,6 +27,7 @@ const questionnaire = [
 
 function DonorCheckPage() {
   const { confirmationId } = useParams()
+  const identityVerified = sessionStorage.getItem('verifiedDonorConfirmationId') === String(confirmationId)
   const canvasRef = useRef(null)
   const drawingRef = useRef(false)
   const [form, setForm] = useState(initialForm)
@@ -38,6 +39,7 @@ function DonorCheckPage() {
     let mounted = true
 
     async function loadConfirmation() {
+      if (!identityVerified) { setLoading(false); return }
       try {
         setLoading(true)
         setError('')
@@ -67,7 +69,7 @@ function DonorCheckPage() {
 
     loadConfirmation()
     return () => { mounted = false }
-  }, [confirmationId])
+  }, [confirmationId, identityVerified])
 
   useEffect(() => {
     const canvas = canvasRef.current
@@ -176,6 +178,8 @@ function DonorCheckPage() {
       setSaving(false)
     }
   }
+
+  if (!identityVerified) return <Navigate to="/medical/donor_identity" replace />
 
   if (loading) {
     return <main className="donor-check-state">헌혈자 정보를 불러오는 중입니다...</main>

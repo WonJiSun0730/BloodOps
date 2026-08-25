@@ -180,3 +180,12 @@
   .blood-units-meta { align-items: flex-start; }
   .blood-units-summary { grid-template-columns: 1fr; }
 }
+
+.blood-units-filters { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:12px; margin-top:18px; padding:18px; border:1px solid var(--color-border); border-radius:16px; background:var(--color-surface); }
+.blood-units-filters label { display:flex; flex-direction:column; gap:5px; color:var(--color-text-muted); font-size:.72rem; }
+.blood-units-filters input,.blood-units-filters select,.blood-unit-modal input,.blood-unit-modal select { padding:10px; border:1px solid var(--color-border); border-radius:9px; background:var(--color-surface); color:var(--color-text); }
+.blood-unit-modal { position:fixed; inset:0; z-index:100; display:grid; place-items:center; padding:20px; background:rgba(15,23,42,.55); }
+.blood-unit-modal form { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; width:min(720px,100%); max-height:90vh; overflow:auto; padding:24px; border-radius:18px; background:var(--color-surface); }
+.blood-unit-modal h2,.blood-unit-modal form>div { grid-column:1/-1; }
+.blood-unit-modal label { display:flex; flex-direction:column; gap:5px; font-size:.75rem; }
+@media(max-width:800px){.blood-units-filters,.blood-unit-modal form{grid-template-columns:1fr;}}
