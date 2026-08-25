@@ -10,6 +10,8 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
@@ -33,23 +35,16 @@ public interface BloodUnitRepository
 
     Optional<BloodUnit> findByUnitId(String unitId);
 
-    /**
-     * 오늘 생성된 더미 데이터 존재 확인
-     *
-     * 예:
-     * DUMMY-BLD-20260825-
-     */
+    long countByStatusIn(Collection<String> statuses);
+
+    long countByStatusInAndExpirationDateBetween(
+            Collection<String> statuses,
+            LocalDateTime from,
+            LocalDateTime to
+    );
+
     boolean existsByUnitIdStartingWith(String prefix);
 
-    /**
-     * 자동 생성 더미 데이터 삭제
-     *
-     * 실제 혈액:
-     * BLD-...
-     *
-     * 자동 더미:
-     * DUMMY-BLD-...
-     */
     @Transactional
     @Modifying(clearAutomatically = true)
     @Query("""

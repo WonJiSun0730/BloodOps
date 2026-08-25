@@ -518,6 +518,40 @@ export async function createReservation(slotId) {
   )
 }
 
+
+/*
+ * 의료진 혈액 재고 관리 화면에서
+ * blood_units DB 데이터를 페이지 단위로 조회합니다.
+ */
+export function getMedicalBloodUnits(
+  page = 0,
+  size = 20
+) {
+  const params = new URLSearchParams({
+    page: String(page),
+    size: String(size),
+  })
+
+  return apiRequest(
+    `/api/medical/blood-units?${params.toString()}`
+  )
+}
+
+
+/*
+ * 헌혈자 확인 정보를 DB에서 조회합니다.
+ */
+export function getMedicalDonorConfirmation(
+  confirmationId
+) {
+  return apiRequest(
+    `/api/medical/donor-confirmations/${
+      encodeURIComponent(confirmationId)
+    }`
+  )
+}
+
+
 /*
  * 로그인한 회원의 예약 내역을 조회합니다.
  */
@@ -526,6 +560,7 @@ export function getMyReservations() {
     '/api/reservations'
   )
 }
+
 
 /*
  * 로그인한 회원 본인의 예약을 취소합니다.
@@ -547,6 +582,7 @@ export async function cancelMyReservation(
   )
 }
 
+
 /*
  * 로그인한 회원 본인의 예약 시간을 변경합니다.
  */
@@ -560,13 +596,44 @@ export async function changeMyReservationSlot(
     `/api/reservations/${reservationId}/slot`,
     {
       method: 'PATCH',
+
       headers: {
         'Content-Type': 'application/json',
         [csrf.headerName]: csrf.token,
       },
+
       body: JSON.stringify({
         slotId,
       }),
+    }
+  )
+}
+
+
+/*
+ * 의료진이 확인한 헌혈자 정보와 서명을 DB에 저장합니다.
+ */
+export async function updateMedicalDonorConfirmation(
+  confirmationId,
+  confirmationData
+) {
+  const csrf = await getCsrfToken()
+
+  return apiRequest(
+    `/api/medical/donor-confirmations/${
+      encodeURIComponent(confirmationId)
+    }`,
+    {
+      method: 'PUT',
+
+      headers: {
+        'Content-Type': 'application/json',
+        [csrf.headerName]: csrf.token,
+      },
+
+      body: JSON.stringify(
+        confirmationData
+      ),
     }
   )
 }

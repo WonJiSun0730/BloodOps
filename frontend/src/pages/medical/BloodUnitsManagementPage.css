@@ -1,0 +1,182 @@
+.blood-units-page {
+  width: min(calc(100% - (var(--page-padding) * 2)), var(--content-max-width));
+  min-height: 70vh;
+  margin: 0 auto;
+  padding: 48px 0 80px;
+}
+
+.blood-units-header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 24px;
+  padding-bottom: 24px;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.blood-units-eyebrow {
+  margin: 0;
+  color: var(--color-primary);
+  font-size: .72rem;
+  font-weight: 850;
+  letter-spacing: .12em;
+}
+
+.blood-units-header h1 {
+  margin: 8px 0 0;
+  color: var(--color-text);
+  font-size: clamp(1.8rem, 4vw, 2.5rem);
+  letter-spacing: -.04em;
+}
+
+.blood-units-header p:not(.blood-units-eyebrow) {
+  margin: 10px 0 0;
+  color: var(--color-text-muted);
+  font-size: .88rem;
+}
+
+.blood-units-meta {
+  display: flex;
+  align-items: flex-end;
+  flex-direction: column;
+  gap: 8px;
+  white-space: nowrap;
+}
+
+.blood-units-meta span {
+  padding: 6px 10px;
+  border-radius: 999px;
+  color: #047857;
+  background: #d1fae5;
+  font-size: .72rem;
+  font-weight: 800;
+}
+
+.blood-units-meta small { color: var(--color-text-muted); }
+
+.blood-units-alert {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-top: 20px;
+  padding: 14px 16px;
+  border: 1px solid #fecaca;
+  border-radius: 12px;
+  color: #b91c1c;
+  background: #fef2f2;
+  font-size: .85rem;
+}
+
+.blood-units-alert button,
+.blood-units-table-title button,
+.blood-units-pagination button {
+  padding: 8px 13px;
+  border: 0;
+  border-radius: 9px;
+  color: #fff;
+  background: var(--color-primary);
+  font-weight: 750;
+  cursor: pointer;
+}
+
+.blood-units-summary {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+  margin-top: 24px;
+}
+
+.blood-units-summary article {
+  display: flex;
+  min-height: 112px;
+  padding: 20px;
+  border: 1px solid var(--color-border);
+  border-radius: 16px;
+  flex-direction: column;
+  background: var(--color-surface);
+}
+
+.blood-units-summary span { color: var(--color-text-muted); font-size: .76rem; font-weight: 700; }
+.blood-units-summary strong { margin-top: 12px; color: var(--color-text); font-size: 1.6rem; }
+.blood-units-summary .success { color: #059669; }
+.blood-units-summary .warning { color: #d97706; }
+.blood-units-summary .danger { color: #e11d48; }
+
+.blood-units-table-card {
+  margin-top: 18px;
+  border: 1px solid var(--color-border);
+  border-radius: 18px;
+  background: var(--color-surface);
+  overflow: hidden;
+}
+
+.blood-units-table-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px 22px;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.blood-units-table-title h2 { margin: 0; font-size: 1rem; }
+.blood-units-table-title button:disabled,
+.blood-units-pagination button:disabled { opacity: .45; cursor: default; }
+.blood-units-table-wrap { overflow-x: auto; }
+
+.blood-units-table-card table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: .84rem;
+}
+
+.blood-units-table-card th,
+.blood-units-table-card td {
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--color-border);
+  text-align: left;
+  white-space: nowrap;
+}
+
+.blood-units-table-card th {
+  color: var(--color-text-muted);
+  background: color-mix(in srgb, var(--color-surface) 90%, var(--color-text) 3%);
+  font-size: .7rem;
+  letter-spacing: .04em;
+}
+
+.unit-id { color: var(--color-text); font-family: monospace; font-weight: 750; }
+.blood-type { color: var(--color-primary); font-weight: 850; }
+.empty { padding: 40px !important; color: var(--color-text-muted); text-align: center !important; }
+
+.status-badge {
+  display: inline-flex;
+  padding: 5px 9px;
+  border-radius: 999px;
+  font-size: .7rem;
+  font-weight: 800;
+}
+
+.status-badge.available { color: #047857; background: #d1fae5; }
+.status-badge.reserved { color: #b45309; background: #fef3c7; }
+.status-badge.unavailable { color: #be123c; background: #ffe4e6; }
+
+.blood-units-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  padding: 16px;
+}
+
+.blood-units-pagination span { color: var(--color-text-muted); font-size: .82rem; }
+
+@media (max-width: 900px) {
+  .blood-units-summary { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+@media (max-width: 640px) {
+  .blood-units-header { align-items: flex-start; flex-direction: column; }
+  .blood-units-meta { align-items: flex-start; }
+  .blood-units-summary { grid-template-columns: 1fr; }
+}
