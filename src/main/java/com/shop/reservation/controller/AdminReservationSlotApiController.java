@@ -4,6 +4,7 @@ import com.shop.reservation.constant.DonationType;
 import com.shop.reservation.dto.AdminReservationSlotCreateDto;
 import com.shop.reservation.dto.AdminReservationSlotResponseDto;
 import com.shop.reservation.dto.AdminReservationSlotUpdateDto;
+import com.shop.reservation.exception.DuplicateReservationSlotException;
 import com.shop.reservation.service.ReservationSlotService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -47,6 +48,21 @@ public class AdminReservationSlotApiController {
                             slots
                     )
             );
+
+        } catch (
+                DuplicateReservationSlotException e
+        ) {
+            return ResponseEntity
+                    .badRequest()
+                    .body(
+                            Map.of(
+                                    "message",
+                                    e.getMessage(),
+
+                                    "duplicateTimes",
+                                    e.getDuplicateTimes()
+                            )
+                    );
 
         } catch (
                 IllegalArgumentException

@@ -35,6 +35,12 @@ public interface MemberRepository extends JpaRepository<Member,Long> {
     boolean existsByEmail(String email);
 
     /**
+     * 소셜 로그인 신규 가입 시
+     * 동일한 휴대전화 번호가 이미 사용 중인지 확인합니다.
+     */
+    boolean existsByPhone(String phone);
+
+    /**
      * 소셜 로그인 제공자와 제공자 회원 ID로 회원을 조회합니다.
      *
      * 예:

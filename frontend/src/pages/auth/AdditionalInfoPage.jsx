@@ -1,4 +1,8 @@
-import { useEffect, useState } from 'react'
+import {
+  useEffect,
+  useRef,
+  useState,
+} from 'react'
 import { useNavigate } from 'react-router-dom'
 
 import {
@@ -11,6 +15,9 @@ import '../../styles/signup.css'
 
 
 function AdditionalInfoPage() {
+  const phoneLastRef =
+    useRef(null)
+
   const navigate = useNavigate()
 
   const [form, setForm] = useState({
@@ -18,7 +25,8 @@ function AdditionalInfoPage() {
       name: '',
       email: '',
       birthDate: '',
-      phone: '',
+      phoneMiddle: '',
+      phoneLast: '',
       smsAgreed: false,
       emailAgreed: false,
     })
@@ -69,7 +77,19 @@ function AdditionalInfoPage() {
             ? user.email
             : '',
           birthDate: user.birthDate ?? '',
-          phone: user.phone ?? '',
+          phoneMiddle:
+            user.phone
+              ? user.phone
+                  .replace(/\D/g, '')
+                  .slice(3, 7)
+              : '',
+
+          phoneLast:
+            user.phone
+              ? user.phone
+                  .replace(/\D/g, '')
+                  .slice(7, 11)
+              : '',
           smsAgreed: user.smsAgreed ?? false,
           emailAgreed: user.emailAgreed ?? false,
         })
@@ -141,24 +161,6 @@ function AdditionalInfoPage() {
       )
     }
 
-
-  /*
-   * 휴대전화 역시 숫자만 입력받고
-   * 최대 11자리까지만 허용합니다.
-   */
-  function handlePhoneChange(event) {
-      const value =
-        event.target.value
-          .replace(/\D/g, '')
-          .slice(0, 11)
-
-      updateField(
-        'phone',
-        value
-      )
-    }
-
-
   async function handleLogout() {
     try {
       await logout()
@@ -180,15 +182,32 @@ function AdditionalInfoPage() {
     }
 
     setErrors({})
+
+    if (
+      !providedFields.phone
+      && (
+        !/^\d{4}$/.test(form.phoneMiddle)
+        || !/^\d{4}$/.test(form.phoneLast)
+      )
+    ) {
+      setErrors({
+        phone:
+          '휴대전화 번호를 정확하게 입력해주세요.',
+      })
+
+      return
+    }
+
     setIsSubmitting(true)
 
     try {
       await updateAdditionalInfo({
-              birthDate: form.birthDate,
-              phone: form.phone,
-              smsAgreed: form.smsAgreed,
-              emailAgreed: form.emailAgreed,
-            })
+        birthDate: form.birthDate,
+        phone:
+          `010${form.phoneMiddle}${form.phoneLast}`,
+        smsAgreed: form.smsAgreed,
+        emailAgreed: form.emailAgreed,
+      })
 
       /*
        * 저장이 성공하면 추가정보 입력이 완료된 상태이므로
@@ -324,21 +343,71 @@ function AdditionalInfoPage() {
 
 
           <div className="form-field form-field-wide">
-            <label htmlFor="additionalPhone">
+            <label>
               휴대전화
             </label>
 
-            <input
-              id="additionalPhone"
-              type="tel"
-              inputMode="numeric"
-              maxLength={11}
-              value={form.phone}
-              readOnly={providedFields.phone}
-              placeholder="01012345678"
-              autoComplete="tel"
-              onChange={handlePhoneChange}
-            />
+            <div className="phone-fields">
+              <select
+                aria-label="휴대전화 앞 번호"
+                value="010"
+                disabled
+              >
+                <option value="010">
+                  010
+                </option>
+              </select>
+
+              <span>-</span>
+
+              <input
+                type="text"
+                inputMode="numeric"
+                maxLength={4}
+                value={form.phoneMiddle}
+                readOnly={providedFields.phone}
+                aria-label="휴대전화 가운데 번호"
+                onChange={(event) => {
+                  const value =
+                    event.target.value
+                      .replace(/\D/g, '')
+
+                  updateField(
+                    'phoneMiddle',
+                    value
+                  )
+
+                  if (
+                    value.length === 4
+                    && !providedFields.phone
+                  ) {
+                    phoneLastRef.current?.focus()
+                  }
+                }}
+              />
+
+              <span>-</span>
+
+              <input
+                ref={phoneLastRef}
+                type="text"
+                inputMode="numeric"
+                maxLength={4}
+                value={form.phoneLast}
+                readOnly={providedFields.phone}
+                aria-label="휴대전화 마지막 번호"
+                onChange={(event) => {
+                  const value =
+                    event.target.value
+                      .replace(/\D/g, '')
+
+                  updateField(
+                    'phoneLast',
+                    value
+                  )
+                }}
+              />
+            </div>
 
             {providedFields.phone && (
               <p className="field-guide">

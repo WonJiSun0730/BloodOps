@@ -151,6 +151,43 @@ public class SecurityConfig {
                                 userInfoEndpointConfig
                                         .userService(customOAuth2UserService)
                         )
+
+                        .failureHandler((request, response, exception) -> {
+
+                            String errorCode = "oauth_failed";
+
+                            if (
+                                    exception
+                                            instanceof org.springframework.security.oauth2.core.OAuth2AuthenticationException oauthException
+                            ) {
+                                String oauthErrorCode =
+                                        oauthException
+                                                .getError()
+                                                .getErrorCode();
+
+                                if (
+                                        "duplicate_email".equals(
+                                                oauthErrorCode
+                                        )
+                                ) {
+                                    errorCode =
+                                            "duplicate_email";
+                                } else if (
+                                        "duplicate_phone".equals(
+                                                oauthErrorCode
+                                        )
+                                ) {
+                                    errorCode =
+                                            "duplicate_phone";
+                                }
+                            }
+
+                            response.sendRedirect(
+                                    frontendUrl
+                                            + "/login?oauthError="
+                                            + errorCode
+                            );
+                        })
                 );
 
         http.exceptionHandling(exception -> exception

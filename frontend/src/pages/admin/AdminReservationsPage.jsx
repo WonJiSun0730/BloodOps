@@ -152,6 +152,12 @@ function AdminReservationsPage() {
   const [selectedCenterId, setSelectedCenterId] =
     useState('')
 
+  const [centerSearchText, setCenterSearchText] =
+    useState('')
+
+  const [centerSearchOpen, setCenterSearchOpen] =
+    useState(false)
+
   const [selectedDate, setSelectedDate] =
     useState('')
 
@@ -191,6 +197,17 @@ function AdminReservationsPage() {
   const [selectedDonationType, setSelectedDonationType] =
     useState('WHOLE_BLOOD')
 
+  const filteredCenters =
+    centers.filter((center) =>
+      center.centerName
+        ?.toLowerCase()
+        .includes(
+          centerSearchText
+            .trim()
+            .toLowerCase()
+        )
+    )
+
   const [slots, setSlots] =
     useState([])
 
@@ -199,6 +216,11 @@ function AdminReservationsPage() {
 
   const [slotError, setSlotError] =
     useState('')
+
+  const [
+    duplicateSlotTimes,
+    setDuplicateSlotTimes,
+  ] = useState([])
 
   const [slotSearched, setSlotSearched] =
     useState(false)
@@ -406,6 +428,8 @@ async function handleSlotCreate() {
     return
   }
 
+  setDuplicateSlotTimes([])
+
   try {
     setSlotCreating(true)
     setSlotError('')
@@ -429,12 +453,17 @@ async function handleSlotCreate() {
 
     setSlots(slotData)
     setSlotSearched(true)
+    setDuplicateSlotTimes([])
   } catch (error) {
-    setSlotError(
-      error.message
-      || '예약 슬롯 생성에 실패했습니다.'
-    )
-  } finally {
+      setDuplicateSlotTimes(
+        error.duplicateTimes ?? []
+      )
+
+      setSlotError(
+        error.message
+        || '예약 슬롯 생성에 실패했습니다.'
+      )
+    } finally {
     setSlotCreating(false)
   }
 }
@@ -776,44 +805,128 @@ async function handleReservationCancel() {
 
       <div className="admin-slot-search">
 
-        <select
-          value={selectedCenterId}
-          onChange={(event) =>
-            setSelectedCenterId(event.target.value)
-          }
-        >
-          <option value="">
-            헌혈센터 선택
-          </option>
+        <div className="admin-center-combobox">
 
-          {centers.map((center) => (
-            <option
-              key={center.id}
-              value={center.id}
-            >
-              {center.centerName}
-            </option>
-          ))}
-        </select>
+          <input
+            type="text"
+            value={centerSearchText}
+            placeholder="헌혈센터 검색"
+            autoComplete="off"
+            onFocus={() => {
+              setCenterSearchOpen(true)
+            }}
+            onChange={(event) => {
+              setCenterSearchText(
+                event.target.value
+              )
+
+              // 직접 검색어를 수정하면
+              // 기존 센터 선택은 해제
+              setSelectedCenterId('')
+              setCenterSearchOpen(true)
+
+              // 기존 슬롯 조회 결과도 초기화
+              setSlots([])
+              setSlotSearched(false)
+              setSlotError('')
+              setDuplicateSlotTimes([])
+              setSlotCapacityDrafts({})
+            }}
+          />
+
+          {centerSearchOpen && (
+            <div className="admin-center-options">
+
+              {filteredCenters.length === 0 ? (
+                <div className="admin-center-option-empty">
+                  검색 결과가 없습니다.
+                </div>
+              ) : (
+                filteredCenters.map((center) => {
+                  const inactive =
+                    center.active === false
+
+                  return (
+                    <button
+                      key={center.id}
+                      type="button"
+                      className={
+                        `admin-center-option${
+                          inactive
+                            ? ' is-inactive'
+                            : ''
+                        }`
+                      }
+                      disabled={inactive}
+                      onClick={() => {
+                        setSelectedCenterId(
+                          String(center.id)
+                        )
+
+                        setCenterSearchText(
+                          center.centerName
+                        )
+
+                        setCenterSearchOpen(false)
+
+                        setSlots([])
+                        setSlotSearched(false)
+                        setSlotError('')
+                        setDuplicateSlotTimes([])
+                        setSlotCapacityDrafts({})
+                      }}
+                    >
+                      <span>
+                        {center.centerName}
+                      </span>
+
+                      {inactive && (
+                        <span className="admin-center-inactive-label">
+                          (운영 중단)
+                        </span>
+                      )}
+                    </button>
+                  )
+                })
+              )}
+
+            </div>
+          )}
+
+        </div>
 
 
         <input
           type="date"
           value={selectedDate}
           min={todayDate}
-          onChange={(event) =>
-            setSelectedDate(event.target.value)
-          }
+          onChange={(event) => {
+            setSelectedDate(
+              event.target.value
+            )
+
+            setSlots([])
+            setSlotSearched(false)
+            setSlotError('')
+            setDuplicateSlotTimes([])
+            setSlotCapacityDrafts({})
+          }}
         />
 
 
         <select
           value={selectedDonationType}
-          onChange={(event) =>
+          onChange={(event) => {
             setSelectedDonationType(
               event.target.value
             )
-          }
+
+            setSlots([])
+            setSlotSearched(false)
+            setSlotError('')
+            setDuplicateSlotTimes([])
+            setSlotCapacityDrafts({})
+          }}
         >
           {donationTypes.map((type) => (
             <option
@@ -923,7 +1036,15 @@ async function handleReservationCancel() {
         {slots.map((slot) => (
           <article
             key={slot.id}
-            className="admin-slot-row"
+            className={
+              `admin-slot-row${
+                duplicateSlotTimes.includes(
+                  slot.startTime.slice(0, 5)
+                )
+                  ? ' is-duplicate'
+                  : ''
+              }`
+            }
           >
             <strong>
               {slot.startTime.slice(0, 5)}
@@ -951,6 +1072,14 @@ async function handleReservationCancel() {
               <input
                 type="number"
                 min="1"
+                className={
+                    Number(
+                      slotCapacityDrafts[slot.id]
+                      ?? slot.capacity
+                    ) <= 0
+                      ? 'is-invalid'
+                      : ''
+                  }
                 value={
                   slotCapacityDrafts[slot.id]
                   ?? slot.capacity

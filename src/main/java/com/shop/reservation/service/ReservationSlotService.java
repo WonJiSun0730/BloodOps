@@ -6,6 +6,7 @@ import com.shop.reservation.constant.ReservationStatus;
 import com.shop.reservation.dto.AdminReservationSlotCreateDto;
 import com.shop.reservation.dto.AdminReservationSlotResponseDto;
 import com.shop.reservation.entity.ReservationSlot;
+import com.shop.reservation.exception.DuplicateReservationSlotException;
 import com.shop.reservation.repository.ReservationRepository;
 import com.shop.reservation.repository.ReservationSlotRepository;
 import lombok.RequiredArgsConstructor;
@@ -62,6 +63,9 @@ public class ReservationSlotService {
         List<ReservationSlot> slots =
                 new ArrayList<>();
 
+        List<String> duplicateTimes =
+                new ArrayList<>();
+
         LocalTime currentTime =
                 request.getStartTime();
 
@@ -89,10 +93,14 @@ public class ReservationSlotService {
                             );
 
             if (duplicate) {
-                throw new IllegalStateException(
-                        "이미 존재하는 예약 슬롯이 있습니다: "
-                                + currentTime
+                duplicateTimes.add(
+                        currentTime.toString()
                 );
+
+                currentTime =
+                        slotEndTime;
+
+                continue;
             }
 
             ReservationSlot slot =
@@ -115,6 +123,12 @@ public class ReservationSlotService {
             slots.add(slot);
 
             currentTime = slotEndTime;
+        }
+
+        if (!duplicateTimes.isEmpty()) {
+            throw new DuplicateReservationSlotException(
+                    duplicateTimes
+            );
         }
 
         return reservationSlotRepository

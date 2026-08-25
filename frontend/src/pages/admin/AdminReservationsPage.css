@@ -528,6 +528,30 @@
   background: var(--color-background);
 }
 
+.admin-slot-capacity input.is-invalid {
+  border-color:
+    color-mix(
+      in srgb,
+      var(--color-primary) 55%,
+      var(--color-border)
+    );
+
+  background:
+    color-mix(
+      in srgb,
+      var(--color-primary) 8%,
+      var(--color-background)
+    );
+
+  box-shadow:
+    0 0 0 2px
+    color-mix(
+      in srgb,
+      var(--color-primary) 10%,
+      transparent
+    );
+}
+
 .admin-slot-occupancy {
   display: flex;
   flex-direction: column;
@@ -691,4 +715,141 @@
 
 .page-content > main.admin-reservations-page {
   padding-top: 20px;
+}
+
+.admin-center-combobox {
+  position: relative;
+  min-width: 220px;
+}
+
+.admin-center-combobox > input {
+  width: 100%;
+}
+
+.admin-center-options {
+  position: absolute;
+  z-index: 30;
+
+  top: calc(100% + 6px);
+  left: 0;
+  right: 0;
+
+  max-height: 260px;
+  overflow-y: auto;
+
+  padding: 6px;
+
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+
+  color: var(--color-text);
+  background: var(--color-background);
+
+  box-shadow:
+    0 12px 30px
+    rgba(0, 0, 0, 0.18);
+}
+
+.admin-center-option {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+
+  width: 100%;
+  padding: 10px 12px;
+
+  border: 0;
+  border-radius: 7px;
+
+  color: var(--color-text);
+  background: transparent;
+
+  text-align: left;
+  cursor: pointer;
+
+  transition:
+    color 0.18s ease,
+    background-color 0.18s ease;
+}
+
+.admin-center-option:hover:not(:disabled) {
+  background-color:
+    color-mix(
+      in srgb,
+      var(--color-primary) 8%,
+      var(--color-background)
+    );
+}
+
+.admin-center-option.is-inactive {
+  color: var(--color-text-muted);
+
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
+.admin-center-inactive-label {
+  flex-shrink: 0;
+
+  color: var(--color-primary);
+
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.admin-center-option-empty {
+  padding: 12px;
+
+  color: var(--color-text-muted);
+
+  text-align: center;
+  font-size: 0.78rem;
+}
+
+.admin-slot-row.is-duplicate {
+  animation:
+    duplicate-slot-flash 2.2s ease-out forwards;
+}
+
+@keyframes duplicate-slot-flash {
+  0% {
+    border-color:
+      color-mix(
+        in srgb,
+        var(--color-primary) 55%,
+        var(--color-border)
+      );
+
+    background:
+      color-mix(
+        in srgb,
+        var(--color-primary) 14%,
+        var(--color-surface)
+      );
+  }
+
+  35% {
+    border-color:
+      color-mix(
+        in srgb,
+        var(--color-primary) 35%,
+        var(--color-border)
+      );
+
+    background:
+      color-mix(
+        in srgb,
+        var(--color-primary) 8%,
+        var(--color-surface)
+      );
+  }
+
+  100% {
+    border-color:
+      var(--color-border);
+
+    background:
+      var(--color-surface);
+  }
 }

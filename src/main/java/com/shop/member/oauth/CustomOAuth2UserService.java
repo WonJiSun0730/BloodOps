@@ -84,10 +84,6 @@ public class CustomOAuth2UserService
 
     private Member saveOrUpdate(OAuthAttributes attributes) {
 
-        /*
-         * 가장 먼저 제공자와 제공자 고유 ID로 회원을 찾습니다.
-         * 소셜 이메일이 변경돼도 동일 회원을 찾을 수 있습니다.
-         */
         Member member = memberRepository
                 .findByProviderAndProviderId(
                         attributes.getProvider(),
@@ -96,25 +92,17 @@ public class CustomOAuth2UserService
                 .orElse(null);
 
         /*
-         * 제공자 ID로 찾지 못했지만 같은 이메일의 회원이 있다면
-         * 기존 계정을 사용합니다.
-         *
-         * 일반 계정과 소셜 계정의 이메일이 같은 경우
-         * 회원 레코드가 중복 생성되는 것을 방지합니다.
+         * 이미 연결된 동일 소셜 계정이면
+         * 정상 재로그인으로 처리합니다.
          */
-        if (member == null) {
-            member = memberRepository.findByEmail(
-                    attributes.getEmail()
+        if (member != null) {
+            member.setName(
+                    attributes.getName()
             );
-        }
 
-        // 처음 로그인한 소셜 사용자라면 새 Member를 만듭니다.
-        if (member == null) {
-            member = attributes.toMember();
-        } else {
-            // 다시 로그인하면 변경될 수 있는 프로필 정보만 갱신합니다.
-            member.setName(attributes.getName());
-            member.setPicture(attributes.getPicture());
+            member.setPicture(
+                    attributes.getPicture()
+            );
 
             if (
                     member.getBirthDate() == null
@@ -135,21 +123,67 @@ public class CustomOAuth2UserService
                             && attributes.getPhone() != null
                             && !attributes.getPhone().isBlank()
             ) {
+                if (
+                        memberRepository.existsByPhone(
+                                attributes.getPhone()
+                        )
+                ) {
+                    throw new OAuth2AuthenticationException(
+                            "duplicate_phone"
+                    );
+                }
+
                 member.setPhone(
                         attributes.getPhone()
                 );
             }
-
-            /*
-             * 기존 회원에게 제공자 정보가 없는 경우에만 연결합니다.
-             * LOCAL 회원의 로그인 방식은 유지합니다.
-             */
-            if (member.getProvider() == null) {
-                member.setProvider(attributes.getProvider());
-                member.setProviderId(attributes.getProviderId());
-            }
+            return memberRepository.save(
+                    member
+            );
         }
 
-        return memberRepository.save(member);
+        /*
+         * 여기부터는 "처음 들어온 소셜 계정"입니다.
+         *
+         * 기존 BloodOps 회원의 이메일과 겹치면
+         * 자동 계정 연결하지 않고 가입을 차단합니다.
+         */
+        if (
+                attributes.getEmail() != null
+                        && !attributes.getEmail().isBlank()
+                        && memberRepository.existsByEmail(
+                        attributes.getEmail()
+                )
+        ) {
+            throw new OAuth2AuthenticationException(
+                    "duplicate_email"
+            );
+        }
+
+        /*
+         * 소셜 제공자가 휴대전화 번호를 제공한 경우,
+         * 기존 회원과 번호가 겹치면 가입을 차단합니다.
+         */
+        if (
+                attributes.getPhone() != null
+                        && !attributes.getPhone().isBlank()
+                        && memberRepository.existsByPhone(
+                        attributes.getPhone()
+                )
+        ) {
+            throw new OAuth2AuthenticationException(
+                    "duplicate_phone"
+            );
+        }
+
+        /*
+         * 이메일/전화번호 모두 기존 회원과 겹치지 않는
+         * 신규 소셜 회원만 생성합니다.
+         */
+        member = attributes.toMember();
+
+        return memberRepository.save(
+                member
+        );
     }
 }

@@ -440,16 +440,23 @@ function AdminCentersPage() {
 
       if (drawerMode === 'create') {
 
-        const createdCenter =
-          await createCenter({
-            ...createInfo,
-            ...centerData,
-          })
+        await createCenter({
+          ...createInfo,
+          ...centerData,
+        })
 
-        setCenters((previous) => [
-          createdCenter,
-          ...previous,
-        ])
+        /*
+         * 현재 검색 조건을 유지한 상태로
+         * 센터 목록을 다시 조회합니다.
+         *
+         * 새 센터가 검색 조건에 해당할 때만
+         * 결과 목록에 표시됩니다.
+         */
+        await loadCenters(
+          keyword,
+          0,
+          false
+        )
 
       } else {
 
@@ -815,6 +822,7 @@ function handleCenterListScroll(event) {
                     type="text"
                     name="bloodCenterName"
                     value={createInfo.bloodCenterName}
+                    maxLength={100}
                     onChange={handleCreateInfoChange}
                     placeholder="예: 서울중앙혈액원"
                   />
@@ -828,6 +836,7 @@ function handleCenterListScroll(event) {
                     type="text"
                     name="centerName"
                     value={createInfo.centerName}
+                    maxLength={100}
                     onChange={handleCreateInfoChange}
                     placeholder="예: 강남 헌혈의 집"
                   />
@@ -854,6 +863,7 @@ function handleCenterListScroll(event) {
                     type="text"
                     name="address"
                     value={createInfo.address}
+                    maxLength={100}
                     onChange={handleCreateInfoChange}
                     placeholder="센터 주소"
                   />
@@ -867,6 +877,7 @@ function handleCenterListScroll(event) {
                     type="tel"
                     name="phone"
                     value={createInfo.phone}
+                    maxLength={100}
                     onChange={handleCreateInfoChange}
                     placeholder="예: 02-1234-5678"
                   />

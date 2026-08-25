@@ -15,6 +15,7 @@ export async function apiRequest(url, options = {}) {
   if (!response.ok) {
     let message = `API 요청 실패: ${response.status}`
     let fieldErrors = {}
+    let duplicateTimes = []
 
     try {
       const errorData = await response.json()
@@ -26,12 +27,17 @@ export async function apiRequest(url, options = {}) {
       if (errorData.errors) {
         fieldErrors = errorData.errors
       }
+      if (Array.isArray(errorData.duplicateTimes)) {
+        duplicateTimes =
+          errorData.duplicateTimes
+      }
     } catch {
       // JSON 형태의 오류 응답이 아닌 경우 기본 메시지 사용
     }
     // 회원가입 화면에서 입력칸 아래 오류를 표시할 때 사용
     const requestError = new Error(message)
     requestError.fieldErrors = fieldErrors
+    requestError.duplicateTimes = duplicateTimes
 
     throw requestError
   }

@@ -4,6 +4,7 @@ import com.shop.center.dto.CenterCreateRequestDto;
 import com.shop.center.dto.CenterResponseDto;
 import com.shop.center.dto.CenterUpdateRequestDto;
 import com.shop.center.service.CenterService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -42,7 +43,7 @@ public class CenterAdminController {
 
     @PostMapping
     public CenterResponseDto createCenter(
-            @RequestBody CenterCreateRequestDto request
+            @Valid @RequestBody CenterCreateRequestDto request
     ) {
 
         return centerService.createCenter(

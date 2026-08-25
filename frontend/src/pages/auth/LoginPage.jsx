@@ -1,12 +1,16 @@
 import {
+  useEffect,
+  useRef,
   useState,
 } from 'react'
 
 import {
   Link,
+  useSearchParams,
 } from 'react-router-dom'
 
 import {
+  getCurrentUser,
   login,
 } from '../../api/apiClient.js'
 
@@ -23,6 +27,19 @@ import BackgroundOrbit
   from '../../components/decorations/BackgroundOrbit.jsx'
 
 function LoginPage() {
+  const loginAlertShown =
+    useRef(false)
+
+  const [
+      searchParams,
+    ] = useSearchParams()
+
+
+  const [
+    checkingSession,
+    setCheckingSession,
+  ] = useState(true)
+
   const [loginId, setLoginId] =
     useState('')
 
@@ -51,6 +68,53 @@ function LoginPage() {
     isSubmitting,
     setIsSubmitting,
   ] = useState(false)
+
+  const oauthError =
+    searchParams.get('oauthError')
+
+  let oauthErrorMessage = ''
+
+  if (oauthError === 'duplicate_email') {
+    oauthErrorMessage =
+      '이미 가입된 이메일입니다. 아이디 찾기 또는 비밀번호 변경을 이용해주세요.'
+  } else if (oauthError === 'duplicate_phone') {
+    oauthErrorMessage =
+      '이미 가입된 휴대전화 번호입니다. 아이디 찾기 또는 비밀번호 변경을 이용해주세요.'
+  } else if (oauthError) {
+    oauthErrorMessage =
+      '소셜 로그인 중 오류가 발생했습니다. 다시 시도해주세요.'
+  }
+
+  useEffect(() => {
+    async function checkSession() {
+      try {
+        const currentUser =
+          await getCurrentUser()
+
+        if (currentUser?.identifier) {
+          if (!loginAlertShown.current) {
+            loginAlertShown.current = true
+
+            window.alert(
+              '이미 로그인 중입니다.'
+            )
+          }
+
+          window.location.replace('/')
+          return
+        }
+      } catch {
+        /*
+         * 비로그인 상태라면
+         * 로그인 화면을 그대로 표시합니다.
+         */
+      } finally {
+        setCheckingSession(false)
+      }
+    }
+
+    checkSession()
+  }, [])
 
   function validateLoginForm() {
     const nextErrors = {
@@ -105,6 +169,10 @@ function LoginPage() {
 
       setIsSubmitting(false)
     }
+  }
+
+  if (checkingSession) {
+    return null
   }
 
   return (
@@ -255,9 +323,9 @@ function LoginPage() {
 
           </label>
 
-          {errorMessage && (
+          {oauthErrorMessage && (
             <p className="login-error">
-              {errorMessage}
+              {oauthErrorMessage}
             </p>
           )}
 
@@ -280,25 +348,17 @@ function LoginPage() {
               ·
             </span>
 
-            <button
-              type="button"
-              disabled
-              title="추후 제공 예정"
-            >
+            <Link to="/find-id">
               아이디 찾기
-            </button>
+            </Link>
 
             <span aria-hidden="true">
               ·
             </span>
 
-            <button
-              type="button"
-              disabled
-              title="추후 제공 예정"
-            >
+            <Link to="/change-password">
               비밀번호 변경
-            </button>
+            </Link>
           </nav>
         </form>
 

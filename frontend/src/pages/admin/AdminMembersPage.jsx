@@ -233,13 +233,37 @@ function AdminMembersPage() {
 
         const updatedMember = result.member
 
-        setMembers((currentMembers) =>
-          currentMembers.map((currentMember) =>
+        setMembers((currentMembers) => {
+          /*
+           * 현재 권한 필터가 적용 중이고,
+           * 변경된 회원이 해당 필터 조건에서 벗어났다면
+           * 즉시 목록에서 제거합니다.
+           */
+          if (
+            roleFilter !== '전체'
+            && updatedMember.role !== roleFilter
+          ) {
+            return currentMembers.filter(
+              (currentMember) =>
+                currentMember.id !== updatedMember.id
+            )
+          }
+
+          return currentMembers.map((currentMember) =>
             currentMember.id === updatedMember.id
               ? updatedMember
               : currentMember
           )
-        )
+        })
+
+        if (
+          roleFilter !== '전체'
+          && updatedMember.role !== roleFilter
+        ) {
+          setTotalMembers((current) =>
+            Math.max(0, current - 1)
+          )
+        }
 
         setRoleDrafts((currentDrafts) => {
           const nextDrafts = {

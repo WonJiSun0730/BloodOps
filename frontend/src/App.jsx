@@ -24,6 +24,9 @@ import BloodUnitsManagementPage
 import DonorCheckPage
   from './pages/medical/DonorCheckPage.jsx'
 
+import AccountRecoveryPage
+  from './pages/auth/AccountRecoveryPage.jsx'
+
 
 function App() {
   return (
@@ -43,6 +46,16 @@ function App() {
         <Route
           path="/signup"
           element={<SignupPage />}
+        />
+
+        <Route
+          path="/find-id"
+          element={<AccountRecoveryPage />}
+        />
+
+        <Route
+          path="/change-password"
+          element={<AccountRecoveryPage />}
         />
 
         <Route

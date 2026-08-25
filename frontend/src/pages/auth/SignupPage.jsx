@@ -46,9 +46,18 @@ function SignupPage() {
     }))
 
     // 사용자가 값을 다시 입력하면 이전 오류를 제거합니다.
+    // 비밀번호/비밀번호 확인은 서로 연관된 필드이므로
+    // 어느 한쪽을 수정해도 불일치 오류를 함께 초기화합니다.
     setErrors((previous) => ({
       ...previous,
       [name]: '',
+
+      ...(name === 'password'
+        || name === 'passwordConfirm'
+        ? {
+            passwordConfirm: '',
+          }
+        : {}),
     }))
 
     if (name === 'loginId') {
@@ -75,7 +84,7 @@ function SignupPage() {
   function getPasswordStrength() {
     const password = form.password
 
-    if (!password) {
+    if (password.length < 8) {
       return {
         level: '',
         label: '',
@@ -122,20 +131,26 @@ function SignupPage() {
     }
 
     try {
-      const result = await checkLoginId(form.loginId)
-
-      setLoginIdStatus(
-        result.available ? 'available' : 'duplicate'
+      const result = await checkLoginId(
+        form.loginId
       )
 
-      if (!result.available) {
-        setErrors((previous) => ({
-          ...previous,
-          loginId: '이미 사용 중인 아이디입니다.',
-        }))
-      }
+      setLoginIdStatus(
+        result.available
+          ? 'available'
+          : 'duplicate'
+      )
+
+      setErrors((previous) => ({
+        ...previous,
+        loginId: result.available
+          ? ''
+          : '이미 사용 중인 아이디입니다.',
+      }))
     } catch (error) {
-      setGeneralError(error.message)
+      setGeneralError(
+        error.message
+      )
     }
   }
 
@@ -153,20 +168,26 @@ function SignupPage() {
     }
 
     try {
-      const result = await checkEmail(email)
-
-      setEmailStatus(
-        result.available ? 'available' : 'duplicate'
+      const result = await checkEmail(
+        email
       )
 
-      if (!result.available) {
-        setErrors((previous) => ({
-          ...previous,
-          email: '이미 가입된 이메일입니다.',
-        }))
-      }
+      setEmailStatus(
+        result.available
+          ? 'available'
+          : 'duplicate'
+      )
+
+      setErrors((previous) => ({
+        ...previous,
+        email: result.available
+          ? ''
+          : '이미 가입된 이메일입니다.',
+      }))
     } catch (error) {
-      setGeneralError(error.message)
+      setGeneralError(
+        error.message
+      )
     }
   }
 
@@ -197,6 +218,67 @@ function SignupPage() {
     if (!/^(\d{6}|\d{8})$/.test(form.birthDate)) {
       nextErrors.birthDate =
         '생년월일은 숫자 6자리 또는 8자리로 입력해주세요.'
+    } else {
+      let normalizedBirthDate =
+        form.birthDate
+
+      if (form.birthDate.length === 6) {
+        const year =
+          Number(
+            form.birthDate.slice(0, 2)
+          )
+
+        const currentYear =
+          new Date().getFullYear() % 100
+
+        const century =
+          year <= currentYear
+            ? '20'
+            : '19'
+
+        normalizedBirthDate =
+          `${century}${form.birthDate}`
+      }
+
+      const year =
+        Number(normalizedBirthDate.slice(0, 4))
+
+      const month =
+        Number(normalizedBirthDate.slice(4, 6))
+
+      const day =
+        Number(normalizedBirthDate.slice(6, 8))
+
+      const birthDate =
+        new Date(
+          year,
+          month - 1,
+          day
+        )
+
+      const today =
+        new Date()
+
+      today.setHours(
+        0,
+        0,
+        0,
+        0
+      )
+
+      const isValidDate =
+        birthDate.getFullYear() === year
+        && birthDate.getMonth()
+          === month - 1
+        && birthDate.getDate() === day
+
+      if (!isValidDate) {
+        nextErrors.birthDate =
+          '올바른 생년월일을 입력해주세요.'
+      } else if (birthDate > today) {
+        nextErrors.birthDate =
+          '미래 날짜는 생년월일로 사용할 수 없습니다.'
+      }
     }
 
     if (!/^\d{4}$/.test(form.phoneMiddle)
@@ -383,7 +465,8 @@ function SignupPage() {
                 </p>
               )}
 
-              {errors.passwordConfirm && (
+              {errors.passwordConfirm
+                && !form.passwordConfirm && (
                 <p className="field-error">
                   {errors.passwordConfirm}
                 </p>
@@ -428,9 +511,19 @@ function SignupPage() {
                 <input
                   type="date"
                   aria-label="달력에서 생년월일 선택"
+                  max={
+                    new Date()
+                      .toISOString()
+                      .slice(0, 10)
+                  }
                   onChange={(event) => {
-                    const value = event.target.value.replaceAll('-', '')
-                    updateField('birthDate', value)
+                    const value =
+                      event.target.value.replaceAll('-', '')
+
+                    updateField(
+                      'birthDate',
+                      value
+                    )
                   }}
                 />
               </div>
@@ -496,9 +589,15 @@ function SignupPage() {
                   value={form.emailId}
                   aria-label="이메일 아이디"
                   placeholder="이메일 아이디"
-                  onChange={(event) =>
-                    updateField('emailId', event.target.value)
-                  }
+                  onChange={(event) => {
+                    const value = event.target.value
+                      .replace(/[^a-zA-Z0-9._+-]/g, '')
+
+                    updateField(
+                      'emailId',
+                      value
+                    )
+                  }}
                 />
 
                 <span>@</span>
@@ -509,12 +608,16 @@ function SignupPage() {
                     value={form.customEmailDomain}
                     aria-label="이메일 도메인 직접 입력"
                     placeholder="도메인 직접 입력"
-                    onChange={(event) =>
+                    onChange={(event) => {
+                      const value = event.target.value
+                        .toLowerCase()
+                        .replace(/[^a-z0-9.-]/g, '')
+
                       updateField(
                         'customEmailDomain',
-                        event.target.value,
+                        value
                       )
-                    }
+                    }}
                   />
                 ) : (
                   <input
