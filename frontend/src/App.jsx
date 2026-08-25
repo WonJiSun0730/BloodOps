@@ -13,6 +13,7 @@ import AdminCentersPage from './pages/admin/AdminCentersPage.jsx'
 import AdminReservationsPage from './pages/admin/AdminReservationsPage.jsx'
 import AdminMembersPage from './pages/admin/AdminMembersPage.jsx'
 import BloodUnitsManagementPage from './pages/medical/BloodUnitsManagementPage.jsx'
+import DonorCheckPage from './pages/medical/DonorCheckPage.jsx'
 
 function App() {
   return (
@@ -27,6 +28,10 @@ function App() {
         <Route
           path="/medical/blood_units_management"
           element={<BloodUnitsManagementPage />}
+        />
+        <Route
+          path="/medical/donor_check/:confirmationId"
+          element={<DonorCheckPage />}
         />
 
         <Route
