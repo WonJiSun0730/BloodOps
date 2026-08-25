@@ -13,6 +13,11 @@ import AdditionalInfoPage
 import CenterSearchPage
   from './pages/center/CenterSearchPage.jsx'
 
+import ReservationCreatePage
+  from './pages/reservation/ReservationCreatePage.jsx'
+import ReservationListPage
+  from './pages/reservation/ReservationListPage.jsx'
+
 import AdminPage from './pages/admin/AdminPage.jsx'
 import AdminRoute from './components/AdminRoute.jsx'
 
@@ -41,6 +46,16 @@ function App() {
         <Route
           path="/centers"
           element={<CenterSearchPage />}
+        />
+
+        <Route
+          path="/reservations/new"
+          element={<ReservationCreatePage />}
+        />
+
+        <Route
+          path="/reservations"
+          element={<ReservationListPage />}
         />
 
         <Route

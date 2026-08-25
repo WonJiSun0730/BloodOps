@@ -14,6 +14,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.List;
 
 @Service
@@ -57,9 +59,46 @@ public class ReservationService {
                                 )
                         );
 
+        LocalDate today =
+                LocalDate.now();
+
+        if (
+                slot.getReservationDate()
+                        .isBefore(today)
+        ) {
+            throw new IllegalStateException(
+                    "이미 지난 날짜에는 예약할 수 없습니다."
+            );
+        }
+
+        if (
+                slot.getReservationDate()
+                        .isEqual(today)
+                        && !slot.getStartTime()
+                        .isAfter(LocalTime.now())
+        ) {
+            throw new IllegalStateException(
+                    "이미 지난 시간에는 예약할 수 없습니다."
+            );
+        }
+
         if (!slot.isActive()) {
             throw new IllegalStateException(
                     "현재 예약할 수 없는 시간입니다."
+            );
+        }
+
+        boolean alreadyReservedOnDate =
+                reservationRepository
+                        .existsByMember_IdAndSlot_ReservationDateAndStatus(
+                                member.getId(),
+                                slot.getReservationDate(),
+                                ReservationStatus.RESERVED
+                        );
+
+        if (alreadyReservedOnDate) {
+            throw new IllegalStateException(
+                    "같은 날짜에는 하나의 헌혈 예약만 할 수 있습니다."
             );
         }
 
@@ -84,6 +123,7 @@ public class ReservationService {
                                 ReservationStatus.RESERVED
                         );
 
+
         if (alreadyReserved) {
             throw new IllegalStateException(
                     "이미 해당 시간에 예약되어 있습니다."
@@ -104,6 +144,146 @@ public class ReservationService {
 
         return new AdminReservationResponseDto(
                 savedReservation
+        );
+    }
+
+    /*
+     * 로그인한 회원의 예약 내역 조회
+     */
+    @Transactional(readOnly = true)
+    public List<AdminReservationResponseDto> getMyReservations(
+            String email
+    ) {
+        Member member =
+                memberRepository.findByEmail(email);
+
+        if (member == null) {
+            throw new IllegalArgumentException(
+                    "회원 정보를 찾을 수 없습니다."
+            );
+        }
+
+        return reservationRepository
+                .findByMember_EmailOrderByIdDesc(email)
+                .stream()
+                .map(AdminReservationResponseDto::new)
+                .toList();
+    }
+
+    /*
+     * 로그인한 회원 본인의 예약 슬롯 변경
+     */
+    public AdminReservationResponseDto changeMyReservationSlot(
+            Long reservationId,
+            Long newSlotId,
+            String email
+    ) {
+        if (newSlotId == null) {
+            throw new IllegalArgumentException(
+                    "변경할 예약 시간을 선택해주세요."
+            );
+        }
+
+        Reservation reservation =
+                reservationRepository
+                        .findById(reservationId)
+                        .orElseThrow(() ->
+                                new IllegalArgumentException(
+                                        "예약을 찾을 수 없습니다."
+                                )
+                        );
+
+        if (
+                !reservation.getMember()
+                        .getEmail()
+                        .equals(email)
+        ) {
+            throw new IllegalStateException(
+                    "본인의 예약만 변경할 수 있습니다."
+            );
+        }
+
+        if (
+                reservation.getStatus()
+                        == ReservationStatus.CANCELED
+        ) {
+            throw new IllegalStateException(
+                    "취소된 예약은 변경할 수 없습니다."
+            );
+        }
+
+        if (
+                reservation.getSlot()
+                        .getId()
+                        .equals(newSlotId)
+        ) {
+            throw new IllegalStateException(
+                    "현재 예약된 시간과 동일합니다."
+            );
+        }
+
+        ReservationSlot newSlot =
+                reservationSlotRepository
+                        .findById(newSlotId)
+                        .orElseThrow(() ->
+                                new IllegalArgumentException(
+                                        "변경할 예약 시간을 찾을 수 없습니다."
+                                )
+                        );
+
+        if (!newSlot.isActive()) {
+            throw new IllegalStateException(
+                    "현재 예약할 수 없는 시간입니다."
+            );
+        }
+
+        /*
+         * 사용자 변경은 기존 예약과
+         * 같은 센터 / 날짜 / 헌혈 종류 안에서만 허용합니다.
+         */
+        ReservationSlot oldSlot =
+                reservation.getSlot();
+
+        if (
+                !oldSlot.getCenter()
+                        .getId()
+                        .equals(
+                                newSlot.getCenter().getId()
+                        )
+                        || !oldSlot.getReservationDate()
+                        .equals(
+                                newSlot.getReservationDate()
+                        )
+                        || oldSlot.getDonationType()
+                        != newSlot.getDonationType()
+        ) {
+            throw new IllegalStateException(
+                    "같은 센터와 날짜, 헌혈 종류의 예약 시간만 변경할 수 있습니다."
+            );
+        }
+
+        long reservedCount =
+                reservationRepository
+                        .countBySlot_IdAndStatus(
+                                newSlotId,
+                                ReservationStatus.RESERVED
+                        );
+
+        if (
+                reservedCount
+                        >= newSlot.getCapacity()
+        ) {
+            throw new IllegalStateException(
+                    "변경할 시간의 예약 정원이 마감되었습니다."
+            );
+        }
+
+        reservation.setSlot(
+                newSlot
+        );
+
+        return new AdminReservationResponseDto(
+                reservation
         );
     }
 
@@ -220,6 +400,50 @@ public class ReservationService {
          * 신규 슬롯 RESERVED 집계에는 자동으로 포함됩니다.
          */
         reservation.setSlot(newSlot);
+
+        return new AdminReservationResponseDto(
+                reservation
+        );
+    }
+
+    /*
+     * 로그인한 회원 본인의 예약 취소
+     */
+    public AdminReservationResponseDto cancelMyReservation(
+            Long reservationId,
+            String email
+    ) {
+        Reservation reservation =
+                reservationRepository
+                        .findById(reservationId)
+                        .orElseThrow(() ->
+                                new IllegalArgumentException(
+                                        "예약을 찾을 수 없습니다."
+                                )
+                        );
+
+        if (
+                !reservation.getMember()
+                        .getEmail()
+                        .equals(email)
+        ) {
+            throw new IllegalStateException(
+                    "본인의 예약만 취소할 수 있습니다."
+            );
+        }
+
+        if (
+                reservation.getStatus()
+                        == ReservationStatus.CANCELED
+        ) {
+            throw new IllegalStateException(
+                    "이미 취소된 예약입니다."
+            );
+        }
+
+        reservation.setStatus(
+                ReservationStatus.CANCELED
+        );
 
         return new AdminReservationResponseDto(
                 reservation

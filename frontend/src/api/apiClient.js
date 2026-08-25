@@ -475,3 +475,98 @@ export async function cancelAdminReservation(
   )
 }
 
+/*
+ * 로그인 사용자가 예약 가능한 슬롯을 조회합니다.
+ */
+export function getReservationSlots(
+  centerId,
+  reservationDate,
+  donationType
+) {
+  const params = new URLSearchParams({
+    centerId: String(centerId),
+    reservationDate,
+    donationType,
+  })
+
+  return apiRequest(
+    `/api/reservations/slots?${params.toString()}`
+  )
+}
+
+
+/*
+ * 로그인 사용자가 예약을 생성합니다.
+ */
+export async function createReservation(slotId) {
+  const csrf = await getCsrfToken()
+
+  return apiRequest(
+    '/api/reservations',
+    {
+      method: 'POST',
+
+      headers: {
+        'Content-Type': 'application/json',
+        [csrf.headerName]: csrf.token,
+      },
+
+      body: JSON.stringify({
+        slotId,
+      }),
+    }
+  )
+}
+
+/*
+ * 로그인한 회원의 예약 내역을 조회합니다.
+ */
+export function getMyReservations() {
+  return apiRequest(
+    '/api/reservations'
+  )
+}
+
+/*
+ * 로그인한 회원 본인의 예약을 취소합니다.
+ */
+export async function cancelMyReservation(
+  reservationId
+) {
+  const csrf = await getCsrfToken()
+
+  return apiRequest(
+    `/api/reservations/${reservationId}/cancel`,
+    {
+      method: 'PATCH',
+
+      headers: {
+        [csrf.headerName]: csrf.token,
+      },
+    }
+  )
+}
+
+/*
+ * 로그인한 회원 본인의 예약 시간을 변경합니다.
+ */
+export async function changeMyReservationSlot(
+  reservationId,
+  slotId
+) {
+  const csrf = await getCsrfToken()
+
+  return apiRequest(
+    `/api/reservations/${reservationId}/slot`,
+    {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        [csrf.headerName]: csrf.token,
+      },
+      body: JSON.stringify({
+        slotId,
+      }),
+    }
+  )
+}
