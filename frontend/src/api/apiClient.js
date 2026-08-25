@@ -530,12 +530,23 @@ export async function createReservation(slotId) {
  * blood_units DB 데이터를 페이지 단위로 조회합니다.
  */
 export function getMedicalBloodUnits(
+  filters = {},
   page = 0,
   size = 20
 ) {
   const params = new URLSearchParams({
     page: String(page),
     size: String(size),
+  })
+
+  Object.entries(filters).forEach(([key, value]) => {
+    if (
+      value !== undefined
+      && value !== null
+      && String(value).trim()
+    ) {
+      params.set(key, String(value).trim())
+    }
   })
 
   return apiRequest(
@@ -642,4 +653,20 @@ export async function updateMedicalDonorConfirmation(
       ),
     }
   )
+}
+
+
+export async function createMedicalBloodUnit(unitData) {
+  const csrf = await getCsrfToken()
+  return apiRequest('/api/medical/blood-units', { method: 'POST', headers: { 'Content-Type': 'application/json', [csrf.headerName]: csrf.token }, body: JSON.stringify(unitData) })
+}
+
+export async function updateMedicalBloodUnit(id, unitData) {
+  const csrf = await getCsrfToken()
+  return apiRequest(`/api/medical/blood-units/${id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json', [csrf.headerName]: csrf.token }, body: JSON.stringify(unitData) })
+}
+
+export async function verifyMedicalDonorIdentity(identityData) {
+  const csrf = await getCsrfToken()
+  return apiRequest('/api/medical/donor-confirmations/identity-verifications', { method: 'POST', headers: { 'Content-Type': 'application/json', [csrf.headerName]: csrf.token }, body: JSON.stringify(identityData) })
 }
