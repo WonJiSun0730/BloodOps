@@ -52,16 +52,23 @@ public class BloodUnitApiController {
 
     @PostMapping @Transactional
     public ResponseEntity<BloodUnitResponseDto> create(@Valid @RequestBody BloodUnitUpsertDto dto) {
+        validateDates(dto);
         if (repository.findByUnitId(dto.unitId()).isPresent()) throw new IllegalArgumentException("이미 등록된 Unit ID입니다.");
         BloodUnit saved = repository.save(apply(new BloodUnit(), dto));
         return ResponseEntity.created(URI.create("/api/medical/blood-units/" + saved.getId())).body(BloodUnitResponseDto.from(saved));
     }
 
     @PutMapping("/{id}") @Transactional
-    public BloodUnitResponseDto update(@PathVariable Long id, @Valid @RequestBody BloodUnitUpsertDto dto) {
-        if (repository.existsByUnitIdAndIdNot(dto.unitId(), id)) throw new IllegalArgumentException("이미 등록된 Unit ID입니다.");
+    public BloodUnitResponseDto update(@PathVariable Long id, @Valid @RequestBody BloodUnitStatusUpdateDto dto) {
         BloodUnit unit = repository.findById(id).orElseThrow(() -> new IllegalArgumentException("혈액 재고를 찾을 수 없습니다."));
-        return BloodUnitResponseDto.from(apply(unit, dto));
+        unit.setStatus(dto.status());
+        return BloodUnitResponseDto.from(unit);
+    }
+
+    private void validateDates(BloodUnitUpsertDto dto) {
+        if (!dto.expirationDate().isAfter(dto.collectionDate())) {
+            throw new IllegalArgumentException("유효기간은 채혈일 이후여야 합니다.");
+        }
     }
 
     private BloodUnit apply(BloodUnit u, BloodUnitUpsertDto d) { u.setDonorId(d.donorId()); u.setBloodType(d.bloodType()); u.setRhType(d.rhType()); u.setGender(d.gender()); u.setBirthDate(d.birthDate()); u.setUnitId(d.unitId()); u.setProductType(d.productType()); u.setCollectionDate(d.collectionDate()); u.setExpirationDate(d.expirationDate()); u.setStatus(d.status()); return u; }

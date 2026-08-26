@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from 'react'
-import { Navigate, useParams } from 'react-router-dom'
+import { Link, Navigate, useParams } from 'react-router-dom'
 import {
   getMedicalDonorConfirmation,
+  getMedicalDonorQuestionnaire,
   updateMedicalDonorConfirmation,
 } from '../../api/apiClient.js'
 import './DonorCheckPage.css'
@@ -18,12 +19,20 @@ const initialForm = {
   signatureData: '',
 }
 
-const questionnaire = [
-  ['오늘 몸 상태가 헌혈하기에 양호합니까?', '예'],
-  ['최근 3일 이내에 약물을 복용하거나 주사를 맞은 적이 있습니까?', '아니오'],
-  ['최근 1개월 이내에 해외를 방문한 적이 있습니까?', '아니오'],
-  ['최근 1년 이내에 문신, 피어싱, 사혈침 시술을 받은 적이 있습니까?', '아니오'],
-]
+const questionnaireLabels = {
+  feeling_well: '오늘 몸 상태가 양호합니까?',
+  recent_donation: '최근 헌혈 후 필요한 헌혈 간격이 지났습니까?',
+  recent_treatment: '최근 수술·입원·수혈 또는 치료를 받은 적이 없습니까?',
+  medication: '현재 복용 중이거나 최근 복용한 약이 없습니까?',
+  vaccination: '최근 예방접종을 받은 적이 없습니까?',
+  infection: '최근 감염병 진단 또는 감염 의심 증상이 없습니까?',
+  dental_treatment: '최근 치과 치료를 받은 적이 없습니까?',
+  pregnancy: '현재 임신 중이거나 출산·유산 후 6개월 이내가 아닙니까?',
+  overseas_travel: '최근 4주 이내 해외여행을 하지 않았습니까?',
+  malaria_area: '최근 말라리아 관련 제한 지역에 거주하거나 숙박한 적이 없습니까?',
+  test_result: '과거 헌혈검사에서 비정상 결과를 통보받은 적이 없습니까?',
+  risk_exposure: '최근 혈액으로 전파될 수 있는 감염 위험에 노출된 적이 없습니까?',
+}
 
 function DonorCheckPage() {
   const { confirmationId } = useParams()
@@ -34,6 +43,7 @@ function DonorCheckPage() {
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
+  const [questionnaire, setQuestionnaire] = useState(null)
 
   useEffect(() => {
     let mounted = true
@@ -43,7 +53,10 @@ function DonorCheckPage() {
       try {
         setLoading(true)
         setError('')
-        const data = await getMedicalDonorConfirmation(confirmationId)
+        const [data, questionnaireData] = await Promise.all([
+          getMedicalDonorConfirmation(confirmationId),
+          getMedicalDonorQuestionnaire(confirmationId),
+        ])
 
         if (!mounted) return
 
@@ -58,6 +71,7 @@ function DonorCheckPage() {
           address: data.address ?? '',
           signatureData: data.signatureData ?? '',
         })
+        setQuestionnaire(questionnaireData)
       } catch (requestError) {
         if (mounted) {
           setError(requestError.message || '헌혈자 정보를 불러오지 못했습니다.')
@@ -136,7 +150,7 @@ function DonorCheckPage() {
       canvas.removeEventListener('pointermove', move)
       window.removeEventListener('pointerup', stop)
     }
-  }, [loading])
+  }, [loading, form.signatureData])
 
   function changeField(event) {
     const { name, value } = event.target
@@ -188,6 +202,10 @@ function DonorCheckPage() {
   return (
     <main className="donor-check-page">
       <header>
+        <Link className="donor-check-back-link" to="/medical/donor_identity">
+          <span aria-hidden="true">←</span>
+          헌혈자 신분 확인으로 돌아가기
+        </Link>
         <p>MEDICAL · DONOR CONFIRMATION</p>
         <h1>헌혈자 정보 및 전자문진 확인</h1>
       </header>
@@ -222,16 +240,20 @@ function DonorCheckPage() {
 
         <section>
           <h2>2. 작성한 전자 문진 사항</h2>
-          <div className="questionnaire-wrap">
+          {questionnaire ? <div className="questionnaire-wrap">
+            <p className="signature-guide">
+              접수번호 {questionnaire.receiptCode} · {questionnaire.donorName} ·
+              {questionnaire.identityVerified ? ' 신분 확인 완료' : ' 신분 확인 전'}
+            </p>
             <table>
               <thead><tr><th>문진 항목</th><th>응답</th></tr></thead>
               <tbody>
-                {questionnaire.map(([question, answer]) => (
-                  <tr key={question}><td>{question}</td><td className="answer">{answer}</td></tr>
+                {Object.entries(questionnaire.answers).map(([questionId, answer]) => (
+                  <tr key={questionId}><td>{questionnaireLabels[questionId] ?? questionId}</td><td className="answer">{answer === 'YES' ? '예' : '아니요'}</td></tr>
                 ))}
               </tbody>
             </table>
-          </div>
+          </div> : <p className="signature-guide">유효한 전자문진 제출 내역이 없습니다.</p>}
         </section>
 
         <section>

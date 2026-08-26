@@ -4,13 +4,18 @@ import {
   Routes,
 } from 'react-router-dom'
 
-import MainLayout from './layouts/MainLayout.jsx'
+import MainLayout
+  from './layouts/MainLayout.jsx'
 import MyPageLayout
   from './layouts/MyPageLayout.jsx'
-import MainPage from './pages/main/MainPage.jsx'
 
-import LoginPage from './pages/auth/LoginPage.jsx'
-import SignupPage from './pages/auth/SignupPage.jsx'
+import MainPage
+  from './pages/main/MainPage.jsx'
+
+import LoginPage
+  from './pages/auth/LoginPage.jsx'
+import SignupPage
+  from './pages/auth/SignupPage.jsx'
 import AdditionalInfoPage
   from './pages/auth/AdditionalInfoPage.jsx'
 import AccountRecoveryPage
@@ -23,16 +28,19 @@ import ReservationCreatePage
   from './pages/reservation/ReservationCreatePage.jsx'
 import ReservationListPage
   from './pages/reservation/ReservationListPage.jsx'
+
 import MyPageHomePage
   from './pages/mypage/MyPageHomePage.jsx'
-
 import DonationRecordsPage
   from './pages/mypage/DonationRecordsPage.jsx'
-
 import TestResultsPage
   from './pages/mypage/TestResultsPage.jsx'
 
-import AdminPage from './pages/admin/AdminPage.jsx'
+import QuestionnairePage
+  from './pages/questionnaire/QuestionnairePage.jsx'
+
+import AdminPage
+  from './pages/admin/AdminPage.jsx'
 import AdminCentersPage
   from './pages/admin/AdminCentersPage.jsx'
 import AdminReservationsPage
@@ -40,19 +48,21 @@ import AdminReservationsPage
 import AdminMembersPage
   from './pages/admin/AdminMembersPage.jsx'
 
-import AdminRoute
-  from './components/AdminRoute.jsx'
-import MedicalRoute
-  from './components/MedicalRoute.jsx'
-  import MemberRoute
-    from './components/MemberRoute.jsx'
-
 import BloodUnitsManagementPage
   from './pages/medical/BloodUnitsManagementPage.jsx'
 import DonorIdentityPage
   from './pages/medical/DonorIdentityPage.jsx'
 import DonorCheckPage
   from './pages/medical/DonorCheckPage.jsx'
+import MedicalMyPage
+  from './pages/medical/MedicalMyPage.jsx'
+
+import AdminRoute
+  from './components/AdminRoute.jsx'
+import MedicalRoute
+  from './components/MedicalRoute.jsx'
+import MemberRoute
+  from './components/MemberRoute.jsx'
 
 import NotFoundPage
   from './pages/NotFoundPage.jsx'
@@ -104,6 +114,12 @@ function App() {
         />
 
         <Route
+          path="/questionnaire"
+          element={<QuestionnairePage />}
+        />
+
+
+        <Route
           element={
             <MemberRoute>
               <MyPageLayout />
@@ -139,6 +155,7 @@ function App() {
           />
         </Route>
 
+
         <Route
           path="/records"
           element={
@@ -156,6 +173,16 @@ function App() {
               to="/mypage/results"
               replace
             />
+          }
+        />
+
+
+        <Route
+          path="/mypage/medical"
+          element={
+            <MedicalRoute>
+              <MedicalMyPage />
+            </MedicalRoute>
           }
         />
 
@@ -185,6 +212,7 @@ function App() {
             </MedicalRoute>
           }
         />
+
 
         <Route
           path="/admin"
@@ -222,6 +250,7 @@ function App() {
           }
         />
 
+
         <Route
           path="*"
           element={<NotFoundPage />}
@@ -231,5 +260,6 @@ function App() {
     </Routes>
   )
 }
+
 
 export default App
