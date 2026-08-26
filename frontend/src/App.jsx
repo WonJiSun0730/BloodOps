@@ -20,6 +20,7 @@ import DonorIdentityPage from './pages/medical/DonorIdentityPage.jsx'
 import DonorCheckPage from './pages/medical/DonorCheckPage.jsx'
 import MedicalMyPage from './pages/medical/MedicalMyPage.jsx'
 import NotFoundPage from './pages/NotFoundPage.jsx'
+import QuestionnairePage from './pages/questionnaire/QuestionnairePage.jsx'
 
 function App() {
   return (
@@ -34,6 +35,7 @@ function App() {
         <Route path="/centers" element={<CenterSearchPage />} />
         <Route path="/reservations/new" element={<ReservationCreatePage />} />
         <Route path="/reservations" element={<ReservationListPage />} />
+        <Route path="/questionnaire" element={<QuestionnairePage />} />
 
         <Route
           path="/mypage"

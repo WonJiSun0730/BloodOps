@@ -50,7 +50,10 @@ public class SecurityConfig {
                                 // React 회원가입 관련 공개 API
                                 "/api/members/signup",
                                 "/api/members/check-login-id",
-                                "/api/members/check-email"
+                                "/api/members/check-email",
+                                // 비회원도 전자문진 문항 조회와 제출 가능
+                                "/api/questionnaires/questions",
+                                "/api/questionnaires"
                         ).permitAll()
                         // 관리자 전용 화면 및 API
                         .requestMatchers(
