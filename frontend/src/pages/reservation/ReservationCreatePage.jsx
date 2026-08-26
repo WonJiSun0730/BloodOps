@@ -4,12 +4,22 @@ import {
 } from 'react'
 
 import {
+  useSearchParams,
+} from 'react-router-dom'
+
+import {
   createReservation,
   getCenters,
   getReservationSlots,
 } from '../../api/apiClient.js'
 
 import './ReservationCreatePage.css'
+
+import ReservationCalendar
+  from './ReservationCalendar.jsx'
+
+import CenterSearchPanel
+  from './CenterSearchPanel.jsx'
 
 
 const donationTypes = [
@@ -31,8 +41,20 @@ const donationTypes = [
   },
 ]
 
+function formatTime(time) {
+  if (!time) {
+    return ''
+  }
+
+  return time.slice(0, 5)
+}
+
 
 function ReservationCreatePage() {
+  const [
+    searchParams,
+  ] = useSearchParams()
+
   const [centers, setCenters] =
     useState([])
 
@@ -91,6 +113,39 @@ function ReservationCreatePage() {
 
     loadCenters()
   }, [])
+
+  useEffect(() => {
+    const requestedCenterId =
+      searchParams.get('centerId')
+
+    if (
+      !requestedCenterId
+      || centers.length === 0
+    ) {
+      return
+    }
+
+    const requestedCenter =
+      centers.find(
+        (center) =>
+          String(center.id)
+            === requestedCenterId
+      )
+
+    if (
+      !requestedCenter
+      || requestedCenter.active === false
+    ) {
+      return
+    }
+
+    setCenterId(
+      requestedCenterId
+    )
+  }, [
+    centers,
+    searchParams,
+  ])
 
 
   async function handleSearchSlots(
@@ -203,86 +258,126 @@ function ReservationCreatePage() {
 
       <section className="reservation-create-content">
 
+        <CenterSearchPanel
+            centers={centers}
+            selectedCenterId={centerId}
+            onSelectCenter={(nextCenterId) => {
+              setCenterId(
+                nextCenterId
+              )
+
+              setSlots([])
+              setSelectedSlotId(null)
+              setSuccessMessage('')
+              setError('')
+            }}
+          />
+
+        {centerId && (
+          <>
+
         <form
           onSubmit={handleSearchSlots}
           className="reservation-search-form"
         >
-          <label>
-            헌혈센터
+          <div className="reservation-condition-heading">
+            <span>
+              STEP 02
+            </span>
 
-            <select
-              value={centerId}
-              onChange={(event) =>
-                setCenterId(
-                  event.target.value
-                )
-              }
-            >
-              <option value="">
-                센터를 선택해주세요
-              </option>
+            <div>
+              <h2>
+                예약 조건 선택
+              </h2>
 
-              {centers.map(
-                (center) => (
-                  <option
-                    key={center.id}
-                    value={center.id}
-                  >
-                    {center.centerName}
-                  </option>
-                )
+              <p>
+                날짜와 헌혈 종류를 선택한 뒤
+                예약 가능한 시간을 확인하세요.
+              </p>
+            </div>
+          </div>
+
+          <div className="reservation-date-field">
+
+            <div className="reservation-date-heading">
+              <strong>
+                예약 날짜
+              </strong>
+
+              {reservationDate && (
+                <span>
+                  선택일 {reservationDate}
+                </span>
               )}
-            </select>
-          </label>
+            </div>
 
-
-          <label>
-            예약 날짜
-
-            <input
-              type="date"
+            <ReservationCalendar
               value={reservationDate}
-              onChange={(event) =>
-                setReservationDate(
-                  event.target.value
-                )
-              }
+              onChange={(nextDate) => {
+                setReservationDate(nextDate)
+
+                setSlots([])
+                setSelectedSlotId(null)
+                setSuccessMessage('')
+                setError('')
+              }}
             />
-          </label>
 
+          </div>
 
-          <label>
-            헌혈 종류
+          <div className="reservation-donation-field">
 
-            <select
-              value={donationType}
-              onChange={(event) =>
-                setDonationType(
-                  event.target.value
-                )
-              }
-            >
-              <option value="">
-                헌혈 종류를 선택해주세요
-              </option>
+            <strong>
+              헌혈 종류
+            </strong>
+
+            <div className="reservation-donation-options">
 
               {donationTypes.map(
-                (type) => (
-                  <option
-                    key={type.value}
-                    value={type.value}
-                  >
-                    {type.label}
-                  </option>
-                )
+                (type) => {
+
+                  const selected =
+                    donationType === type.value
+
+                  return (
+                    <button
+                      key={type.value}
+                      type="button"
+                      className={
+                        selected
+                          ? 'reservation-donation-option selected'
+                          : 'reservation-donation-option'
+                      }
+                      onClick={() => {
+                        setDonationType(
+                          type.value
+                        )
+
+                        setSlots([])
+                        setSelectedSlotId(null)
+                        setSuccessMessage('')
+                        setError('')
+                      }}
+                    >
+                      {type.label}
+                    </button>
+                  )
+                }
               )}
-            </select>
-          </label>
+
+            </div>
+
+          </div>
 
 
           <button
             type="submit"
-            disabled={loading}
+            disabled={
+              loading
+              || !centerId
+              || !reservationDate
+              || !donationType
+            }
           >
             {loading
               ? '조회 중...'
@@ -297,13 +392,47 @@ function ReservationCreatePage() {
           </p>
         )}
 
+        {reservationDate && donationType && (
+          <>
+
+        <section className="reservation-slot-heading">
+
+          <div>
+            <span>
+              STEP 03
+            </span>
+
+            <h2>
+              예약 시간 선택
+            </h2>
+
+            <p>
+              예약 가능한 시간 중
+              원하는 시간을 선택해주세요.
+            </p>
+          </div>
+
+          {slots.length > 0 && (
+            <span className="reservation-slot-count">
+              예약 가능 {slots.length}개
+            </span>
+          )}
+
+        </section>
 
         <div className="reservation-slot-area">
 
           {slots.length === 0 ? (
-            <p>
-              조건을 선택하면 예약 가능한 시간이 표시됩니다.
-            </p>
+            <div className="reservation-slot-empty">
+              <strong>
+                예약 시간을 조회해주세요.
+              </strong>
+
+              <p>
+                센터와 예약 조건을 선택하면
+                예약 가능한 시간이 여기에 표시됩니다.
+              </p>
+            </div>
           ) : (
             slots.map(
               (slot) => (
@@ -324,9 +453,9 @@ function ReservationCreatePage() {
                     }
                   >
                     <strong>
-                      {slot.startTime}
+                      {formatTime(slot.startTime)}
                       {' ~ '}
-                      {slot.endTime}
+                      {formatTime(slot.endTime)}
                     </strong>
 
                     <span>
@@ -339,6 +468,47 @@ function ReservationCreatePage() {
           )}
 
         </div>
+
+        {selectedSlotId && (
+          <div className="reservation-selection-summary">
+
+            <div>
+              <span>
+                선택한 예약 시간
+              </span>
+
+              <strong>
+                {(() => {
+                  const selectedSlot =
+                    slots.find(
+                      (slot) =>
+                        slot.id === selectedSlotId
+                    )
+
+                  if (!selectedSlot) {
+                    return '-'
+                  }
+
+                  return `${
+                    formatTime(
+                      selectedSlot.startTime
+                    )
+                  } ~ ${
+                    formatTime(
+                      selectedSlot.endTime
+                    )
+                  }`
+                })()}
+              </strong>
+            </div>
+
+            <span>
+              예약 버튼을 누르면
+              선택한 시간으로 예약됩니다.
+            </span>
+
+          </div>
+        )}
 
         {successMessage && (
           <p className="reservation-success">
@@ -361,6 +531,12 @@ function ReservationCreatePage() {
               : '선택한 시간으로 예약'}
           </button>
         )}
+
+          </>
+        )}
+
+        </>
+      )}
 
       </section>
 
