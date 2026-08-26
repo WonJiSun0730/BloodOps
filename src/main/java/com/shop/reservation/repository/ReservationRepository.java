@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.time.LocalDate;
 import java.util.List;
 
 public interface ReservationRepository
@@ -20,6 +21,35 @@ public interface ReservationRepository
      */
     long countBySlot_IdAndStatus(
             Long slotId,
+            ReservationStatus status
+    );
+
+    /*
+     * 해당 슬롯을 참조하는 예약 이력이
+     * 하나라도 존재하는지 확인합니다.
+     *
+     * RESERVED / CANCELED 모두 포함합니다.
+     */
+    boolean existsBySlot_Id(
+            Long slotId
+    );
+
+    @Query("""
+        select r
+        from Reservation r
+        join r.slot s
+        where s.equipmentGroup.id = :equipmentGroupId
+          and s.reservationDate = :reservationDate
+          and r.status = :status
+        """)
+    List<Reservation> findEquipmentGroupReservations(
+            @Param("equipmentGroupId")
+            Long equipmentGroupId,
+
+            @Param("reservationDate")
+            LocalDate reservationDate,
+
+            @Param("status")
             ReservationStatus status
     );
 

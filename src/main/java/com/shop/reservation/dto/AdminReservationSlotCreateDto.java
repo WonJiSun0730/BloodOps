@@ -22,6 +22,4 @@ public class AdminReservationSlotCreateDto {
     private LocalTime endTime;
 
     private int intervalMinutes;
-
-    private int capacity;
 }

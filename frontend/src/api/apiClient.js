@@ -395,6 +395,67 @@ export async function updateAdminReservationSlot(
   )
 }
 
+export async function deleteAdminReservationSlot(
+  slotId
+) {
+  const csrf = await getCsrfToken()
+
+  return apiRequest(
+    `/api/admin/reservation-slots/${slotId}`,
+    {
+      method: 'DELETE',
+
+      headers: {
+        [csrf.headerName]: csrf.token,
+      },
+    }
+  )
+}
+
+/*
+ * ADMIN이 선택한 센터의
+ * 공유 장비그룹 정보를 조회합니다.
+ */
+export function getAdminEquipmentGroups(
+  centerId
+) {
+  const params = new URLSearchParams({
+    centerId: String(centerId),
+  })
+
+  return apiRequest(
+    `/api/admin/reservation-slots/equipment-groups?${params.toString()}`
+  )
+}
+
+
+/*
+ * ADMIN이 공유 장비그룹의
+ * 장비 수량 또는 운영 상태를 변경합니다.
+ */
+export async function updateAdminEquipmentGroup(
+  equipmentGroupId,
+  equipmentGroupData
+) {
+  const csrf = await getCsrfToken()
+
+  return apiRequest(
+    `/api/admin/reservation-slots/equipment-groups/${equipmentGroupId}`,
+    {
+      method: 'PATCH',
+
+      headers: {
+        'Content-Type': 'application/json',
+        [csrf.headerName]: csrf.token,
+      },
+
+      body: JSON.stringify(
+        equipmentGroupData
+      ),
+    }
+  )
+}
+
 /*
  * ADMIN 전체 예약 목록을 조회합니다.
  */
