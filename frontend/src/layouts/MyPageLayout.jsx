@@ -1,8 +1,17 @@
 import {
+  useEffect,
+  useState,
+} from 'react'
+
+import {
   NavLink,
   Outlet,
   useLocation,
 } from 'react-router-dom'
+
+import {
+  getCurrentUser,
+} from '../api/apiClient.js'
 
 import './MyPageLayout.css'
 
@@ -28,6 +37,7 @@ const myPageMenuGroups = [
       {
         label: '검사결과',
         to: '/mypage/results',
+        disabled: true,
       },
     ],
   },
@@ -87,10 +97,47 @@ function getCurrentPage(
 function MyPageLayout() {
   const location = useLocation()
 
+  const [
+    canAccessMedical,
+    setCanAccessMedical,
+  ] = useState(false)
+
   const currentPage =
     getCurrentPage(
       location.pathname
     )
+
+
+  useEffect(() => {
+    let active = true
+
+    getCurrentUser()
+      .then((user) => {
+        if (!active) {
+          return
+        }
+
+        const canAccess =
+          user.roles?.some(
+            (role) =>
+              role === 'ROLE_MEDICAL'
+              || role === 'ROLE_ADMIN'
+          ) ?? false
+
+        setCanAccessMedical(
+          canAccess
+        )
+      })
+      .catch(() => {
+        if (active) {
+          setCanAccessMedical(false)
+        }
+      })
+
+    return () => {
+      active = false
+    }
+  }, [])
 
 
   return (
@@ -169,37 +216,73 @@ function MyPageLayout() {
 
                   <div>
                     {group.items.map(
-                      (item) => (
-                        <NavLink
-                          key={item.to}
-                          to={item.to}
-                          end={item.end}
-                          className={({
-                            isActive,
-                          }) =>
-                            isActive
-                              ? 'mypage-menu-link active'
-                              : 'mypage-menu-link'
-                          }
-                        >
-                          <span>
-                            {item.label}
-                          </span>
+                      (item) => {
+                        if (item.disabled) {
+                          return (
+                            <span
+                              key={item.to}
+                              className="mypage-menu-link disabled"
+                              aria-disabled="true"
+                              title="현재 개발 예정인 기능입니다."
+                            >
+                              <span>
+                                {item.label}
+                              </span>
 
-                          <span
-                            aria-hidden="true"
+                              <span>
+                                준비 중
+                              </span>
+                            </span>
+                          )
+                        }
+
+                        return (
+                          <NavLink
+                            key={item.to}
+                            to={item.to}
+                            end={item.end}
+                            className={({
+                              isActive,
+                            }) =>
+                              isActive
+                                ? 'mypage-menu-link active'
+                                : 'mypage-menu-link'
+                            }
                           >
-                            →
-                          </span>
-                        </NavLink>
-                      )
+                            <span>
+                              {item.label}
+                            </span>
+
+                            <span
+                              aria-hidden="true"
+                            >
+                              →
+                            </span>
+                          </NavLink>
+                        )
+                      }
                     )}
                   </div>
                 </section>
               )
             )}
-          </nav>
-        </aside>
+            </nav>
+
+            {canAccessMedical && (
+              <NavLink
+                to="/mypage/medical"
+                className="mypage-medical-link"
+              >
+                <span>
+                  의료인
+                </span>
+
+                <span aria-hidden="true">
+                  →
+                </span>
+              </NavLink>
+            )}
+          </aside>
 
 
         <section className="mypage-content">

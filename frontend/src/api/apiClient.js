@@ -636,6 +636,15 @@ export function getMedicalDonorQuestionnaire(confirmationId) {
   )
 }
 
+/*
+ * 로그인한 회원 본인의
+ * 완료된 헌혈기록을 조회합니다.
+ */
+export function getMyDonationHistory() {
+  return apiRequest(
+    '/api/donations/me'
+  )
+}
 
 /*
  * 로그인한 회원의 예약 내역을 조회합니다.
