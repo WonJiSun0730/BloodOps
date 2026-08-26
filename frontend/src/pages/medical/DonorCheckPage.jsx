@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { Navigate, useParams } from 'react-router-dom'
+import { Link, Navigate, useParams } from 'react-router-dom'
 import {
   getMedicalDonorConfirmation,
   updateMedicalDonorConfirmation,
@@ -136,7 +136,7 @@ function DonorCheckPage() {
       canvas.removeEventListener('pointermove', move)
       window.removeEventListener('pointerup', stop)
     }
-  }, [loading])
+  }, [loading, form.signatureData])
 
   function changeField(event) {
     const { name, value } = event.target
@@ -188,6 +188,10 @@ function DonorCheckPage() {
   return (
     <main className="donor-check-page">
       <header>
+        <Link className="donor-check-back-link" to="/medical/donor_identity">
+          <span aria-hidden="true">←</span>
+          헌혈자 신분 확인으로 돌아가기
+        </Link>
         <p>MEDICAL · DONOR CONFIRMATION</p>
         <h1>헌혈자 정보 및 전자문진 확인</h1>
       </header>
