@@ -4,6 +4,8 @@ import {
   useState,
 } from 'react'
 
+import CenterMapArea
+  from '../../components/center/CenterMapArea.jsx'
 
 function CenterSearchPanel({
   centers,
@@ -80,6 +82,38 @@ function CenterSearchPanel({
           === String(selectedCenterId)
     )
 
+  function handleMapCenterSelect(
+    centerId
+  ) {
+    const center =
+      centers.find(
+        (item) =>
+          String(item.id)
+            === String(centerId)
+      )
+
+    if (
+      !center
+      || center.active === false
+    ) {
+      return
+    }
+
+    onSelectCenter(
+      String(center.id)
+    )
+  }
+
+  function handleLocationView(
+    center
+  ) {
+    setMapOpen(true)
+
+    onSelectCenter(
+      String(center.id)
+    )
+  }
+
 
   return (
     <section className="reservation-center-section">
@@ -152,45 +186,15 @@ function CenterSearchPanel({
 
       {mapOpen && (
         <div className="reservation-map-shell">
-          <div className="reservation-map-placeholder">
-
-            <span className="reservation-map-badge">
-              NAVER MAP
-            </span>
-
-            {selectedCenter ? (
-              <>
-                <strong>
-                  {selectedCenter.centerName}
-                </strong>
-
-                <p>
-                  {selectedCenter.address}
-                </p>
-
-                <span>
-                  선택한 센터 위치를
-                  지도에서 표시할 예정입니다.
-                </span>
-              </>
-            ) : (
-              <>
-                <strong>
-                  헌혈센터 지도
-                </strong>
-
-                <p>
-                  네이버 지도 API 연결 예정
-                </p>
-
-                <span>
-                  센터를 선택하면
-                  해당 위치를 강조합니다.
-                </span>
-              </>
-            )}
-
-          </div>
+          <CenterMapArea
+            centers={filteredCenters}
+            selectedCenter={
+              selectedCenter
+            }
+            onCenterSelect={
+              handleMapCenterSelect
+            }
+          />
         </div>
       )}
 
@@ -282,8 +286,22 @@ function CenterSearchPanel({
                     <button
                       type="button"
                       className="reservation-location-button"
-                      disabled
-                      title="네이버 지도 API 연결 후 활성화됩니다."
+                      disabled={
+                        inactive
+                        || center.latitude == null
+                        || center.longitude == null
+                      }
+                      title={
+                        center.latitude == null
+                        || center.longitude == null
+                          ? '좌표 정보가 없는 센터입니다.'
+                          : `${center.centerName} 위치 보기`
+                      }
+                      onClick={() =>
+                        handleLocationView(
+                          center
+                        )
+                      }
                     >
                       위치 보기
                     </button>

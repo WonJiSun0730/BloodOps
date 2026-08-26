@@ -439,6 +439,28 @@
     rgb(0 0 0 / 30%);
 }
 
+.center-map-marker.inactive {
+  transform: none;
+
+  border-color: #d4d7dc;
+
+  background: #8d949d;
+
+  box-shadow:
+    0 2px 6px
+    rgb(0 0 0 / 20%);
+
+  cursor: default;
+}
+
+.center-map-marker.inactive span {
+  background: #e7e9ec;
+}
+
+.center-map-marker.inactive:hover {
+  transform: none;
+}
+
 /* =========================================================
    Tablet
    ========================================================= */

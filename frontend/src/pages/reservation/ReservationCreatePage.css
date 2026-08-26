@@ -457,10 +457,20 @@
     padding: 18px;
   }
 
-  .reservation-map-placeholder {
+  .reservation-map-shell,
+  .reservation-map-shell
+    .center-map-wrapper,
+  .reservation-map-shell
+    .center-map-loading,
+  .reservation-map-shell
+    .center-map-error {
     min-height: 240px;
   }
 
+  .reservation-map-shell
+    .center-map {
+    height: 240px;
+  }
   .reservation-center-card {
     flex-direction: column;
   }
@@ -522,8 +532,19 @@
     width: 100%;
   }
 
-  .reservation-map-placeholder {
+  .reservation-map-shell,
+  .reservation-map-shell
+    .center-map-wrapper,
+  .reservation-map-shell
+    .center-map-loading,
+  .reservation-map-shell
+    .center-map-error {
     min-height: 220px;
+  }
+
+  .reservation-map-shell
+    .center-map {
+    height: 220px;
   }
 
   .reservation-center-card-actions {
@@ -682,70 +703,36 @@
 }
 
 .reservation-map-shell {
+  position: relative;
   overflow: hidden;
+
+  min-height: 300px;
 
   border: 1px solid var(--color-border);
   border-radius: 14px;
+
+  background: var(--color-background);
 }
 
-.reservation-map-placeholder {
-  display: flex;
-
+.reservation-map-shell
+  .center-map-wrapper {
   min-height: 300px;
-  padding: 32px;
+  margin-top: 0;
 
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-
-  text-align: center;
-
-  background:
-    radial-gradient(
-      circle at center,
-      color-mix(
-        in srgb,
-        var(--color-primary) 5%,
-        var(--color-surface)
-      ),
-      var(--color-background)
-    );
+  border: 0;
+  border-radius: 0;
 }
 
-.reservation-map-placeholder strong {
-  color: var(--color-text);
-  font-size: 1.15rem;
+.reservation-map-shell
+  .center-map {
+  height: 300px;
 }
 
-.reservation-map-placeholder p,
-.reservation-map-placeholder > span:last-child {
-  margin: 0;
-
-  color: var(--color-text-muted);
-}
-
-.reservation-map-placeholder > span:last-child {
-  font-size: 0.78rem;
-}
-
-.reservation-map-badge {
-  margin-bottom: 8px;
-  padding: 5px 9px;
-
-  border-radius: 999px;
-
-  color: var(--color-primary);
-  background:
-    color-mix(
-      in srgb,
-      var(--color-primary) 8%,
-      var(--color-background)
-    );
-
-  font-size: 0.68rem;
-  font-weight: 850;
-  letter-spacing: 0.1em;
+.reservation-map-shell
+  .center-map-loading,
+.reservation-map-shell
+  .center-map-error {
+  min-height: 300px;
 }
 
 .reservation-center-result-header {
@@ -873,8 +860,33 @@
 .reservation-location-button {
   border: 1px solid var(--color-border);
 
-  color: var(--color-text-muted);
+  color: var(--color-text);
   background: transparent;
+
+  cursor: pointer;
+
+  transition:
+    border-color 0.18s ease,
+    color 0.18s ease,
+    background-color 0.18s ease;
+}
+
+.reservation-location-button:hover:not(:disabled) {
+  border-color: var(--color-primary);
+
+  color: var(--color-primary);
+
+  background:
+    color-mix(
+      in srgb,
+      var(--color-primary) 6%,
+      transparent
+    );
+}
+
+.reservation-location-button:disabled {
+  opacity: 0.45;
+  cursor: default;
 }
 
 .reservation-center-select-button {

@@ -89,7 +89,8 @@ function hasValidCoordinates(center) {
 
 function createMarkerIcon(
   maps,
-  selected
+  selected,
+  inactive
 ) {
   return {
     content: `
@@ -99,8 +100,21 @@ function createMarkerIcon(
           selected
             ? ' selected'
             : ''
+        }${
+          inactive
+            ? ' inactive'
+            : ''
         }"
-        aria-label="헌혈센터 위치"
+        aria-label="${
+          inactive
+            ? '운영 중단 헌혈센터 위치'
+            : '헌혈센터 위치'
+        }"
+        ${
+          inactive
+            ? 'disabled'
+            : ''
+        }
       >
         <span></span>
       </button>
@@ -260,6 +274,9 @@ function CenterMapArea({
             Number(center.longitude)
           )
 
+        const inactive =
+          center.active === false
+
         const marker =
           new maps.Marker({
             map: mapRef.current,
@@ -269,24 +286,28 @@ function CenterMapArea({
             icon:
               createMarkerIcon(
                 maps,
-                false
+                false,
+                inactive
               ),
           })
 
-        maps.Event.addListener(
-          marker,
-          'click',
-          () => {
-            selectHandlerRef.current?.(
-              center.id
-            )
-          }
-        )
+        if (!inactive) {
+          maps.Event.addListener(
+            marker,
+            'click',
+            () => {
+              selectHandlerRef.current?.(
+                center.id
+              )
+            }
+          )
+        }
 
         markerEntriesRef.current.push({
           centerId: center.id,
           marker,
           position,
+          inactive,
         })
 
         bounds.extend(position)
@@ -324,6 +345,9 @@ function CenterMapArea({
       return
     }
 
+    const maps =
+      window.naver.maps
+
     const selectedEntry =
       markerEntriesRef.current
         .find(
@@ -338,11 +362,22 @@ function CenterMapArea({
 
     markerEntriesRef.current
       .forEach((entry) => {
-        entry.marker.setZIndex(
+        const selected =
           entry.centerId
           === selectedCenter.id
+
+        entry.marker.setZIndex(
+          selected
             ? 200
             : 100
+        )
+
+        entry.marker.setIcon(
+          createMarkerIcon(
+            maps,
+            selected,
+            entry.inactive
+          )
         )
       })
 
@@ -360,6 +395,7 @@ function CenterMapArea({
       selectedEntry.position
     )
   }, [
+    centers,
     mapReady,
     selectedCenter,
   ])
