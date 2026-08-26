@@ -4,6 +4,7 @@ import com.shop.center.entity.Center;
 import com.shop.changhyeon.donation.entity.DonationHistory;
 import com.shop.changhyeon.donation.repository.DonationHistoryRepository;
 import com.shop.member.entity.Member;
+import com.shop.member.repository.MemberRepository;
 import com.shop.reservation.constant.DonationType;
 import com.shop.reservation.constant.ReservationStatus;
 import com.shop.reservation.entity.Reservation;
@@ -18,6 +19,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.LocalDate;
 import java.util.Optional;
+import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -28,6 +30,7 @@ class DonationHistoryServiceTest {
 
     @Mock DonationHistoryRepository donationHistoryRepository;
     @Mock ReservationRepository reservationRepository;
+    @Mock MemberRepository memberRepository;
     @InjectMocks DonationHistoryService donationHistoryService;
 
     @Test
@@ -58,6 +61,8 @@ class DonationHistoryServiceTest {
 
         ArgumentCaptor<DonationHistory> captor = ArgumentCaptor.forClass(DonationHistory.class);
         verify(donationHistoryRepository).save(captor.capture());
+        assertThat(captor.getValue().getMember()).isSameAs(member);
+        assertThat(captor.getValue().getReservation()).isSameAs(reservation);
         assertThat(captor.getValue().getDonorName()).isEqualTo("홍길동");
         assertThat(captor.getValue().getDonationDate()).isEqualTo(LocalDate.of(2026, 8, 23));
         assertThat(captor.getValue().getDonationType()).isEqualTo(DonationType.PLATELET);
@@ -78,5 +83,19 @@ class DonationHistoryServiceTest {
                 .isInstanceOf(IllegalStateException.class)
                 .hasMessage("취소된 예약은 헌혈 완료 처리할 수 없습니다.");
         verify(donationHistoryRepository, never()).save(any());
+    }
+
+    @Test
+    void 로그인한_회원의_PK로_헌혈기록을_최신순_조회한다() {
+        Member member = new Member();
+        member.setId(7L);
+        when(memberRepository.findByEmail("user@bloodops.local")).thenReturn(member);
+        when(donationHistoryRepository.findByMember_IdOrderByDonationDateDescIdDesc(7L))
+                .thenReturn(List.of());
+
+        donationHistoryService.getMyDonationHistory("user@bloodops.local");
+
+        verify(donationHistoryRepository)
+                .findByMember_IdOrderByDonationDateDescIdDesc(7L);
     }
 }

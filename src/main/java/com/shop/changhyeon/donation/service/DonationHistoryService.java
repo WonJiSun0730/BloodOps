@@ -4,6 +4,8 @@ import com.shop.center.entity.Center;
 import com.shop.changhyeon.donation.dto.DonationHistoryResponseDto;
 import com.shop.changhyeon.donation.entity.DonationHistory;
 import com.shop.changhyeon.donation.repository.DonationHistoryRepository;
+import com.shop.member.entity.Member;
+import com.shop.member.repository.MemberRepository;
 import com.shop.reservation.constant.ReservationStatus;
 import com.shop.reservation.entity.Reservation;
 import com.shop.reservation.repository.ReservationRepository;
@@ -12,6 +14,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -20,6 +23,7 @@ public class DonationHistoryService {
 
     private final DonationHistoryRepository donationHistoryRepository;
     private final ReservationRepository reservationRepository;
+    private final MemberRepository memberRepository;
 
     public DonationHistoryResponseDto completeDonation(Long reservationId, LocalDate donationDate) {
         Reservation reservation = reservationRepository.findById(reservationId)
@@ -40,6 +44,8 @@ public class DonationHistoryService {
 
         Center center = reservation.getSlot().getCenter();
         DonationHistory history = DonationHistory.builder()
+                .member(reservation.getMember())
+                .reservation(reservation)
                 .donorName(reservation.getMember().getName())
                 .donationDate(completedDate)
                 .donationType(reservation.getSlot().getDonationType())
@@ -49,5 +55,19 @@ public class DonationHistoryService {
 
         reservation.setStatus(ReservationStatus.COMPLETED);
         return DonationHistoryResponseDto.from(donationHistoryRepository.save(history));
+    }
+
+    @Transactional(readOnly = true)
+    public List<DonationHistoryResponseDto> getMyDonationHistory(String email) {
+        Member member = memberRepository.findByEmail(email);
+        if (member == null) {
+            throw new IllegalArgumentException("회원 정보를 찾을 수 없습니다.");
+        }
+
+        return donationHistoryRepository
+                .findByMember_IdOrderByDonationDateDescIdDesc(member.getId())
+                .stream()
+                .map(DonationHistoryResponseDto::from)
+                .toList();
     }
 }
