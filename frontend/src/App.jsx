@@ -1,6 +1,12 @@
-import { Route, Routes } from 'react-router-dom'
+import {
+  Navigate,
+  Route,
+  Routes,
+} from 'react-router-dom'
 
 import MainLayout from './layouts/MainLayout.jsx'
+import MyPageLayout
+  from './layouts/MyPageLayout.jsx'
 import MainPage from './pages/main/MainPage.jsx'
 
 import LoginPage from './pages/auth/LoginPage.jsx'
@@ -17,6 +23,14 @@ import ReservationCreatePage
   from './pages/reservation/ReservationCreatePage.jsx'
 import ReservationListPage
   from './pages/reservation/ReservationListPage.jsx'
+import MyPageHomePage
+  from './pages/mypage/MyPageHomePage.jsx'
+
+import DonationRecordsPage
+  from './pages/mypage/DonationRecordsPage.jsx'
+
+import TestResultsPage
+  from './pages/mypage/TestResultsPage.jsx'
 
 import AdminPage from './pages/admin/AdminPage.jsx'
 import AdminCentersPage
@@ -30,6 +44,8 @@ import AdminRoute
   from './components/AdminRoute.jsx'
 import MedicalRoute
   from './components/MedicalRoute.jsx'
+  import MemberRoute
+    from './components/MemberRoute.jsx'
 
 import BloodUnitsManagementPage
   from './pages/medical/BloodUnitsManagementPage.jsx'
@@ -88,8 +104,59 @@ function App() {
         />
 
         <Route
-          path="/reservations"
-          element={<ReservationListPage />}
+          element={
+            <MemberRoute>
+              <MyPageLayout />
+            </MemberRoute>
+          }
+        >
+          <Route
+            path="/mypage"
+            element={
+              <MyPageHomePage />
+            }
+          />
+
+          <Route
+            path="/mypage/records"
+            element={
+              <DonationRecordsPage />
+            }
+          />
+
+          <Route
+            path="/mypage/results"
+            element={
+              <TestResultsPage />
+            }
+          />
+
+          <Route
+            path="/reservations"
+            element={
+              <ReservationListPage />
+            }
+          />
+        </Route>
+
+        <Route
+          path="/records"
+          element={
+            <Navigate
+              to="/mypage/records"
+              replace
+            />
+          }
+        />
+
+        <Route
+          path="/records/results"
+          element={
+            <Navigate
+              to="/mypage/results"
+              replace
+            />
+          }
         />
 
         <Route

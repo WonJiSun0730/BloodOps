@@ -1,1 +1,763 @@
 /* 사용자 예약 내역 화면 */
+
+.reservation-list-page {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  width: 100%;
+}
+
+
+/* 화면 소개 */
+
+.reservation-list-header {
+  position: relative;
+  overflow: hidden;
+  padding: 26px 28px;
+  border: 1px solid #e1e5ea;
+  border-radius: 18px;
+  background:
+    linear-gradient(
+      135deg,
+      #ffffff 0%,
+      #fff7f7 100%
+    );
+}
+
+.reservation-list-header::after {
+  content: '';
+  position: absolute;
+  top: -60px;
+  right: -45px;
+  width: 180px;
+  height: 180px;
+  border-radius: 50%;
+  background: rgb(229 57 53 / 7%);
+}
+
+.reservation-list-header > * {
+  position: relative;
+  z-index: 1;
+}
+
+.reservation-list-header > span {
+  display: block;
+  margin-bottom: 8px;
+  color: #e31b23;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+}
+
+.reservation-list-header h1 {
+  margin: 0;
+  color: #252a31;
+  font-size: 24px;
+  line-height: 1.35;
+}
+
+.reservation-list-header p {
+  margin: 9px 0 0;
+  color: #69727d;
+  font-size: 14px;
+  line-height: 1.7;
+}
+
+
+/* 목록 영역 */
+
+.reservation-list-content {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.reservation-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+
+/* 로딩 및 빈 화면 */
+
+.reservation-list-content > p {
+  margin: 0;
+  padding: 24px;
+  border: 1px solid #e2e6eb;
+  border-radius: 14px;
+  background: #f8f9fb;
+  color: #68717c;
+  font-size: 14px;
+  line-height: 1.6;
+  text-align: center;
+}
+
+.reservation-list-error {
+  border-color: #ffc7ca !important;
+  background: #fff3f4 !important;
+  color: #bd1d25 !important;
+  text-align: left !important;
+}
+
+.reservation-list-success {
+  border-color: #bce3cf !important;
+  background: #f1faf5 !important;
+  color: #177146 !important;
+  text-align: left !important;
+}
+
+
+/* 예약 카드 */
+
+.reservation-list-card {
+  overflow: hidden;
+  border: 1px solid #dfe3e8;
+  border-radius: 18px;
+  background: #fff;
+  box-shadow: 0 8px 24px rgb(31 39 51 / 5%);
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease,
+    transform 0.2s ease;
+}
+
+.reservation-list-card:hover {
+  border-color: #cbd1d8;
+  box-shadow: 0 12px 30px rgb(31 39 51 / 8%);
+  transform: translateY(-2px);
+}
+
+.reservation-list-card.is-canceled {
+  background: #fafafa;
+  box-shadow: none;
+}
+
+.reservation-list-card.is-canceled:hover {
+  transform: none;
+}
+
+
+/* 센터명 및 상태 */
+
+.reservation-list-card > div:first-child {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  padding: 20px 24px;
+  border-bottom: 1px solid #edf0f3;
+}
+
+.reservation-list-card > div:first-child strong {
+  color: #252b32;
+  font-size: 18px;
+  line-height: 1.4;
+}
+
+.reservation-list-card > div:first-child > span {
+  flex: 0 0 auto;
+  padding: 7px 12px;
+  border: 1px solid #ffc2c5;
+  border-radius: 999px;
+  background: #fff1f2;
+  color: #df1821;
+  font-size: 12px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.reservation-list-card.is-canceled
+  > div:first-child > span {
+  border-color: #d6dbe0;
+  background: #eff1f3;
+  color: #747c86;
+}
+
+
+/* 예약 정보 */
+
+.reservation-list-card dl {
+  display: grid;
+  grid-template-columns:
+    repeat(3, minmax(0, 1fr));
+  margin: 0;
+  padding: 24px;
+}
+
+.reservation-list-card dl > div {
+  min-width: 0;
+  padding: 0 22px;
+  border-right: 1px solid #e5e8ec;
+}
+
+.reservation-list-card dl > div:first-child {
+  padding-left: 0;
+}
+
+.reservation-list-card dl > div:last-child {
+  padding-right: 0;
+  border-right: 0;
+}
+
+.reservation-list-card dt {
+  margin-bottom: 7px;
+  color: #858d97;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.reservation-list-card dd {
+  overflow-wrap: anywhere;
+  margin: 0;
+  color: #282e35;
+  font-size: 15px;
+  font-weight: 750;
+  line-height: 1.5;
+}
+
+.reservation-list-card.is-canceled dd {
+  color: #777f89;
+}
+
+
+/* 예약 변경 및 취소 */
+
+.reservation-action-area {
+  display: flex;
+  justify-content: flex-end;
+  gap: 9px;
+  padding: 0 24px 22px;
+}
+
+.reservation-action-area button {
+  min-height: 42px;
+  padding: 0 17px;
+  border-radius: 10px;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 800;
+  cursor: pointer;
+  transition:
+    border-color 0.2s ease,
+    background 0.2s ease,
+    color 0.2s ease,
+    transform 0.2s ease;
+}
+
+.reservation-action-area button:hover:not(:disabled) {
+  transform: translateY(-1px);
+}
+
+.reservation-action-area button:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.reservation-change-button {
+  border: 1px solid #ccd2d9;
+  background: #fff;
+  color: #333a43;
+}
+
+.reservation-change-button:hover:not(:disabled) {
+  border-color: #8e98a4;
+  background: #f6f7f8;
+}
+
+.reservation-cancel-button {
+  border: 1px solid #e31b23;
+  background: #fff;
+  color: #d71921;
+}
+
+.reservation-cancel-button:hover:not(:disabled) {
+  background: #e31b23;
+  color: #fff;
+}
+
+
+/* 예약 변경 영역 */
+
+.reservation-change-area {
+  padding: 22px 24px 24px;
+  border-top: 1px solid #e8ebef;
+  background: #f7f8fa;
+}
+
+.reservation-change-area > p {
+  margin: 0;
+  padding: 18px;
+  border: 1px solid #e0e4e9;
+  border-radius: 10px;
+  background: #fff;
+  color: #6d7681;
+  font-size: 13px;
+  line-height: 1.6;
+  text-align: center;
+}
+
+.reservation-change-slots {
+  display: grid;
+  grid-template-columns:
+    repeat(4, minmax(0, 1fr));
+  gap: 9px;
+}
+
+.reservation-change-slot {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  min-height: 64px;
+  padding: 9px 8px;
+  border: 1px solid #d7dce2;
+  border-radius: 10px;
+  background: #fff;
+  color: #3b434d;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 750;
+  cursor: pointer;
+  transition:
+    border-color 0.2s ease,
+    background 0.2s ease,
+    color 0.2s ease,
+    transform 0.2s ease;
+}
+
+.reservation-change-slot > span {
+  color: #77818c;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.reservation-change-slot:hover:not(:disabled) {
+  border-color: #e31b23;
+  color: #d71921;
+  transform: translateY(-1px);
+}
+
+.reservation-change-slot.selected {
+  border-color: #e31b23;
+  background: #e31b23;
+  color: #fff;
+}
+
+.reservation-change-slot.selected > span {
+  color: rgb(255 255 255 / 82%);
+}
+
+.reservation-change-slot:disabled {
+  border-color: #e2e5e9;
+  background: #eceff2;
+  color: #9ba2aa;
+  cursor: not-allowed;
+}
+
+.reservation-change-slot:disabled > span {
+  color: #a1a8af;
+}
+
+.reservation-change-confirm-button {
+  width: 100%;
+  min-height: 46px;
+  margin-top: 14px;
+  padding: 0 18px;
+  border: 1px solid #e31b23;
+  border-radius: 10px;
+  background: #e31b23;
+  color: #fff;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 800;
+  cursor: pointer;
+  transition:
+    border-color 0.2s ease,
+    background 0.2s ease;
+}
+
+.reservation-change-confirm-button:hover:not(:disabled) {
+  border-color: #bd1118;
+  background: #bd1118;
+}
+
+.reservation-change-confirm-button:disabled {
+  border-color: #dadde1;
+  background: #dadde1;
+  color: #8c949d;
+  cursor: not-allowed;
+}
+
+
+/* 태블릿 */
+
+@media (max-width: 1024px) {
+  .reservation-list-card dl {
+    padding: 21px;
+  }
+
+  .reservation-list-card dl > div {
+    padding: 0 16px;
+  }
+
+  .reservation-change-slots {
+    grid-template-columns:
+      repeat(3, minmax(0, 1fr));
+  }
+}
+
+
+/* 모바일 */
+
+@media (max-width: 768px) {
+  .reservation-list-page {
+    gap: 18px;
+  }
+
+  .reservation-list-header {
+    padding: 22px 20px;
+    border-radius: 15px;
+  }
+
+  .reservation-list-header h1 {
+    font-size: 21px;
+  }
+
+  .reservation-list-card {
+    border-radius: 15px;
+  }
+
+  .reservation-list-card > div:first-child {
+    align-items: flex-start;
+    padding: 18px;
+  }
+
+  .reservation-list-card
+    > div:first-child strong {
+    font-size: 16px;
+  }
+
+  .reservation-list-card dl {
+    grid-template-columns: 1fr;
+    padding: 4px 18px;
+  }
+
+  .reservation-list-card dl > div,
+  .reservation-list-card
+    dl > div:first-child,
+  .reservation-list-card
+    dl > div:last-child {
+    display: grid;
+    grid-template-columns: 76px 1fr;
+    align-items: baseline;
+    padding: 14px 0;
+    border-right: 0;
+    border-bottom: 1px solid #edf0f3;
+  }
+
+  .reservation-list-card
+    dl > div:last-child {
+    border-bottom: 0;
+  }
+
+  .reservation-list-card dt {
+    margin: 0;
+  }
+
+  .reservation-list-card dd {
+    font-size: 14px;
+  }
+
+  .reservation-action-area {
+    padding: 4px 18px 18px;
+  }
+
+  .reservation-change-area {
+    padding: 20px 18px;
+  }
+
+  .reservation-change-slots {
+    grid-template-columns:
+      repeat(2, minmax(0, 1fr));
+  }
+}
+
+
+/* 소형 모바일 */
+
+@media (max-width: 480px) {
+  .reservation-list-header {
+    padding: 20px 17px;
+  }
+
+  .reservation-list-card > div:first-child {
+    gap: 12px;
+  }
+
+  .reservation-list-card
+    > div:first-child > span {
+    padding: 6px 9px;
+    font-size: 11px;
+  }
+
+  .reservation-action-area {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .reservation-action-area button {
+    width: 100%;
+    padding: 0 10px;
+  }
+
+  .reservation-change-slot {
+    min-height: 61px;
+    font-size: 12px;
+  }
+}
+
+/* 예약 내역 다크모드 */
+
+:root[data-theme="dark"]
+  .reservation-list-header {
+  border-color: #343b45;
+  background:
+    linear-gradient(
+      135deg,
+      #20252c 0%,
+      #2b2023 100%
+    );
+}
+
+:root[data-theme="dark"]
+  .reservation-list-header::after {
+  background: rgb(229 57 53 / 12%);
+}
+
+:root[data-theme="dark"]
+  .reservation-list-header h1 {
+  color: #f5f7fa;
+}
+
+:root[data-theme="dark"]
+  .reservation-list-header p {
+  color: #aeb6c1;
+}
+
+
+/* 로딩, 오류, 성공, 빈 내역 */
+
+:root[data-theme="dark"]
+  .reservation-list-content > p {
+  border-color: #363d47;
+  background: #20252c;
+  color: #b8c0ca;
+}
+
+:root[data-theme="dark"]
+  .reservation-list-error {
+  border-color: #71363a !important;
+  background: #351f22 !important;
+  color: #ff9da2 !important;
+}
+
+:root[data-theme="dark"]
+  .reservation-list-success {
+  border-color: #315d48 !important;
+  background: #1d3027 !important;
+  color: #8ed8b1 !important;
+}
+
+
+/* 예약 카드 */
+
+:root[data-theme="dark"]
+  .reservation-list-card {
+  border-color: #353c46;
+  background: #20252c;
+  box-shadow: 0 8px 24px rgb(0 0 0 / 18%);
+}
+
+:root[data-theme="dark"]
+  .reservation-list-card:hover {
+  border-color: #4b5561;
+  box-shadow: 0 12px 30px rgb(0 0 0 / 25%);
+}
+
+:root[data-theme="dark"]
+  .reservation-list-card.is-canceled {
+  border-color: #30363e;
+  background: #1c2026;
+}
+
+:root[data-theme="dark"]
+  .reservation-list-card
+  > div:first-child {
+  border-bottom-color: #343b44;
+}
+
+:root[data-theme="dark"]
+  .reservation-list-card
+  > div:first-child strong {
+  color: #f1f3f5;
+}
+
+:root[data-theme="dark"]
+  .reservation-list-card
+  > div:first-child > span {
+  border-color: #7b3438;
+  background: #3a2023;
+  color: #ff959a;
+}
+
+:root[data-theme="dark"]
+  .reservation-list-card.is-canceled
+  > div:first-child > span {
+  border-color: #464d56;
+  background: #292e35;
+  color: #aab1ba;
+}
+
+
+/* 예약 상세 정보 */
+
+:root[data-theme="dark"]
+  .reservation-list-card
+  dl > div {
+  border-right-color: #363d46;
+}
+
+:root[data-theme="dark"]
+  .reservation-list-card dt {
+  color: #939daa;
+}
+
+:root[data-theme="dark"]
+  .reservation-list-card dd {
+  color: #e4e8ec;
+}
+
+:root[data-theme="dark"]
+  .reservation-list-card.is-canceled dd {
+  color: #9ca4ae;
+}
+
+
+/* 예약 변경 및 취소 버튼 */
+
+:root[data-theme="dark"]
+  .reservation-change-button {
+  border-color: #505965;
+  background: #282e36;
+  color: #e0e4e8;
+}
+
+:root[data-theme="dark"]
+  .reservation-change-button:hover:not(:disabled) {
+  border-color: #717c89;
+  background: #343b44;
+}
+
+:root[data-theme="dark"]
+  .reservation-cancel-button {
+  border-color: #e34a51;
+  background: transparent;
+  color: #ff848a;
+}
+
+:root[data-theme="dark"]
+  .reservation-cancel-button:hover:not(:disabled) {
+  border-color: #e31b23;
+  background: #e31b23;
+  color: #fff;
+}
+
+
+/* 변경할 시간 선택 */
+
+:root[data-theme="dark"]
+  .reservation-change-area {
+  border-top-color: #353c45;
+  background: #1a1f25;
+}
+
+:root[data-theme="dark"]
+  .reservation-change-area > p {
+  border-color: #3b424c;
+  background: #252b32;
+  color: #afb7c1;
+}
+
+:root[data-theme="dark"]
+  .reservation-change-slot {
+  border-color: #444c57;
+  background: #282e36;
+  color: #e1e5e9;
+}
+
+:root[data-theme="dark"]
+  .reservation-change-slot > span {
+  color: #a2abb5;
+}
+
+:root[data-theme="dark"]
+  .reservation-change-slot:hover:not(:disabled) {
+  border-color: #ef555c;
+  color: #ff9398;
+}
+
+:root[data-theme="dark"]
+  .reservation-change-slot.selected {
+  border-color: #e31b23;
+  background: #e31b23;
+  color: #fff;
+}
+
+:root[data-theme="dark"]
+  .reservation-change-slot.selected > span {
+  color: rgb(255 255 255 / 82%);
+}
+
+:root[data-theme="dark"]
+  .reservation-change-slot:disabled {
+  border-color: #353b43;
+  background: #22272e;
+  color: #676f79;
+}
+
+:root[data-theme="dark"]
+  .reservation-change-slot:disabled > span {
+  color: #676f79;
+}
+
+:root[data-theme="dark"]
+  .reservation-change-confirm-button:disabled {
+  border-color: #3e454e;
+  background: #3e454e;
+  color: #858d97;
+}
+
+
+/* 모바일 예약 정보 구분선 */
+
+@media (max-width: 768px) {
+  :root[data-theme="dark"]
+    .reservation-list-card
+    dl > div,
+  :root[data-theme="dark"]
+    .reservation-list-card
+    dl > div:first-child,
+  :root[data-theme="dark"]
+    .reservation-list-card
+    dl > div:last-child {
+    border-bottom-color: #343b44;
+  }
+
+  :root[data-theme="dark"]
+    .reservation-list-card
+    dl > div:last-child {
+    border-bottom: 0;
+  }
+}
