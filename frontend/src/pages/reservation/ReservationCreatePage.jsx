@@ -62,6 +62,11 @@ function ReservationCreatePage() {
     useState('')
 
   const [
+    initialCenterKeyword,
+    setInitialCenterKeyword,
+  ] = useState('')
+
+  const [
     reservationDate,
     setReservationDate,
   ] = useState('')
@@ -142,55 +147,72 @@ function ReservationCreatePage() {
     setCenterId(
       requestedCenterId
     )
+
+    setInitialCenterKeyword(
+      requestedCenter.centerName
+    )
   }, [
     centers,
     searchParams,
   ])
 
 
-  async function handleSearchSlots(
-    event
-  ) {
-    event.preventDefault()
-
+  useEffect(() => {
     if (
       !centerId
       || !reservationDate
       || !donationType
     ) {
-      setError(
-        '센터, 날짜, 헌혈 종류를 모두 선택해주세요.'
-      )
-
+      setSlots([])
+      setSelectedSlotId(null)
       return
     }
 
-    try {
-      setLoading(true)
-      setError('')
+    let cancelled = false
 
-      setSuccessMessage('')
-      setSelectedSlotId(null)
+    async function loadReservationSlots() {
+      try {
+        setLoading(true)
+        setError('')
+        setSuccessMessage('')
+        setSelectedSlotId(null)
 
-      const data =
-        await getReservationSlots(
-          centerId,
-          reservationDate,
-          donationType
-        )
+        const data =
+          await getReservationSlots(
+            centerId,
+            reservationDate,
+            donationType
+          )
 
-      setSlots(data)
-    } catch (error) {
-      setSlots([])
+        if (!cancelled) {
+          setSlots(data)
+        }
+      } catch (error) {
+        if (!cancelled) {
+          setSlots([])
 
-      setError(
-        error.message
-        || '예약 가능한 시간을 불러오지 못했습니다.'
-      )
-    } finally {
-      setLoading(false)
+          setError(
+            error.message
+            || '예약 가능한 시간을 불러오지 못했습니다.'
+          )
+        }
+      } finally {
+        if (!cancelled) {
+          setLoading(false)
+        }
+      }
     }
-  }
+
+    loadReservationSlots()
+
+    return () => {
+      cancelled = true
+    }
+  }, [
+    centerId,
+    reservationDate,
+    donationType,
+  ])
 
   async function handleCreateReservation() {
     if (!selectedSlotId) {
@@ -259,9 +281,10 @@ function ReservationCreatePage() {
       <section className="reservation-create-content">
 
         <CenterSearchPanel
-            centers={centers}
-            selectedCenterId={centerId}
-            onSelectCenter={(nextCenterId) => {
+          centers={centers}
+          selectedCenterId={centerId}
+          initialKeyword={initialCenterKeyword}
+          onSelectCenter={(nextCenterId) => {
               setCenterId(
                 nextCenterId
               )
@@ -276,8 +299,7 @@ function ReservationCreatePage() {
         {centerId && (
           <>
 
-        <form
-          onSubmit={handleSearchSlots}
+        <section
           className="reservation-search-form"
         >
           <div className="reservation-condition-heading">
@@ -370,20 +392,8 @@ function ReservationCreatePage() {
           </div>
 
 
-          <button
-            type="submit"
-            disabled={
-              loading
-              || !centerId
-              || !reservationDate
-              || !donationType
-            }
-          >
-            {loading
-              ? '조회 중...'
-              : '예약 가능 시간 조회'}
-          </button>
-        </form>
+
+        </section>
 
 
         {error && (
@@ -422,15 +432,24 @@ function ReservationCreatePage() {
 
         <div className="reservation-slot-area">
 
-          {slots.length === 0 ? (
+          {loading ? (
             <div className="reservation-slot-empty">
               <strong>
-                예약 시간을 조회해주세요.
+                예약 가능한 시간을 확인하고 있습니다.
               </strong>
 
               <p>
-                센터와 예약 조건을 선택하면
-                예약 가능한 시간이 여기에 표시됩니다.
+                잠시만 기다려주세요.
+              </p>
+            </div>
+          ) : slots.length === 0 ? (
+            <div className="reservation-slot-empty">
+              <strong>
+                예약 가능한 시간이 없습니다.
+              </strong>
+
+              <p>
+                다른 날짜 또는 헌혈 종류를 선택해주세요.
               </p>
             </div>
           ) : (
@@ -446,6 +465,9 @@ function ReservationCreatePage() {
                 >
                   <button
                     type="button"
+                    disabled={
+                      slot.remainingCapacity <= 0
+                    }
                     onClick={() =>
                       setSelectedSlotId(
                         slot.id
@@ -459,7 +481,9 @@ function ReservationCreatePage() {
                     </strong>
 
                     <span>
-                      잔여 {slot.remainingCapacity}명
+                      {slot.remainingCapacity > 0
+                        ? '예약 가능'
+                        : '예약 마감'}
                     </span>
                   </button>
                 </article>

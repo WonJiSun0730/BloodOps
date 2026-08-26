@@ -76,6 +76,18 @@ public class ReservationService {
             );
         }
 
+        LocalDate maxReservationDate =
+                today.plusMonths(2);
+
+        if (
+                slot.getReservationDate()
+                        .isAfter(maxReservationDate)
+        ) {
+            throw new IllegalStateException(
+                    "예약은 오늘부터 2개월 이내의 날짜만 가능합니다."
+            );
+        }
+
         if (
                 slot.getReservationDate()
                         .isEqual(today)

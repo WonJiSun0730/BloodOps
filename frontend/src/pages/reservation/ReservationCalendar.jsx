@@ -61,7 +61,7 @@ function ReservationCalendar({
   const maxDate =
     new Date(
       today.getFullYear(),
-      today.getMonth() + 6,
+      today.getMonth() + 2,
       today.getDate()
     )
 
@@ -81,7 +81,7 @@ function ReservationCalendar({
   const maxMonthStart =
     new Date(
       today.getFullYear(),
-      today.getMonth() + 6,
+      today.getMonth() + 2,
       1
     )
 

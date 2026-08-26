@@ -434,7 +434,9 @@ const [
                                   {slot.endTime}
 
                                   <span>
-                                    잔여 {slot.remainingCapacity}명
+                                    {slot.remainingCapacity > 0
+                                      ? '예약 가능'
+                                      : '예약 마감'}
                                   </span>
                                 </button>
                               )

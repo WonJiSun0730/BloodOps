@@ -585,7 +585,6 @@ export async function createReservation(slotId) {
   )
 }
 
-
 /*
  * 의료진 혈액 재고 관리 화면에서
  * blood_units DB 데이터를 페이지 단위로 조회합니다.

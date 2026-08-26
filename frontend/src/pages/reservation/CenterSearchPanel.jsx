@@ -1,4 +1,5 @@
 import {
+  useEffect,
   useMemo,
   useState,
 } from 'react'
@@ -7,10 +8,22 @@ import {
 function CenterSearchPanel({
   centers,
   selectedCenterId,
+  initialKeyword,
   onSelectCenter,
 }) {
   const [keyword, setKeyword] =
     useState('')
+
+  useEffect(() => {
+    if (!initialKeyword) {
+      return
+    }
+
+    setKeyword(
+      initialKeyword
+    )
+  }, [initialKeyword])
+
 
   const [mapOpen, setMapOpen] =
     useState(() => {

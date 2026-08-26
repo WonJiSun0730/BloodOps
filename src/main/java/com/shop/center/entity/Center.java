@@ -33,6 +33,10 @@ public class Center {
     @Column(nullable = false)
     private String address;
 
+    private Double latitude;
+
+    private Double longitude;
+
     private String phone;
 
     @Enumerated(EnumType.STRING)
