@@ -568,6 +568,14 @@ export function getMedicalDonorConfirmation(
   )
 }
 
+export function getMedicalDonorQuestionnaire(confirmationId) {
+  return apiRequest(
+    `/api/medical/donor-confirmations/${
+      encodeURIComponent(confirmationId)
+    }/questionnaire`
+  )
+}
+
 
 /*
  * 로그인한 회원의 예약 내역을 조회합니다.
@@ -669,4 +677,25 @@ export async function updateMedicalBloodUnit(id, unitData) {
 export async function verifyMedicalDonorIdentity(identityData) {
   const csrf = await getCsrfToken()
   return apiRequest('/api/medical/donor-confirmations/identity-verifications', { method: 'POST', headers: { 'Content-Type': 'application/json', [csrf.headerName]: csrf.token }, body: JSON.stringify(identityData) })
+}
+
+export function getQuestionnaireQuestions() {
+  return apiRequest('/api/questionnaires/questions')
+}
+
+export function getLatestQuestionnaire() {
+  return apiRequest('/api/questionnaires/me/latest')
+}
+
+export async function submitQuestionnaire(questionnaireData) {
+  const csrf = await getCsrfToken()
+
+  return apiRequest('/api/questionnaires', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      [csrf.headerName]: csrf.token,
+    },
+    body: JSON.stringify(questionnaireData),
+  })
 }
