@@ -30,12 +30,17 @@ public class AdminReservationSlotResponseDto {
 
     private final long remainingCapacity;
 
+    private final boolean hasReservationHistory;
+
     private final boolean active;
 
 
     public AdminReservationSlotResponseDto(
             ReservationSlot slot,
-            long reservedCount
+            int equipmentCapacity,
+            long reservedCount,
+            long remainingCapacity,
+            boolean hasReservationHistory
     ) {
         this.id = slot.getId();
 
@@ -58,16 +63,19 @@ public class AdminReservationSlotResponseDto {
                 slot.getDonationType();
 
         this.capacity =
-                slot.getCapacity();
+                equipmentCapacity;
 
         this.reservedCount =
                 reservedCount;
 
         this.remainingCapacity =
                 Math.max(
-                        slot.getCapacity() - reservedCount,
+                        remainingCapacity,
                         0
                 );
+
+        this.hasReservationHistory =
+                hasReservationHistory;
 
         this.active =
                 slot.isActive();

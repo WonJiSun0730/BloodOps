@@ -5,6 +5,7 @@ function ConfirmModal({
   open,
   title,
   message,
+  errorMessage,
   confirmText = '확인',
   cancelText = '취소',
   showCancel = true,
@@ -42,6 +43,15 @@ function ConfirmModal({
         <p>
           {message}
         </p>
+
+        {errorMessage && (
+          <p
+            className="confirm-modal-error"
+            role="alert"
+          >
+            {errorMessage}
+          </p>
+        )}
 
         <div className="confirm-modal-actions">
           {showCancel && (

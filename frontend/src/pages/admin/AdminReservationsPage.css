@@ -436,6 +436,216 @@
   background: var(--color-background);
 }
 
+/* =========================================================
+   Equipment Groups
+   ========================================================= */
+
+.admin-equipment-groups {
+  margin-top: 16px;
+  padding: 18px;
+
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+
+  background:
+    color-mix(
+      in srgb,
+      var(--color-background) 65%,
+      var(--color-surface)
+    );
+}
+
+.admin-equipment-groups-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+
+  margin-bottom: 14px;
+}
+
+.admin-equipment-groups-header > div {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.admin-equipment-groups-header strong {
+  color: var(--color-text);
+
+  font-size: 0.9rem;
+  font-weight: 800;
+}
+
+.admin-equipment-groups-header span {
+  color: var(--color-text-muted);
+
+  font-size: 0.73rem;
+  line-height: 1.5;
+}
+
+.admin-equipment-group-row {
+  display: grid;
+  grid-template-columns:
+    minmax(220px, 1fr)
+    minmax(230px, auto)
+    90px
+    110px;
+
+  align-items: center;
+  gap: 14px;
+
+  min-height: 64px;
+  padding: 12px 0;
+
+  border-top: 1px solid var(--color-border);
+}
+
+.admin-equipment-group-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.admin-equipment-group-info strong {
+  color: var(--color-text);
+
+  font-size: 0.82rem;
+  font-weight: 800;
+}
+
+.admin-equipment-group-info span {
+  color: var(--color-text-muted);
+
+  font-size: 0.7rem;
+  line-height: 1.45;
+}
+
+.admin-equipment-group-capacity {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+
+  color: var(--color-text-muted);
+
+  font-size: 0.74rem;
+  font-weight: 700;
+}
+
+.admin-equipment-group-capacity input {
+  width: 66px;
+  height: 36px;
+
+  padding: 0 8px;
+
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  outline: none;
+
+  color: var(--color-text);
+  background: var(--color-background);
+
+  text-align: center;
+}
+
+.admin-equipment-group-capacity input:focus {
+  border-color: var(--color-primary);
+}
+
+.admin-equipment-group-capacity input.is-invalid {
+  border-color:
+    color-mix(
+      in srgb,
+      var(--color-primary) 55%,
+      var(--color-border)
+    );
+
+  background:
+    color-mix(
+      in srgb,
+      var(--color-primary) 8%,
+      var(--color-background)
+    );
+}
+
+.admin-equipment-group-row
+.admin-slot-state {
+  font-size: 0.75rem;
+  font-weight: 750;
+}
+
+@media (max-width: 1024px) {
+  .admin-equipment-group-row {
+    grid-template-columns:
+      minmax(200px, 1fr)
+      auto;
+  }
+
+  .admin-equipment-group-capacity {
+    justify-self: end;
+  }
+
+  .admin-equipment-group-row
+  .admin-slot-state {
+    grid-column: 1;
+  }
+
+  .admin-equipment-group-row
+  > .admin-row-action {
+    grid-column: 2;
+    justify-self: end;
+  }
+}
+
+@media (max-width: 768px) {
+  .admin-equipment-groups {
+    padding: 15px;
+  }
+
+  .admin-equipment-group-row {
+    grid-template-columns: 1fr;
+    gap: 9px;
+
+    padding: 15px 0;
+  }
+
+  .admin-equipment-group-capacity {
+    justify-self: stretch;
+    flex-wrap: wrap;
+  }
+
+  .admin-equipment-group-row
+  .admin-slot-state {
+    grid-column: 1;
+  }
+
+  .admin-equipment-group-row
+  > .admin-row-action {
+    grid-column: 1;
+    justify-self: stretch;
+  }
+}
+
+@media (max-width: 480px) {
+  .admin-equipment-groups-header span {
+    font-size: 0.7rem;
+  }
+
+  .admin-equipment-group-capacity {
+    display: grid;
+    grid-template-columns:
+      auto
+      64px
+      auto
+      1fr;
+  }
+
+  .admin-equipment-group-capacity
+  .admin-row-action {
+    justify-self: end;
+  }
+}
+
 .admin-slot-create {
   display: grid;
   grid-template-columns:
@@ -493,10 +703,9 @@
   display: grid;
   grid-template-columns:
     minmax(150px, 1fr)
-    minmax(100px, 130px)
-    minmax(180px, 220px)
-    100px
-    110px;
+    minmax(110px, 140px)
+    minmax(100px, 120px)
+    148px;
 
   align-items: center;
   gap: 12px;
@@ -505,51 +714,6 @@
 
   border: 1px solid var(--color-border);
   border-radius: 10px;
-}
-
-.admin-slot-capacity {
-  display: flex;
-
-  align-items: center;
-  gap: 7px;
-}
-
-
-.admin-slot-capacity input {
-  width: 64px;
-  height: 34px;
-
-  padding: 0 7px;
-
-  border: 1px solid var(--color-border);
-  border-radius: 8px;
-
-  color: var(--color-text);
-  background: var(--color-background);
-}
-
-.admin-slot-capacity input.is-invalid {
-  border-color:
-    color-mix(
-      in srgb,
-      var(--color-primary) 55%,
-      var(--color-border)
-    );
-
-  background:
-    color-mix(
-      in srgb,
-      var(--color-primary) 8%,
-      var(--color-background)
-    );
-
-  box-shadow:
-    0 0 0 2px
-    color-mix(
-      in srgb,
-      var(--color-primary) 10%,
-      transparent
-    );
 }
 
 .admin-slot-occupancy {
@@ -565,6 +729,86 @@
 .admin-slot-occupancy span {
   color: var(--color-text-muted);
   font-size: 0.7rem;
+}
+
+.admin-slot-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 6px;
+}
+
+.admin-slot-actions .admin-row-action {
+  flex: 1;
+  min-width: 0;
+}
+
+.admin-slot-delete-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  flex: 0 0 32px;
+
+  width: 32px;
+  height: 32px;
+  padding: 0;
+
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+
+  color: var(--color-text-muted);
+  background: transparent;
+
+  cursor: pointer;
+
+  transition:
+    color 0.18s ease,
+    border-color 0.18s ease,
+    background-color 0.18s ease;
+}
+
+.admin-slot-delete-button svg {
+  width: 16px;
+  height: 16px;
+}
+
+.admin-slot-delete-button:hover {
+  color: var(--color-primary);
+
+  border-color:
+    color-mix(
+      in srgb,
+      var(--color-primary) 40%,
+      var(--color-border)
+    );
+
+  background:
+    color-mix(
+      in srgb,
+      var(--color-primary) 7%,
+      transparent
+    );
+}
+
+.admin-slot-delete-button:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+.admin-slot-delete-button:disabled {
+  color: var(--color-text-muted);
+  border-color: var(--color-border);
+  background: transparent;
+
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.admin-slot-delete-button:disabled:hover {
+  color: var(--color-text-muted);
+  border-color: var(--color-border);
+  background: transparent;
 }
 
 .admin-slot-state.active {
@@ -591,6 +835,15 @@
   .admin-slot-row {
     grid-template-columns: 1fr;
     gap: 5px;
+  }
+
+  .admin-slot-actions {
+    justify-content: flex-start;
+    margin-top: 6px;
+  }
+
+  .admin-slot-actions .admin-row-action {
+    flex: 0 1 auto;
   }
 }
 

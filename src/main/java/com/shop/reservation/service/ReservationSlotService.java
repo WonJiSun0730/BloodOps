@@ -5,8 +5,11 @@ import com.shop.center.repository.CenterRepository;
 import com.shop.reservation.constant.ReservationStatus;
 import com.shop.reservation.dto.AdminReservationSlotCreateDto;
 import com.shop.reservation.dto.AdminReservationSlotResponseDto;
+import com.shop.reservation.entity.EquipmentGroup;
+import com.shop.reservation.entity.Reservation;
 import com.shop.reservation.entity.ReservationSlot;
 import com.shop.reservation.exception.DuplicateReservationSlotException;
+import com.shop.reservation.repository.EquipmentGroupRepository;
 import com.shop.reservation.repository.ReservationRepository;
 import com.shop.reservation.repository.ReservationSlotRepository;
 import lombok.RequiredArgsConstructor;
@@ -30,6 +33,9 @@ public class ReservationSlotService {
 
     private final ReservationRepository
             reservationRepository;
+
+    private final EquipmentGroupRepository
+            equipmentGroupRepository;
 
     private final CenterRepository centerRepository;
 
@@ -57,6 +63,25 @@ public class ReservationSlotService {
         if (!center.isActive()) {
             throw new IllegalStateException(
                     "운영 중인 센터에만 예약 슬롯을 생성할 수 있습니다."
+            );
+        }
+
+        EquipmentGroup equipmentGroup =
+                equipmentGroupRepository
+                        .findByCenter_IdAndGroupType(
+                                center.getId(),
+                                request.getDonationType()
+                                        .getEquipmentGroupType()
+                        )
+                        .orElseThrow(() ->
+                                new IllegalStateException(
+                                        "해당 헌혈 종류에 사용할 장비그룹이 설정되지 않았습니다."
+                                )
+                        );
+
+        if (!equipmentGroup.isActive()) {
+            throw new IllegalStateException(
+                    "현재 사용할 수 없는 장비그룹입니다."
             );
         }
 
@@ -114,8 +139,11 @@ public class ReservationSlotService {
                             .donationType(
                                     request.getDonationType()
                             )
+                            .equipmentGroup(
+                                    equipmentGroup
+                            )
                             .capacity(
-                                    request.getCapacity()
+                                    equipmentGroup.getCapacity()
                             )
                             .active(true)
                             .build();
@@ -187,24 +215,9 @@ public class ReservationSlotService {
                                 )
                         );
 
-        if (
-                request.getCapacity() == null
-                        && request.getActive() == null
-        ) {
+        if (request.getActive() == null) {
             throw new IllegalArgumentException(
                     "변경할 내용을 입력해주세요."
-            );
-        }
-
-        if (request.getCapacity() != null) {
-            if (request.getCapacity() <= 0) {
-                throw new IllegalArgumentException(
-                        "예약 정원은 1명 이상이어야 합니다."
-                );
-            }
-
-            slot.setCapacity(
-                    request.getCapacity()
             );
         }
 
@@ -215,6 +228,48 @@ public class ReservationSlotService {
         }
 
         return toResponseDto(slot);
+    }
+
+    /*
+     * 예약 이력이 전혀 없는 슬롯만 삭제합니다.
+     *
+     * 취소된 예약도 운영 이력이므로
+     * CANCELED 예약이 존재하면 삭제하지 않습니다.
+     */
+    public void deleteSlot(
+            Long slotId
+    ) {
+
+        if (slotId == null) {
+            throw new IllegalArgumentException(
+                    "삭제할 예약 슬롯을 선택해주세요."
+            );
+        }
+
+        ReservationSlot slot =
+                reservationSlotRepository
+                        .findById(slotId)
+                        .orElseThrow(() ->
+                                new IllegalArgumentException(
+                                        "예약 슬롯을 찾을 수 없습니다."
+                                )
+                        );
+
+        boolean hasReservationHistory =
+                reservationRepository
+                        .existsBySlot_Id(
+                                slot.getId()
+                        );
+
+        if (hasReservationHistory) {
+            throw new IllegalStateException(
+                    "예약 이력이 있는 슬롯은 삭제할 수 없습니다."
+            );
+        }
+
+        reservationSlotRepository.delete(
+                slot
+        );
     }
 
 
@@ -272,26 +327,105 @@ public class ReservationSlotService {
             );
         }
 
-        if (request.getCapacity() <= 0) {
-            throw new IllegalArgumentException(
-                    "예약 정원은 1명 이상이어야 합니다."
-            );
-        }
     }
 
     private AdminReservationSlotResponseDto toResponseDto(
             ReservationSlot slot
     ) {
-        long reservedCount =
+        boolean hasReservationHistory =
                 reservationRepository
-                        .countBySlot_IdAndStatus(
-                                slot.getId(),
+                        .existsBySlot_Id(
+                                slot.getId()
+                        );
+
+        EquipmentGroup equipmentGroup =
+                slot.getEquipmentGroup();
+
+        /*
+         * 장비그룹 구조 적용 전에 생성된 기존 슬롯은
+         * equipment_group_id가 없을 수 있으므로
+         * 기존 슬롯 정원 방식으로 임시 응답합니다.
+         */
+        if (equipmentGroup == null) {
+
+            long reservedCount =
+                    reservationRepository
+                            .countBySlot_IdAndStatus(
+                                    slot.getId(),
+                                    ReservationStatus.RESERVED
+                            );
+
+            long remainingCapacity =
+                    Math.max(
+                            slot.getCapacity()
+                                    - reservedCount,
+                            0
+                    );
+
+            return new AdminReservationSlotResponseDto(
+                    slot,
+                    slot.getCapacity(),
+                    reservedCount,
+                    remainingCapacity,
+                    hasReservationHistory
+            );
+        }
+
+
+        LocalTime targetStart =
+                slot.getStartTime();
+
+        LocalTime targetEnd =
+                targetStart.plusMinutes(
+                        slot.getDonationType()
+                                .getEquipmentUsageMinutes()
+                );
+
+
+        List<Reservation> groupReservations =
+                reservationRepository
+                        .findEquipmentGroupReservations(
+                                equipmentGroup.getId(),
+                                slot.getReservationDate(),
                                 ReservationStatus.RESERVED
                         );
 
+
+        long concurrentUsage =
+                EquipmentCapacityCalculator
+                        .calculateMaxConcurrentUsage(
+                                groupReservations,
+                                targetStart,
+                                targetEnd,
+                                null
+                        );
+
+
+        if (!equipmentGroup.isActive()) {
+            return new AdminReservationSlotResponseDto(
+                    slot,
+                    equipmentGroup.getCapacity(),
+                    concurrentUsage,
+                    0,
+                    hasReservationHistory
+            );
+        }
+
+
+        long remainingCapacity =
+                Math.max(
+                        equipmentGroup.getCapacity()
+                                - concurrentUsage,
+                        0
+                );
+
+
         return new AdminReservationSlotResponseDto(
                 slot,
-                reservedCount
+                equipmentGroup.getCapacity(),
+                concurrentUsage,
+                remainingCapacity,
+                hasReservationHistory
         );
     }
 }
