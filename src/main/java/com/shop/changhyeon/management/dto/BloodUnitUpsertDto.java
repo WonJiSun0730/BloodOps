@@ -14,7 +14,7 @@ public record BloodUnitUpsertDto(
         @NotBlank @Pattern(regexp = "A|B|O|AB", message = "올바른 혈액형을 선택해 주세요.") String bloodType,
         @NotBlank @Pattern(regexp = "\\+|-", message = "올바른 Rh 유형을 선택해 주세요.") String rhType,
         @NotBlank(message = "성별을 선택해 주세요.")
-        @Pattern(regexp = "Male|Female", message = "올바른 성별을 선택해 주세요.") String gender,
+        @Pattern(regexp = "남|여", message = "올바른 성별을 선택해 주세요.") String gender,
         @NotNull(message = "생년월일을 입력해 주세요.") @Past(message = "생년월일은 과거 날짜여야 합니다.") LocalDate birthDate,
         @NotBlank(message = "Unit ID를 입력해 주세요.")
         @Pattern(regexp = "[A-Za-z0-9-]+", message = "Unit ID는 영문, 숫자, 하이픈만 입력할 수 있습니다.") String unitId,

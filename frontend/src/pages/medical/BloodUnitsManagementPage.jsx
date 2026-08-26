@@ -230,7 +230,7 @@ function BloodUnitsManagementPage() {
             <FormField label="Unit ID" name="unitId" value={form.unitId} onChange={changeForm} error={fieldErrors.unitId} required />
             <SelectField label="혈액형" name="bloodType" value={form.bloodType} onChange={changeForm} options={BLOOD_TYPES} error={fieldErrors.bloodType} required />
             <SelectField label="Rh 유형" name="rhType" value={form.rhType} onChange={changeForm} options={['+', '-']} error={fieldErrors.rhType} required />
-            <SelectField label="성별" name="gender" value={form.gender} onChange={changeForm} options={['Male', 'Female']} emptyLabel="성별 선택" error={fieldErrors.gender} required />
+            <SelectField label="성별" name="gender" value={form.gender} onChange={changeForm} options={['남', '여']} emptyLabel="성별 선택" error={fieldErrors.gender} required />
             <FormField label="생년월일" name="birthDate" type="date" value={form.birthDate} max={toLocalDateTimeValue(new Date(Date.now() - 86400000)).slice(0, 10)} onChange={changeForm} error={fieldErrors.birthDate} required />
             <SelectField label="제제 종류" name="productType" value={form.productType} onChange={changeForm} options={PRODUCT_TYPES} error={fieldErrors.productType} required />
             <SelectField label="상태" name="status" value={form.status} onChange={changeForm} options={STATUSES} error={fieldErrors.status} required />
