@@ -140,9 +140,16 @@ function BloodUnitsManagementPage() {
 
   function validateForm() {
     const errors = {}
+    const identifierPattern = /^[A-Za-z0-9-]+$/
+    if (!form.donorId.trim()) errors.donorId = '헌혈자 ID를 입력해 주세요.'
+    else if (!identifierPattern.test(form.donorId.trim())) errors.donorId = '영문, 숫자, 하이픈(-)만 입력할 수 있습니다.'
     if (!form.unitId.trim()) errors.unitId = 'Unit ID를 입력해 주세요.'
+    else if (!identifierPattern.test(form.unitId.trim())) errors.unitId = '영문, 숫자, 하이픈(-)만 입력할 수 있습니다.'
     if (!form.bloodType) errors.bloodType = '혈액형을 선택해 주세요.'
     if (!form.rhType) errors.rhType = 'Rh 유형을 선택해 주세요.'
+    if (!form.gender) errors.gender = '성별을 선택해 주세요.'
+    if (!form.birthDate) errors.birthDate = '생년월일을 입력해 주세요.'
+    else if (new Date(`${form.birthDate}T00:00:00`) >= new Date()) errors.birthDate = '생년월일은 오늘보다 이전 날짜여야 합니다.'
     if (!form.productType) errors.productType = '제제 종류를 선택해 주세요.'
     if (!form.collectionDate) errors.collectionDate = '채혈일을 입력해 주세요.'
     if (!form.expirationDate) errors.expirationDate = '유효기간을 입력해 주세요.'
@@ -159,8 +166,8 @@ function BloodUnitsManagementPage() {
     try {
       setSaving(true)
       setError('')
-      const body = { ...form, donorId: form.donorId.trim() || null, gender: form.gender || null, birthDate: form.birthDate || null, unitId: form.unitId.trim() }
-      if (editingId) await updateMedicalBloodUnit(editingId, body)
+      const body = { ...form, donorId: form.donorId.trim(), unitId: form.unitId.trim() }
+      if (editingId) await updateMedicalBloodUnit(editingId, { status: form.status })
       else await createMedicalBloodUnit(body)
       setShowForm(false)
       await load()
@@ -219,12 +226,12 @@ function BloodUnitsManagementPage() {
           </>
         ) : (
           <>
-            <FormField label="헌혈자 ID" name="donorId" value={form.donorId} onChange={changeForm} error={fieldErrors.donorId} />
+            <FormField label="헌혈자 ID" name="donorId" value={form.donorId} onChange={changeForm} error={fieldErrors.donorId} placeholder="예: DNR-2026-00001" pattern="[A-Za-z0-9-]+" required />
             <FormField label="Unit ID" name="unitId" value={form.unitId} onChange={changeForm} error={fieldErrors.unitId} required />
             <SelectField label="혈액형" name="bloodType" value={form.bloodType} onChange={changeForm} options={BLOOD_TYPES} error={fieldErrors.bloodType} required />
             <SelectField label="Rh 유형" name="rhType" value={form.rhType} onChange={changeForm} options={['+', '-']} error={fieldErrors.rhType} required />
-            <SelectField label="성별" name="gender" value={form.gender} onChange={changeForm} options={['Male', 'Female']} emptyLabel="선택 안 함" error={fieldErrors.gender} />
-            <FormField label="생년월일" name="birthDate" type="date" value={form.birthDate} onChange={changeForm} error={fieldErrors.birthDate} />
+            <SelectField label="성별" name="gender" value={form.gender} onChange={changeForm} options={['Male', 'Female']} emptyLabel="성별 선택" error={fieldErrors.gender} required />
+            <FormField label="생년월일" name="birthDate" type="date" value={form.birthDate} max={toLocalDateTimeValue(new Date(Date.now() - 86400000)).slice(0, 10)} onChange={changeForm} error={fieldErrors.birthDate} required />
             <SelectField label="제제 종류" name="productType" value={form.productType} onChange={changeForm} options={PRODUCT_TYPES} error={fieldErrors.productType} required />
             <SelectField label="상태" name="status" value={form.status} onChange={changeForm} options={STATUSES} error={fieldErrors.status} required />
             <div className="collection-date-fields">

@@ -59,9 +59,7 @@ public class BloodUnitApiController {
     }
 
     @PutMapping("/{id}") @Transactional
-    public BloodUnitResponseDto update(@PathVariable Long id, @Valid @RequestBody BloodUnitUpsertDto dto) {
-        validateDates(dto);
-        if (repository.existsByUnitIdAndIdNot(dto.unitId(), id)) throw new IllegalArgumentException("이미 등록된 Unit ID입니다.");
+    public BloodUnitResponseDto update(@PathVariable Long id, @Valid @RequestBody BloodUnitStatusUpdateDto dto) {
         BloodUnit unit = repository.findById(id).orElseThrow(() -> new IllegalArgumentException("혈액 재고를 찾을 수 없습니다."));
         unit.setStatus(dto.status());
         return BloodUnitResponseDto.from(unit);
