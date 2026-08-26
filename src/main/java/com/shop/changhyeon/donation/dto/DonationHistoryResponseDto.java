@@ -7,7 +7,6 @@ import java.time.LocalDate;
 
 public record DonationHistoryResponseDto(
         Long id,
-        String donorName,
         LocalDate donationDate,
         DonationType donationType,
         String bloodCenterName,
@@ -16,7 +15,6 @@ public record DonationHistoryResponseDto(
     public static DonationHistoryResponseDto from(DonationHistory history) {
         return new DonationHistoryResponseDto(
                 history.getId(),
-                history.getDonorName(),
                 history.getDonationDate(),
                 history.getDonationType(),
                 history.getBloodCenterName(),
