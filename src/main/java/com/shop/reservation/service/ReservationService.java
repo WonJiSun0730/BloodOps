@@ -4,8 +4,10 @@ import com.shop.member.entity.Member;
 import com.shop.member.repository.MemberRepository;
 import com.shop.reservation.constant.ReservationStatus;
 import com.shop.reservation.dto.AdminReservationResponseDto;
+import com.shop.reservation.entity.EquipmentGroup;
 import com.shop.reservation.entity.Reservation;
 import com.shop.reservation.entity.ReservationSlot;
+import com.shop.reservation.repository.EquipmentGroupRepository;
 import com.shop.reservation.repository.ReservationRepository;
 import com.shop.reservation.repository.ReservationSlotRepository;
 import lombok.RequiredArgsConstructor;
@@ -28,6 +30,9 @@ public class ReservationService {
 
     private final ReservationSlotRepository
             reservationSlotRepository;
+
+    private final EquipmentGroupRepository
+            equipmentGroupRepository;
 
     private final MemberRepository
             memberRepository;
@@ -71,6 +76,18 @@ public class ReservationService {
             );
         }
 
+        LocalDate maxReservationDate =
+                today.plusMonths(2);
+
+        if (
+                slot.getReservationDate()
+                        .isAfter(maxReservationDate)
+        ) {
+            throw new IllegalStateException(
+                    "예약은 오늘부터 2개월 이내의 날짜만 가능합니다."
+            );
+        }
+
         if (
                 slot.getReservationDate()
                         .isEqual(today)
@@ -102,18 +119,10 @@ public class ReservationService {
             );
         }
 
-        long reservedCount =
-                reservationRepository
-                        .countBySlot_IdAndStatus(
-                                slotId,
-                                ReservationStatus.RESERVED
-                        );
-
-        if (reservedCount >= slot.getCapacity()) {
-            throw new IllegalStateException(
-                    "예약 정원이 마감되었습니다."
-            );
-        }
+        validateEquipmentCapacity(
+                slot,
+                null
+        );
 
         boolean alreadyReserved =
                 reservationRepository
@@ -262,21 +271,10 @@ public class ReservationService {
             );
         }
 
-        long reservedCount =
-                reservationRepository
-                        .countBySlot_IdAndStatus(
-                                newSlotId,
-                                ReservationStatus.RESERVED
-                        );
-
-        if (
-                reservedCount
-                        >= newSlot.getCapacity()
-        ) {
-            throw new IllegalStateException(
-                    "변경할 시간의 예약 정원이 마감되었습니다."
-            );
-        }
+        validateEquipmentCapacity(
+                newSlot,
+                reservation.getId()
+        );
 
         reservation.setSlot(
                 newSlot
@@ -358,21 +356,10 @@ public class ReservationService {
         /*
          * 신규 슬롯 정원 확인
          */
-        long reservedCount =
-                reservationRepository
-                        .countBySlot_IdAndStatus(
-                                newSlotId,
-                                ReservationStatus.RESERVED
-                        );
-
-        if (
-                reservedCount
-                        >= newSlot.getCapacity()
-        ) {
-            throw new IllegalStateException(
-                    "변경할 슬롯의 예약 정원이 마감되었습니다."
-            );
-        }
+        validateEquipmentCapacity(
+                newSlot,
+                reservation.getId()
+        );
 
         /*
          * 같은 회원이 신규 슬롯에 이미
@@ -524,5 +511,82 @@ public class ReservationService {
                         pageable
                 )
                 .map(AdminReservationResponseDto::new);
+    }
+
+    private void validateEquipmentCapacity(
+            ReservationSlot targetSlot,
+            Long excludeReservationId
+    ) {
+
+        EquipmentGroup equipmentGroup =
+                targetSlot.getEquipmentGroup();
+
+        if (equipmentGroup == null) {
+            throw new IllegalStateException(
+                    "예약 슬롯의 장비그룹 정보가 없습니다."
+            );
+        }
+
+        /*
+         * 마지막 장비에 동시 예약이 들어오는 것을 막기 위해
+         * 해당 센터 + 장비그룹 row를 먼저 잠급니다.
+         */
+        EquipmentGroup lockedGroup =
+                equipmentGroupRepository
+                        .findForUpdate(
+                                targetSlot
+                                        .getCenter()
+                                        .getId(),
+                                targetSlot
+                                        .getDonationType()
+                                        .getEquipmentGroupType()
+                        )
+                        .orElseThrow(() ->
+                                new IllegalStateException(
+                                        "예약에 사용할 장비그룹을 찾을 수 없습니다."
+                                )
+                        );
+
+        if (!lockedGroup.isActive()) {
+            throw new IllegalStateException(
+                    "현재 해당 헌혈 장비를 사용할 수 없습니다."
+            );
+        }
+
+        LocalTime targetStart =
+                targetSlot.getStartTime();
+
+        LocalTime targetEnd =
+                targetStart.plusMinutes(
+                        targetSlot
+                                .getDonationType()
+                                .getEquipmentUsageMinutes()
+                );
+
+        List<Reservation> reservations =
+                reservationRepository
+                        .findEquipmentGroupReservations(
+                                lockedGroup.getId(),
+                                targetSlot.getReservationDate(),
+                                ReservationStatus.RESERVED
+                        );
+
+        long concurrentUsage =
+                EquipmentCapacityCalculator
+                        .calculateMaxConcurrentUsage(
+                                reservations,
+                                targetStart,
+                                targetEnd,
+                                excludeReservationId
+                        );
+
+        if (
+                concurrentUsage
+                        >= lockedGroup.getCapacity()
+        ) {
+            throw new IllegalStateException(
+                    "해당 시간에는 사용 가능한 헌혈 장비가 없습니다."
+            );
+        }
     }
 }

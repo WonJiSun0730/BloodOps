@@ -7,10 +7,13 @@ import {
   cancelAdminReservation,
   changeAdminReservationSlot,
   createAdminReservationSlots,
+  deleteAdminReservationSlot,
+  getAdminEquipmentGroups,
   getAdminReservation,
   getAdminReservations,
   getAdminReservationSlots,
   getCenters,
+  updateAdminEquipmentGroup,
   updateAdminReservationSlot,
 } from '../../api/apiClient.js'
 
@@ -146,6 +149,21 @@ function AdminReservationsPage() {
     setReservationCancelling,
   ] = useState(false)
 
+const [
+  deleteTargetSlot,
+  setDeleteTargetSlot,
+] = useState(null)
+
+const [
+  slotDeleting,
+  setSlotDeleting,
+] = useState(false)
+
+const [
+  slotDeleteError,
+  setSlotDeleteError,
+] = useState('')
+
   const [centers, setCenters] =
     useState([])
 
@@ -157,6 +175,25 @@ function AdminReservationsPage() {
 
   const [centerSearchOpen, setCenterSearchOpen] =
     useState(false)
+
+  const [equipmentGroups, setEquipmentGroups] =
+    useState([])
+
+  const [equipmentGroupLoading, setEquipmentGroupLoading] =
+    useState(false)
+
+  const [equipmentGroupError, setEquipmentGroupError] =
+    useState('')
+
+  const [
+    equipmentGroupCapacityDrafts,
+    setEquipmentGroupCapacityDrafts,
+  ] = useState({})
+
+  const [
+    updatingEquipmentGroupId,
+    setUpdatingEquipmentGroupId,
+  ] = useState(null)
 
   const [selectedDate, setSelectedDate] =
     useState('')
@@ -234,14 +271,8 @@ function AdminReservationsPage() {
   const [slotInterval, setSlotInterval] =
     useState(30)
 
-  const [slotCapacity, setSlotCapacity] =
-    useState(5)
-
   const [slotCreating, setSlotCreating] =
     useState(false)
-
-  const [slotCapacityDrafts, setSlotCapacityDrafts] =
-    useState({})
 
   const [updatingSlotId, setUpdatingSlotId] =
     useState(null)
@@ -263,6 +294,158 @@ function AdminReservationsPage() {
 
     loadCenters()
   }, [])
+
+  async function loadEquipmentGroups(
+    centerId
+  ) {
+    if (!centerId) {
+      setEquipmentGroups([])
+      setEquipmentGroupCapacityDrafts({})
+      setEquipmentGroupError('')
+      return
+    }
+
+    try {
+      setEquipmentGroupLoading(true)
+      setEquipmentGroupError('')
+
+      const data =
+        await getAdminEquipmentGroups(
+          centerId
+        )
+
+      setEquipmentGroups(data)
+
+      setEquipmentGroupCapacityDrafts(
+        Object.fromEntries(
+          data.map((group) => [
+            group.id,
+            group.capacity,
+          ])
+        )
+      )
+    } catch (error) {
+      setEquipmentGroups([])
+      setEquipmentGroupCapacityDrafts({})
+
+      setEquipmentGroupError(
+        error.message
+        || '장비 정보를 불러오지 못했습니다.'
+      )
+    } finally {
+      setEquipmentGroupLoading(false)
+    }
+  }
+
+  async function handleEquipmentGroupUpdate(
+    equipmentGroup
+  ) {
+    const newCapacity =
+      Number(
+        equipmentGroupCapacityDrafts[
+          equipmentGroup.id
+        ]
+        ?? equipmentGroup.capacity
+      )
+
+    if (
+      !Number.isInteger(newCapacity)
+      || newCapacity < 0
+    ) {
+      setEquipmentGroupError(
+        '장비 수량은 0대 이상의 정수여야 합니다.'
+      )
+
+      return
+    }
+
+    if (
+      newCapacity
+      === equipmentGroup.capacity
+    ) {
+      return
+    }
+
+    try {
+      setUpdatingEquipmentGroupId(
+        equipmentGroup.id
+      )
+
+      setEquipmentGroupError('')
+
+      const updatedGroup =
+        await updateAdminEquipmentGroup(
+          equipmentGroup.id,
+          {
+            capacity: newCapacity,
+          }
+        )
+
+      setEquipmentGroups(
+        (currentGroups) =>
+          currentGroups.map(
+            (currentGroup) =>
+              currentGroup.id === updatedGroup.id
+                ? updatedGroup
+                : currentGroup
+          )
+      )
+
+      setEquipmentGroupCapacityDrafts(
+        (currentDrafts) => ({
+          ...currentDrafts,
+          [updatedGroup.id]:
+            updatedGroup.capacity,
+        })
+      )
+
+    } catch (error) {
+      setEquipmentGroupError(
+        error.message
+        || '장비 수량 변경에 실패했습니다.'
+      )
+    } finally {
+      setUpdatingEquipmentGroupId(null)
+    }
+  }
+
+  async function handleEquipmentGroupActiveToggle(
+    equipmentGroup
+  ) {
+    try {
+      setUpdatingEquipmentGroupId(
+        equipmentGroup.id
+      )
+
+      setEquipmentGroupError('')
+
+      const updatedGroup =
+        await updateAdminEquipmentGroup(
+          equipmentGroup.id,
+          {
+            active: !equipmentGroup.active,
+          }
+        )
+
+      setEquipmentGroups(
+        (currentGroups) =>
+          currentGroups.map(
+            (currentGroup) =>
+              currentGroup.id === updatedGroup.id
+                ? updatedGroup
+                : currentGroup
+          )
+      )
+
+    } catch (error) {
+      setEquipmentGroupError(
+        error.message
+        || '장비 운영 상태 변경에 실패했습니다.'
+      )
+    } finally {
+      setUpdatingEquipmentGroupId(null)
+    }
+  }
 
   async function loadReservations(
     searchKeyword = '',
@@ -441,7 +624,6 @@ async function handleSlotCreate() {
       startTime: slotStartTime,
       endTime: slotEndTime,
       intervalMinutes: Number(slotInterval),
-      capacity: Number(slotCapacity),
     })
 
     const slotData =
@@ -465,72 +647,6 @@ async function handleSlotCreate() {
       )
     } finally {
     setSlotCreating(false)
-  }
-}
-
-async function handleSlotCapacityUpdate(slot) {
-  if (isPastSlot(slot)) {
-      setSlotError(
-        '이미 지난 예약 슬롯은 수정할 수 없습니다.'
-      )
-
-      return
-    }
-
-  const newCapacity =
-    Number(
-      slotCapacityDrafts[slot.id]
-      ?? slot.capacity
-    )
-
-  if (newCapacity <= 0) {
-    setSlotError(
-      '예약 정원은 1명 이상이어야 합니다.'
-    )
-
-    return
-  }
-
-  if (newCapacity === slot.capacity) {
-    return
-  }
-
-  try {
-    setUpdatingSlotId(slot.id)
-    setSlotError('')
-
-    const updatedSlot =
-      await updateAdminReservationSlot(
-        slot.id,
-        {
-          capacity: newCapacity,
-        }
-      )
-
-    setSlots((currentSlots) =>
-      currentSlots.map((currentSlot) =>
-        currentSlot.id === updatedSlot.id
-          ? updatedSlot
-          : currentSlot
-      )
-    )
-
-    setSlotCapacityDrafts((currentDrafts) => {
-      const nextDrafts = {
-        ...currentDrafts,
-      }
-
-      delete nextDrafts[slot.id]
-
-      return nextDrafts
-    })
-  } catch (error) {
-    setSlotError(
-      error.message
-      || '예약 정원 변경에 실패했습니다.'
-    )
-  } finally {
-    setUpdatingSlotId(null)
   }
 }
 
@@ -569,6 +685,40 @@ async function handleSlotActiveToggle(slot) {
     )
   } finally {
     setUpdatingSlotId(null)
+  }
+}
+
+async function handleSlotDelete() {
+  if (!deleteTargetSlot) {
+    return
+  }
+
+  try {
+    setSlotDeleting(true)
+    setSlotDeleteError('')
+
+    await deleteAdminReservationSlot(
+      deleteTargetSlot.id
+    )
+
+    setSlots(
+      (currentSlots) =>
+        currentSlots.filter(
+          (currentSlot) =>
+            currentSlot.id
+            !== deleteTargetSlot.id
+        )
+    )
+
+    setDeleteTargetSlot(null)
+
+  } catch (error) {
+    setSlotDeleteError(
+      error.message
+      || '예약 슬롯 삭제에 실패했습니다.'
+    )
+  } finally {
+    setSlotDeleting(false)
   }
 }
 
@@ -830,8 +980,13 @@ async function handleReservationCancel() {
               setSlotSearched(false)
               setSlotError('')
               setDuplicateSlotTimes([])
-              setSlotCapacityDrafts({})
+
+              //기존 센터의 장비그룹 정보도 초기화
+              setEquipmentGroups([])
+              setEquipmentGroupCapacityDrafts({})
+              setEquipmentGroupError('')
             }}
+
           />
 
           {centerSearchOpen && (
@@ -873,7 +1028,10 @@ async function handleReservationCancel() {
                         setSlotSearched(false)
                         setSlotError('')
                         setDuplicateSlotTimes([])
-                        setSlotCapacityDrafts({})
+
+                        loadEquipmentGroups(
+                          center.id
+                        )
                       }}
                     >
                       <span>
@@ -909,7 +1067,6 @@ async function handleReservationCancel() {
             setSlotSearched(false)
             setSlotError('')
             setDuplicateSlotTimes([])
-            setSlotCapacityDrafts({})
           }}
         />
 
@@ -925,7 +1082,6 @@ async function handleReservationCancel() {
             setSlotSearched(false)
             setSlotError('')
             setDuplicateSlotTimes([])
-            setSlotCapacityDrafts({})
           }}
         >
           {donationTypes.map((type) => (
@@ -949,8 +1105,189 @@ async function handleReservationCancel() {
             ? '조회 중...'
             : '슬롯 조회'}
         </button>
-
       </div>
+
+      {selectedCenterId && (
+        <div className="admin-equipment-groups">
+
+          <div className="admin-equipment-groups-header">
+            <div>
+              <strong>
+                공유 장비 관리
+              </strong>
+
+              <span>
+                같은 장비를 사용하는 헌혈 종류는
+                장비 수량을 함께 사용합니다.
+              </span>
+            </div>
+          </div>
+
+
+          {equipmentGroupLoading && (
+            <p className="admin-slot-empty">
+              장비 정보를 불러오는 중입니다.
+            </p>
+          )}
+
+
+          {equipmentGroupError && (
+            <p className="admin-slot-error">
+              {equipmentGroupError}
+            </p>
+          )}
+
+
+          {!equipmentGroupLoading
+            && !equipmentGroupError
+            && equipmentGroups.length === 0 && (
+              <p className="admin-slot-empty">
+                등록된 장비그룹이 없습니다.
+              </p>
+          )}
+
+
+          {!equipmentGroupLoading
+            && equipmentGroups.map(
+              (equipmentGroup) => {
+
+                const groupLabel =
+                  equipmentGroup.groupType
+                    === 'WHOLE_BLOOD_PLASMA'
+                    ? '전혈 · 혈장 공용 장비'
+                    : '혈소판 · 혈소판혈장 공용 장비'
+
+                const draftCapacity =
+                  equipmentGroupCapacityDrafts[
+                    equipmentGroup.id
+                  ]
+                  ?? equipmentGroup.capacity
+
+                const invalidCapacity =
+                  !Number.isInteger(
+                    Number(draftCapacity)
+                  )
+                  || Number(draftCapacity) < 0
+
+                const capacityChanged =
+                  Number(draftCapacity)
+                  !== equipmentGroup.capacity
+
+                const updating =
+                  updatingEquipmentGroupId
+                  === equipmentGroup.id
+
+                return (
+                  <div
+                    key={equipmentGroup.id}
+                    className="admin-equipment-group-row"
+                  >
+
+                    <div className="admin-equipment-group-info">
+
+                      <strong>
+                        {groupLabel}
+                      </strong>
+
+                      <span>
+                        장비 점유시간은 헌혈 종류별
+                        정책값으로 자동 계산됩니다.
+                      </span>
+
+                    </div>
+
+
+                    <div className="admin-equipment-group-capacity">
+
+                      <span>
+                        장비 수량
+                      </span>
+
+                      <input
+                        type="number"
+                        min="0"
+                        step="1"
+                        value={draftCapacity}
+                        className={
+                          invalidCapacity
+                            ? 'is-invalid'
+                            : ''
+                        }
+                        onChange={(event) => {
+                          setEquipmentGroupCapacityDrafts(
+                            (currentDrafts) => ({
+                              ...currentDrafts,
+                              [equipmentGroup.id]:
+                                event.target.value,
+                            })
+                          )
+                        }}
+                        disabled={updating}
+                      />
+
+                      <span>
+                        대
+                      </span>
+
+                      <button
+                        type="button"
+                        className="admin-row-action"
+                        onClick={() =>
+                          handleEquipmentGroupUpdate(
+                            equipmentGroup
+                          )
+                        }
+                        disabled={
+                          updating
+                          || invalidCapacity
+                          || !capacityChanged
+                        }
+                      >
+                        {updating
+                          ? '저장 중'
+                          : '저장'}
+                      </button>
+
+                    </div>
+
+
+                    <span
+                      className={
+                        equipmentGroup.active
+                          ? 'admin-slot-state active'
+                          : 'admin-slot-state inactive'
+                      }
+                    >
+                      {equipmentGroup.active
+                        ? '운영 중'
+                        : '운영 중단'}
+                    </span>
+
+
+                    <button
+                      type="button"
+                      className="admin-row-action"
+                      onClick={() =>
+                        handleEquipmentGroupActiveToggle(
+                          equipmentGroup
+                        )
+                      }
+                      disabled={updating}
+                    >
+                      {updating
+                        ? '처리 중'
+                        : equipmentGroup.active
+                          ? '운영 중단'
+                          : '운영 재개'}
+                    </button>
+
+                  </div>
+                )
+              }
+            )}
+
+        </div>
+      )}
 
       <div className="admin-slot-create">
 
@@ -984,18 +1321,6 @@ async function handleReservationCancel() {
             value={slotInterval}
             onChange={(event) =>
               setSlotInterval(event.target.value)
-            }
-          />
-        </label>
-
-        <label>
-          기본 정원
-          <input
-            type="number"
-            min="1"
-            value={slotCapacity}
-            onChange={(event) =>
-              setSlotCapacity(event.target.value)
             }
           />
         </label>
@@ -1054,70 +1379,15 @@ async function handleReservationCancel() {
 
             <div className="admin-slot-occupancy">
               <strong>
-                {slot.reservedCount}
+                장비 점유 {slot.reservedCount}
                 {' / '}
                 {slot.capacity}
               </strong>
 
               <span>
-                잔여 {slot.remainingCapacity}명
+                가용 장비 {slot.remainingCapacity}대
               </span>
             </div>
-
-            <div className="admin-slot-capacity">
-              <span>
-                정원
-              </span>
-
-              <input
-                type="number"
-                min="1"
-                className={
-                    Number(
-                      slotCapacityDrafts[slot.id]
-                      ?? slot.capacity
-                    ) <= 0
-                      ? 'is-invalid'
-                      : ''
-                  }
-                value={
-                  slotCapacityDrafts[slot.id]
-                  ?? slot.capacity
-                }
-                onChange={(event) =>
-                  setSlotCapacityDrafts(
-                    (currentDrafts) => ({
-                      ...currentDrafts,
-                      [slot.id]: event.target.value,
-                    })
-                  )
-                }
-                disabled={
-                  updatingSlotId === slot.id
-                  || isPastSlot(slot)
-                }
-              />
-
-              <button
-                type="button"
-                className="admin-row-action"
-                onClick={() =>
-                  handleSlotCapacityUpdate(slot)
-                }
-                disabled={
-                  updatingSlotId === slot.id
-                  || isPastSlot(slot)
-                  ||
-                  Number(
-                    slotCapacityDrafts[slot.id]
-                    ?? slot.capacity
-                  ) === slot.capacity
-                }
-              >
-                저장
-              </button>
-            </div>
-
 
             <span
               className={
@@ -1132,23 +1402,57 @@ async function handleReservationCancel() {
             </span>
 
 
-            <button
-              type="button"
-              className="admin-row-action"
-              onClick={() =>
-                handleSlotActiveToggle(slot)
-              }
-              disabled={
-                updatingSlotId === slot.id
-                || isPastSlot(slot)
-              }
-            >
-              {updatingSlotId === slot.id
-                ? '처리 중'
-                : slot.active
-                  ? '예약 중지'
-                  : '예약 재개'}
-            </button>
+            <div className="admin-slot-actions">
+
+              <button
+                type="button"
+                className="admin-row-action"
+                onClick={() =>
+                  handleSlotActiveToggle(slot)
+                }
+                disabled={
+                  updatingSlotId === slot.id
+                  || isPastSlot(slot)
+                }
+              >
+                {updatingSlotId === slot.id
+                  ? '처리 중'
+                  : slot.active
+                    ? '예약 중지'
+                    : '예약 재개'}
+              </button>
+
+              <button
+                type="button"
+                className="admin-slot-delete-button"
+                onClick={() => {
+                  setSlotDeleteError('')
+                  setDeleteTargetSlot(slot)
+                }}
+                disabled={slot.hasReservationHistory}
+                aria-label={`${slot.startTime.slice(0, 5)} 예약 슬롯 삭제`}
+                title={
+                  slot.hasReservationHistory
+                    ? '예약 이력이 있는 슬롯은 삭제할 수 없습니다.'
+                    : '예약 슬롯 삭제'
+                }
+              >
+                <svg
+                  viewBox="0 0 24 24"
+                  aria-hidden="true"
+                >
+                  <path
+                    d="M9 3h6M7 7h10M8 7l.7 13h6.6L16 7M10 10v7M14 10v7"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="1.8"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              </button>
+
+            </div>
           </article>
         ))}
 
@@ -1488,7 +1792,7 @@ async function handleReservationCancel() {
                           key={slot.id}
                           value={slot.id}
                           disabled={
-                            slot.reservedCount >= slot.capacity
+                            slot.remainingCapacity <= 0
                           }
                         >
                           {slot.startTime.slice(0, 5)}
@@ -1528,6 +1832,31 @@ async function handleReservationCancel() {
         </aside>
       </div>
     )}
+
+    <ConfirmModal
+      open={Boolean(deleteTargetSlot)}
+      title="예약 슬롯을 삭제하시겠습니까?"
+      message={
+        deleteTargetSlot
+          ? `${deleteTargetSlot.startTime?.slice(0, 5)} ~ `
+            + `${deleteTargetSlot.endTime?.slice(0, 5)} 슬롯을 삭제합니다. `
+          : ''
+      }
+      confirmText={
+        slotDeleting
+          ? '삭제 중...'
+          : '슬롯 삭제'
+      }
+      cancelText="닫기"
+      errorMessage={slotDeleteError}
+      danger
+      onConfirm={handleSlotDelete}
+      onCancel={() => {
+        if (!slotDeleting) {
+          setDeleteTargetSlot(null)
+        }
+      }}
+    />
 
     <ConfirmModal
     open={Boolean(cancelTargetReservation)}

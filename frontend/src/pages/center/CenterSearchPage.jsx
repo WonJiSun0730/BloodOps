@@ -4,6 +4,10 @@ import {
 } from 'react'
 
 import {
+  useNavigate,
+} from 'react-router-dom'
+
+import {
   getCenter,
   getCenters,
 } from '../../api/apiClient.js'
@@ -14,6 +18,8 @@ import CenterMapArea
 import './CenterSearchPage.css'
 
 function CenterSearchPage() {
+  const navigate = useNavigate()
+
   const [keyword, setKeyword] =
     useState('')
 
@@ -321,11 +327,24 @@ function CenterSearchPage() {
                 </div>
               </dl>
 
+              <button
+                type="button"
+                onClick={() =>
+                  navigate(
+                    `/reservations/new?centerId=${selectedCenter.id}`
+                  )
+                }
+              >
+                이 센터에서 예약하기
+              </button>
+
             </div>
           )}
 
           <CenterMapArea
-            center={selectedCenter}
+            centers={centers}
+            selectedCenter={selectedCenter}
+            onCenterSelect={handleCenterSelect}
           />
 
         </aside>

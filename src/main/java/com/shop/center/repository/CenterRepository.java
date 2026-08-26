@@ -32,5 +32,5 @@ public interface CenterRepository extends JpaRepository<Center, Long> {
             String address //센터 이름 + 주소 조합으로 안전하게 동일 센터 판단
     );
 
-
+    List<Center> findByLatitudeIsNullOrLongitudeIsNull();
 }

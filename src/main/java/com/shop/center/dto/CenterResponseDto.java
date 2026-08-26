@@ -16,6 +16,8 @@ public class CenterResponseDto {
     private String centerName;
     private String centerType;
     private String address;
+    private Double latitude;
+    private Double longitude;
     private String phone;
 
     private CenterSource source;
@@ -42,6 +44,8 @@ public class CenterResponseDto {
                 .centerName(center.getCenterName())
                 .centerType(center.getCenterType())
                 .address(center.getAddress())
+                .latitude(center.getLatitude())
+                .longitude(center.getLongitude())
                 .phone(center.getPhone())
                 .source(center.getSource())
                 .active(center.isActive())

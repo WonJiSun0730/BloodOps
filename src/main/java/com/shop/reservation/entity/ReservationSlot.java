@@ -86,6 +86,23 @@ public class ReservationSlot extends BaseEntity {
     )
     private DonationType donationType;
 
+    /*
+     * 이 슬롯이 사용하는 공유 장비그룹입니다.
+     *
+     * 예:
+     * 전혈 / 혈장
+     * → WHOLE_BLOOD_PLASMA 장비그룹 공유
+     *
+     * 혈소판 / 혈소판혈장
+     * → PLATELET 장비그룹 공유
+     */
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(
+            name = "equipment_group_id",
+            nullable = false
+    )
+    private EquipmentGroup equipmentGroup;
+
 
     /*
      * 해당 시간대에 받을 수 있는 최대 예약 인원입니다.

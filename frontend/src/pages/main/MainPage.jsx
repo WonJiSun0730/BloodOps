@@ -132,7 +132,7 @@ const mainServices = [
     title: '헌혈내역 조회',
     description:
       '나의 헌혈 이력과 참여 기록을 확인하세요.',
-    to: '/records',
+    to: '/mypage/records',
     icon: RecordsIcon,
   },
   {
@@ -140,7 +140,7 @@ const mainServices = [
     title: '검사결과 조회',
     description:
       '헌혈 후 검사결과를 조회할 수 있습니다.',
-    to: '/records/results',
+    to: '/mypage/results',
     icon: ResultsIcon,
   },
   {

@@ -10,6 +10,9 @@ import {
   getReservationSlots,
 } from '../../api/apiClient.js'
 
+import ConfirmModal
+  from '../../components/modal/ConfirmModal.jsx'
+
 import './ReservationListPage.css'
 
 
@@ -41,6 +44,11 @@ function ReservationListPage() {
   const [
     cancelingId,
     setCancelingId,
+  ] = useState(null)
+
+  const [
+    cancelTargetId,
+    setCancelTargetId,
   ] = useState(null)
 
   const [
@@ -99,28 +107,38 @@ const [
     loadReservations()
   }, [])
 
-  async function handleCancel(
+  function handleCancel(
     reservationId
   ) {
-    const confirmed =
-      window.confirm(
-        '이 예약을 취소하시겠습니까?'
-      )
+    setEditingReservationId(null)
+    setChangeSlots([])
+    setSelectedChangeSlotId(null)
+    setError('')
+    setSuccessMessage('')
 
-    if (!confirmed) {
+    setCancelTargetId(
+      reservationId
+    )
+  }
+
+  async function handleConfirmCancel() {
+    if (
+      cancelTargetId === null
+      || cancelingId !== null
+    ) {
       return
     }
 
     try {
       setCancelingId(
-        reservationId
+        cancelTargetId
       )
 
       setError('')
       setSuccessMessage('')
 
       await cancelMyReservation(
-        reservationId
+        cancelTargetId
       )
 
       const refreshed =
@@ -129,6 +147,8 @@ const [
       setReservations(
         refreshed
       )
+
+      setCancelTargetId(null)
 
       setSuccessMessage(
         '예약이 취소되었습니다.'
@@ -141,6 +161,14 @@ const [
     } finally {
       setCancelingId(null)
     }
+  }
+
+  function handleCloseCancelModal() {
+    if (cancelingId !== null) {
+      return
+    }
+
+    setCancelTargetId(null)
   }
 
   async function handleOpenChange(
@@ -244,7 +272,7 @@ const [
   }
 
   return (
-    <main className="reservation-list-page">
+    <div className="reservation-list-page">
 
       <section className="reservation-list-header">
         <span>
@@ -299,7 +327,15 @@ const [
               (reservation) => (
                 <article
                   key={reservation.id}
-                  className="reservation-list-card"
+                  className={[
+                    'reservation-list-card',
+                    reservation.status === 'CANCELED'
+                      ? 'is-canceled'
+                      : '',
+                  ]
+                    .filter(Boolean)
+                    .join(' ')
+                  }
                 >
                   <div>
                     <strong>
@@ -422,6 +458,9 @@ const [
                                       slot.id
                                     )
                                   }
+                                  disabled={
+                                    slot.remainingCapacity <= 0
+                                  }
                                   className={
                                     selectedChangeSlotId
                                       === slot.id
@@ -434,7 +473,9 @@ const [
                                   {slot.endTime}
 
                                   <span>
-                                    잔여 {slot.remainingCapacity}명
+                                    {slot.remainingCapacity > 0
+                                      ? '예약 가능'
+                                      : '예약 마감'}
                                   </span>
                                 </button>
                               )
@@ -475,7 +516,29 @@ const [
 
       </section>
 
-    </main>
+        <ConfirmModal
+          open={
+            cancelTargetId !== null
+          }
+          title="예약 취소"
+          message="선택한 헌혈 예약을 취소하시겠습니까?"
+          errorMessage={error}
+          confirmText={
+            cancelingId !== null
+              ? '취소 처리 중...'
+              : '예약 취소'
+          }
+          cancelText="돌아가기"
+          danger
+          onConfirm={
+            handleConfirmCancel
+          }
+          onCancel={
+            handleCloseCancelModal
+          }
+        />
+
+      </div>
   )
 }
 

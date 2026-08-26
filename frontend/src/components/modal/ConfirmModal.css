@@ -61,6 +61,32 @@
   white-space: pre-line;
 }
 
+.confirm-modal .confirm-modal-error {
+  margin: 12px 0 0;
+
+  padding: 10px 12px;
+
+  border: 1px solid
+    color-mix(
+      in srgb,
+      var(--color-primary) 28%,
+      var(--color-border)
+    );
+  border-radius: 8px;
+
+  color: var(--color-primary);
+
+  background:
+    color-mix(
+      in srgb,
+      var(--color-primary) 7%,
+      transparent
+    );
+
+  font-size: 0.8rem;
+  font-weight: 700;
+  line-height: 1.5;
+}
 
 .confirm-modal-actions {
   display: flex;

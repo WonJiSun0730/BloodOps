@@ -7,7 +7,5 @@ import lombok.Setter;
 @Setter
 public class AdminReservationSlotUpdateDto {
 
-    private Integer capacity;
-
     private Boolean active;
 }
