@@ -1,11 +1,12 @@
 package com.shop.changhyeon.donation.entity;
 
-import com.shop.common.entity.BaseEntity;
 import com.shop.reservation.constant.DonationType;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Entity
 @Table(
@@ -19,11 +20,15 @@ import java.time.LocalDate;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
 @Builder
-public class DonationHistory extends BaseEntity {
+public class DonationHistory {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    @CreationTimestamp
+    @Column(name = "reg_time", nullable = false, updatable = false)
+    private LocalDateTime regTime;
 
     @Column(name = "donor_name", nullable = false, updatable = false)
     private String donorName;
