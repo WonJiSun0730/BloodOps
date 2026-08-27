@@ -242,7 +242,9 @@ function QuestionnairePage() {
               <label>
                 <span>성명</span>
                 <input aria-invalid={Boolean(identityTouched && nameError)} value={identity.donorName} onChange={(event) => setIdentity({ ...identity, donorName: event.target.value })} autoComplete="name" required />
-                {identityTouched && nameError && <small className="field-error" role="alert">{nameError}</small>}
+                <small className={`field-error identity-field-error ${identityTouched && nameError ? 'is-visible' : ''}`} aria-live="polite">
+                  {identityTouched ? nameError : ''}
+                </small>
               </label>
               <fieldset>
                 <legend>주민등록번호</legend>
@@ -251,14 +253,18 @@ function QuestionnairePage() {
                   <span>−</span>
                   <input type="password" inputMode="numeric" autoComplete="off" aria-label="주민등록번호 뒤 7자리" value={identity.residentBack} onChange={(event) => setIdentity({ ...identity, residentBack: event.target.value.replace(/\D/g, '').slice(0, 7) })} required />
                 </div>
-                {identityTouched && residentIdentity.error && <small className="field-error" role="alert">{residentIdentity.error}</small>}
+                <small className={`field-error identity-field-error ${identityTouched && residentIdentity.error ? 'is-visible' : ''}`} aria-live="polite">
+                  {identityTouched ? residentIdentity.error : ''}
+                </small>
               </fieldset>
             </div>
             <p className="identity-security-note">주민등록번호 원문은 저장하지 않으며 신분 확인용 HMAC 해시와 마스킹 값만 보관합니다.</p>
             <label className="weight-field">
               <span>현재 체중</span>
               <span className="weight-input"><input aria-invalid={Boolean(weightError)} type="number" min={residentIdentity.gender ? minimumWeight : 20} max="300" step="0.1" value={weightKg} onChange={(event) => setWeightKg(event.target.value)} required /> kg</span>
-              {weightError && <small className="field-error weight-error" role="alert">{weightError}</small>}
+              <small className={`field-error weight-error ${weightError ? 'is-visible' : ''}`} aria-live="polite">
+                {weightError}
+              </small>
             </label>
           </section>
         )}
