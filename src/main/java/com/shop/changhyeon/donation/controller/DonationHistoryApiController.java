@@ -2,6 +2,7 @@ package com.shop.changhyeon.donation.controller;
 
 import com.shop.changhyeon.donation.dto.DonationCompleteRequestDto;
 import com.shop.changhyeon.donation.dto.DonationHistoryResponseDto;
+import com.shop.changhyeon.donation.dto.MedicalDonationHistoryResponseDto;
 import com.shop.changhyeon.donation.service.DonationHistoryService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
@@ -32,6 +33,11 @@ public class DonationHistoryApiController {
             Authentication authentication
     ) {
         return donationHistoryService.getMyDonationHistory(authentication.getName());
+    }
+
+    @GetMapping("/medical/donations")
+    public List<MedicalDonationHistoryResponseDto> getAllDonationHistory() {
+        return donationHistoryService.getAllDonationHistory();
     }
 
 }

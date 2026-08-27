@@ -8,4 +8,6 @@ import java.util.List;
 public interface DonationHistoryRepository extends JpaRepository<DonationHistory, Long> {
 
     List<DonationHistory> findByMember_IdOrderByDonationDateDescIdDesc(Long memberId);
+
+    List<DonationHistory> findAllByOrderByRegTimeDescIdDesc();
 }

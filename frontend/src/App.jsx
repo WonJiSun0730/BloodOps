@@ -56,6 +56,8 @@ import DonorCheckPage
   from './pages/medical/DonorCheckPage.jsx'
 import MedicalMyPage
   from './pages/medical/MedicalMyPage.jsx'
+import MedicalDonationHistoryPage
+  from './pages/medical/MedicalDonationHistoryPage.jsx'
 
 import AdminRoute
   from './components/AdminRoute.jsx'
@@ -191,6 +193,15 @@ function App() {
           element={
             <MedicalRoute>
               <BloodUnitsManagementPage />
+            </MedicalRoute>
+          }
+        />
+
+        <Route
+          path="/medical/donation_history"
+          element={
+            <MedicalRoute>
+              <MedicalDonationHistoryPage />
             </MedicalRoute>
           }
         />

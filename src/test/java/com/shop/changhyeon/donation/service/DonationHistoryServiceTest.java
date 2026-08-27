@@ -98,4 +98,15 @@ class DonationHistoryServiceTest {
         verify(donationHistoryRepository)
                 .findByMember_IdOrderByDonationDateDescIdDesc(7L);
     }
+
+    @Test
+    void 의료진은_전체_헌혈기록을_최신순_조회한다() {
+        when(donationHistoryRepository.findAllByOrderByRegTimeDescIdDesc())
+                .thenReturn(List.of());
+
+        donationHistoryService.getAllDonationHistory();
+
+        verify(donationHistoryRepository)
+                .findAllByOrderByRegTimeDescIdDesc();
+    }
 }

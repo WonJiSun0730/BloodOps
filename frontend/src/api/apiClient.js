@@ -647,6 +647,15 @@ export function getMyDonationHistory() {
 }
 
 /*
+ * 의료진이 전체 회원의 완료된 헌혈기록을 조회합니다.
+ */
+export function getMedicalDonationHistory() {
+  return apiRequest(
+    '/api/medical/donations'
+  )
+}
+
+/*
  * 로그인한 회원의 예약 내역을 조회합니다.
  */
 export function getMyReservations() {
