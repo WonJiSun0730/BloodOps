@@ -16,6 +16,7 @@ public record QuestionnaireSubmissionDto(
         LocalDateTime expiresAt,
         Double weightKg,
         Map<String, String> answers,
+        Map<String, String> answerDetails,
         List<String> reviewReasons,
         boolean identityVerified,
         String notice

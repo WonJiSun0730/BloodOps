@@ -1,53 +1,59 @@
 package com.shop.changhyeon.questionnaire.service;
 
+import com.shop.changhyeon.identity.ResidentNumberHashService;
+import com.shop.changhyeon.management.entity.DonorConfirmation;
 import com.shop.changhyeon.questionnaire.constant.QuestionnaireStatus;
 import com.shop.changhyeon.questionnaire.dto.*;
 import com.shop.changhyeon.questionnaire.entity.QuestionnaireSubmission;
 import com.shop.changhyeon.questionnaire.repository.QuestionnaireSubmissionRepository;
 import com.shop.member.entity.Member;
 import com.shop.member.repository.MemberRepository;
-import com.shop.changhyeon.identity.ResidentNumberHashService;
-import com.shop.changhyeon.management.entity.DonorConfirmation;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
-import java.util.*;
 import java.security.SecureRandom;
+import java.time.DateTimeException;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.Period;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
 @Transactional
 public class QuestionnaireService {
 
+    private static final int MIN_DONATION_AGE = 16;
+    private static final int MAX_DONATION_AGE = 69;
+    private static final double MALE_MIN_WEIGHT_KG = 50.0;
+    private static final double FEMALE_MIN_WEIGHT_KG = 45.0;
+    private static final int MAX_DETAIL_LENGTH = 1000;
     private static final String NOTICE =
             "전자문진 결과는 헌혈 가능 여부를 확정하지 않습니다. 방문 시 신분증을 지참하고 의료진의 최종 확인을 받아주세요.";
+    private static final SecureRandom RANDOM = new SecureRandom();
+    private static final String RECEIPT_CHARS = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
 
     private final QuestionnaireSubmissionRepository submissionRepository;
     private final MemberRepository memberRepository;
     private final ResidentNumberHashService residentNumberHashService;
-    private static final SecureRandom RANDOM = new SecureRandom();
-    private static final String RECEIPT_CHARS = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
 
     @Transactional(readOnly = true)
     public List<QuestionnaireQuestionDto> getQuestions() {
         return QuestionnaireCatalog.QUESTIONS;
     }
 
-    public QuestionnaireSubmissionDto submit(
-            QuestionnaireSubmitRequest request,
-            String email
-    ) {
+    public QuestionnaireSubmissionDto submit(QuestionnaireSubmitRequest request, String email) {
         Member member = findMember(email);
-        validateAnswers(request.answers());
-        validateWeight(request.weightKg());
+        validateAnswers(request.answers(), request.answerDetails());
+        ResidentIdentity residentIdentity = validateResidentIdentity(request.residentRegistrationNumber());
+        validateWeight(request.weightKg(), residentIdentity.gender());
 
         String donorName = request.donorName().trim();
-        String residentNumberHash = residentNumberHashService.hash(
-                request.residentRegistrationNumber());
+        String residentNumberHash = residentNumberHashService.hash(request.residentRegistrationNumber());
+        Map<String, String> normalizedDetails = normalizeAnswerDetails(request.answers(), request.answerDetails());
 
-        List<String> reasons = findReviewReasons(request.answers(), request.weightKg());
+        List<String> reasons = findReviewReasons(request.answers());
         QuestionnaireStatus status = reasons.isEmpty()
                 ? QuestionnaireStatus.NO_REVIEW_NEEDED
                 : QuestionnaireStatus.REVIEW_REQUIRED;
@@ -59,13 +65,13 @@ public class QuestionnaireService {
                         .receiptCode(createReceiptCode())
                         .donorName(donorName)
                         .residentNumberHash(residentNumberHash)
-                        .residentNumberMasked(residentNumberHashService.mask(
-                                request.residentRegistrationNumber()))
+                        .residentNumberMasked(residentNumberHashService.mask(request.residentRegistrationNumber()))
                         .status(status)
                         .submittedAt(submittedAt)
                         .expiresAt(submittedAt.plusDays(3))
                         .weightKg(request.weightKg())
                         .answers(new LinkedHashMap<>(request.answers()))
+                        .answerDetails(normalizedDetails)
                         .reviewReasons(new ArrayList<>(reasons))
                         .build()
         );
@@ -75,17 +81,14 @@ public class QuestionnaireService {
 
     @Transactional(readOnly = true)
     public QuestionnaireSubmissionDto getLatest(String email) {
-        return submissionRepository
-                .findFirstByMember_EmailOrderBySubmittedAtDesc(email)
+        return submissionRepository.findFirstByMember_EmailOrderBySubmittedAtDesc(email)
                 .map(this::toDto)
                 .orElse(null);
     }
 
     public QuestionnaireSubmissionDto findAndVerifyLatest(
-            String donorName,
-            String residentNumberHash,
-            DonorConfirmation confirmation,
-            String verifiedBy
+            String donorName, String residentNumberHash,
+            DonorConfirmation confirmation, String verifiedBy
     ) {
         return submissionRepository
                 .findFirstByDonorNameAndResidentNumberHashAndExpiresAtAfterOrderBySubmittedAtDesc(
@@ -100,82 +103,130 @@ public class QuestionnaireService {
     }
 
     @Transactional(readOnly = true)
-    public QuestionnaireSubmissionDto getVerifiedQuestionnaire(
-            Long confirmationId
-    ) {
+    public QuestionnaireSubmissionDto getVerifiedQuestionnaire(Long confirmationId) {
         return submissionRepository
-                .findFirstByDonorConfirmation_ConfirmationIdOrderBySubmittedAtDesc(
-                        confirmationId)
+                .findFirstByDonorConfirmation_ConfirmationIdOrderBySubmittedAtDesc(confirmationId)
                 .map(this::toDto)
                 .orElse(null);
     }
 
-    private void validateAnswers(Map<String, String> answers) {
+    private void validateAnswers(Map<String, String> answers, Map<String, String> answerDetails) {
         Set<String> expected = QuestionnaireCatalog.SAFE_ANSWERS.keySet();
         if (!answers.keySet().equals(expected)) {
             throw new IllegalArgumentException("모든 문진 항목에 한 번씩 답변해주세요.");
         }
-        boolean invalid = answers.values().stream()
-                .anyMatch(answer -> !QuestionnaireCatalog.YES_NO.contains(answer));
-        if (invalid) {
+        if (answers.values().stream().anyMatch(answer -> !QuestionnaireCatalog.YES_NO.contains(answer))) {
             throw new IllegalArgumentException("문진 답변 형식이 올바르지 않습니다.");
         }
+        if (!expected.containsAll(answerDetails.keySet())) {
+            throw new IllegalArgumentException("답변 상세내용 형식이 올바르지 않습니다.");
+        }
+        answers.forEach((questionId, answer) -> {
+            String detail = answerDetails.getOrDefault(questionId, "").trim();
+            if ("NO".equals(answer) && detail.isBlank()) {
+                throw new IllegalArgumentException("'아니요'를 선택한 항목의 상세내용을 입력해주세요.");
+            }
+            if (detail.length() > MAX_DETAIL_LENGTH) {
+                throw new IllegalArgumentException("상세내용은 1000자 이하로 입력해주세요.");
+            }
+        });
     }
 
-    private void validateWeight(Double weightKg) {
-        if (weightKg == null || !Double.isFinite(weightKg) || weightKg < 20 || weightKg > 300) {
-            throw new IllegalArgumentException("체중은 20kg 이상 300kg 이하로 입력해주세요.");
+    private ResidentIdentity validateResidentIdentity(String residentRegistrationNumber) {
+        String digits = residentRegistrationNumber.replace("-", "");
+        int genderCode = Character.digit(digits.charAt(6), 10);
+        int century = switch (genderCode) {
+            case 1, 2, 5, 6 -> 1900;
+            case 3, 4, 7, 8 -> 2000;
+            default -> throw new IllegalArgumentException("주민등록번호 뒤 첫 자리 형식을 확인해주세요.");
+        };
+
+        LocalDate birthDate;
+        try {
+            int year = century + Integer.parseInt(digits.substring(0, 2));
+            int month = Integer.parseInt(digits.substring(2, 4));
+            int day = Integer.parseInt(digits.substring(4, 6));
+            birthDate = LocalDate.of(year, month, day);
+        } catch (DateTimeException | NumberFormatException exception) {
+            throw new IllegalArgumentException("생년월일 형식을 확인해주세요.");
+        }
+
+        LocalDate today = LocalDate.now();
+        if (birthDate.isAfter(today)) {
+            throw new IllegalArgumentException("생년월일은 오늘 이후일 수 없습니다.");
+        }
+        int age = Period.between(birthDate, today).getYears();
+        if (age < MIN_DONATION_AGE || age > MAX_DONATION_AGE) {
+            throw new IllegalArgumentException(
+                    "혈액관리법에 의거 만 16세 미만과 만 70세 이상인 분은 헌혈이 불가합니다."
+            );
+        }
+        return new ResidentIdentity(genderCode % 2 == 1 ? Gender.MALE : Gender.FEMALE);
+    }
+
+    private void validateWeight(Double weightKg, Gender gender) {
+        if (weightKg == null || !Double.isFinite(weightKg) || weightKg > 300) {
+            throw new IllegalArgumentException("체중은 올바른 숫자로 입력해주세요.");
+        }
+        double minimumWeight = gender == Gender.MALE ? MALE_MIN_WEIGHT_KG : FEMALE_MIN_WEIGHT_KG;
+        if (weightKg < minimumWeight) {
+            String genderLabel = gender == Gender.MALE ? "남성" : "여성";
+            throw new IllegalArgumentException(
+                    genderLabel + "은 체중 " + (int) minimumWeight + "kg 이상이어야 헌혈할 수 있습니다."
+            );
         }
     }
 
-    private List<String> findReviewReasons(Map<String, String> answers, double weightKg) {
+    private Map<String, String> normalizeAnswerDetails(
+            Map<String, String> answers, Map<String, String> answerDetails
+    ) {
+        Map<String, String> normalized = new LinkedHashMap<>();
+        answers.forEach((questionId, answer) -> {
+            if ("NO".equals(answer)) {
+                normalized.put(questionId, answerDetails.get(questionId).trim());
+            }
+        });
+        return normalized;
+    }
+
+    private List<String> findReviewReasons(Map<String, String> answers) {
         List<String> reasons = new ArrayList<>();
         QuestionnaireCatalog.QUESTIONS.forEach(question -> {
-            if (!Objects.equals(
-                    QuestionnaireCatalog.SAFE_ANSWERS.get(question.id()),
-                    answers.get(question.id()))) {
+            if (!Objects.equals(QuestionnaireCatalog.SAFE_ANSWERS.get(question.id()), answers.get(question.id()))) {
                 reasons.add(question.category() + ": " + question.question());
             }
         });
-        if (weightKg < 45) {
-            reasons.add("체중: 헌혈 가능 체중 기준을 현장에서 확인해야 합니다.");
-        }
         return reasons;
     }
 
     private Member findMember(String email) {
-        if (email == null || email.isBlank()) {
-            return null;
-        }
-        Member member = memberRepository.findByEmail(email);
-        return member;
+        if (email == null || email.isBlank()) return null;
+        return memberRepository.findByEmail(email);
     }
 
     private String createReceiptCode() {
         for (int attempt = 0; attempt < 10; attempt++) {
             StringBuilder code = new StringBuilder("EMI-");
             for (int index = 0; index < 10; index++) {
-                code.append(RECEIPT_CHARS.charAt(
-                        RANDOM.nextInt(RECEIPT_CHARS.length())));
+                code.append(RECEIPT_CHARS.charAt(RANDOM.nextInt(RECEIPT_CHARS.length())));
             }
-            if (!submissionRepository.existsByReceiptCode(code.toString())) {
-                return code.toString();
-            }
+            if (!submissionRepository.existsByReceiptCode(code.toString())) return code.toString();
         }
         throw new IllegalStateException("문진 접수번호를 생성할 수 없습니다.");
     }
 
     private QuestionnaireSubmissionDto toDto(QuestionnaireSubmission submission) {
         return new QuestionnaireSubmissionDto(
-                submission.getId(), submission.getReceiptCode(),
-                submission.getDonorName(),
-                submission.getResidentNumberMasked(),
-                submission.getStatus(),
-                submission.getSubmittedAt(), submission.getExpiresAt(),
-                submission.getWeightKg(),
+                submission.getId(), submission.getReceiptCode(), submission.getDonorName(),
+                submission.getResidentNumberMasked(), submission.getStatus(),
+                submission.getSubmittedAt(), submission.getExpiresAt(), submission.getWeightKg(),
                 new LinkedHashMap<>(submission.getAnswers()),
-                List.copyOf(submission.getReviewReasons()),
-                submission.getVerifiedAt() != null,
-                NOTICE);
+                new LinkedHashMap<>(submission.getAnswerDetails()),
+                List.copyOf(submission.getReviewReasons()), submission.getVerifiedAt() != null, NOTICE
+        );
     }
+
+    private enum Gender { MALE, FEMALE }
+
+    private record ResidentIdentity(Gender gender) { }
 }
