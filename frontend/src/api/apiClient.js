@@ -712,6 +712,39 @@ export async function changeMyReservationSlot(
   )
 }
 
+/*
+ * ADMIN 카카오 예약 메시지 설정을 조회합니다.
+ */
+export function getAdminKakaoMessageTemplate() {
+  return apiRequest(
+    '/api/admin/kakao-message-template'
+  )
+}
+
+
+/*
+ * ADMIN 카카오 예약 메시지 설정을 저장합니다.
+ */
+export async function updateAdminKakaoMessageTemplate(
+  templateData
+) {
+  const csrf = await getCsrfToken()
+
+  return apiRequest(
+    '/api/admin/kakao-message-template',
+    {
+      method: 'PUT',
+
+      headers: {
+        'Content-Type': 'application/json',
+        [csrf.headerName]: csrf.token,
+      },
+
+      body: JSON.stringify(templateData),
+    }
+  )
+}
+
 
 /*
  * 의료진이 확인한 헌혈자 정보와 서명을 DB에 저장합니다.

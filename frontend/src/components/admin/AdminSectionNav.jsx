@@ -16,6 +16,10 @@ const adminSections = [
         to: '/admin/reservations',
         label: '예약 관리',
     },
+    {
+        to: '/admin/kakao-message-template',
+        label: '카카오 예약 알림',
+    },
 ]
 
 
