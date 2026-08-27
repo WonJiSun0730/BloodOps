@@ -1,8 +1,8 @@
 package com.shop.changhyeon.notification.service;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
@@ -78,7 +78,7 @@ public class KakaoMessageApiClient {
 
         try {
             return objectMapper.writeValueAsString(template);
-        } catch (JsonProcessingException exception) {
+        } catch (JacksonException exception) {
             throw new IllegalStateException(
                     "카카오 메시지 요청을 생성하지 못했습니다.",
                     exception
