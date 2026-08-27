@@ -10,6 +10,10 @@ import java.util.Map;
 
 public record QuestionnaireSubmitRequest(
         @NotBlank(message = "성명을 입력해주세요.")
+        @Pattern(
+                regexp = "^(?:[가-힣]{2,20}|[A-Za-z]+(?:[ '-][A-Za-z]+)*)$",
+                message = "성명은 한글 2~20자 또는 올바른 영문 이름 형식으로 입력해주세요."
+        )
         String donorName,
 
         @NotBlank(message = "주민등록번호를 입력해주세요.")
@@ -21,6 +25,9 @@ public record QuestionnaireSubmitRequest(
 
         @NotEmpty(message = "모든 문진 항목에 답변해주세요.")
         Map<String, String> answers,
+
+        @NotNull(message = "답변 상세내용을 입력해주세요.")
+        Map<String, String> answerDetails,
 
         @NotNull(message = "체중을 입력해주세요.")
         Double weightKg,

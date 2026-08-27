@@ -65,20 +65,21 @@ public class QuestionnaireSubmission extends BaseEntity {
     private Double weightKg;
 
     @ElementCollection
-    @CollectionTable(
-            name = "questionnaire_answer",
-            joinColumns = @JoinColumn(name = "submission_id")
-    )
+    @CollectionTable(name = "questionnaire_answer", joinColumns = @JoinColumn(name = "submission_id"))
     @MapKeyColumn(name = "question_id", length = 80)
     @Column(name = "answer", nullable = false, length = 10)
     @Builder.Default
     private Map<String, String> answers = new LinkedHashMap<>();
 
     @ElementCollection
-    @CollectionTable(
-            name = "questionnaire_review_reason",
-            joinColumns = @JoinColumn(name = "submission_id")
-    )
+    @CollectionTable(name = "questionnaire_answer_detail", joinColumns = @JoinColumn(name = "submission_id"))
+    @MapKeyColumn(name = "question_id", length = 80)
+    @Column(name = "detail", nullable = false, length = 1000)
+    @Builder.Default
+    private Map<String, String> answerDetails = new LinkedHashMap<>();
+
+    @ElementCollection
+    @CollectionTable(name = "questionnaire_review_reason", joinColumns = @JoinColumn(name = "submission_id"))
     @OrderColumn(name = "reason_order")
     @Column(name = "reason", nullable = false, length = 500)
     @Builder.Default
