@@ -239,24 +239,24 @@ function QuestionnairePage() {
               </ul>
             </div>
             <div className="questionnaire-identity-grid">
-              <label>
-                <span>성명</span>
-                <input aria-invalid={Boolean(identityTouched && nameError)} value={identity.donorName} onChange={(event) => setIdentity({ ...identity, donorName: event.target.value })} autoComplete="name" required />
+              <label className="identity-field">
+                <span className="identity-field-label">성명</span>
+                <input className="identity-control" aria-invalid={Boolean(identityTouched && nameError)} value={identity.donorName} onChange={(event) => setIdentity({ ...identity, donorName: event.target.value })} autoComplete="name" required />
                 <small className={`field-error identity-field-error ${identityTouched && nameError ? 'is-visible' : ''}`} aria-live="polite">
                   {identityTouched ? nameError : ''}
                 </small>
               </label>
-              <fieldset>
-                <legend>주민등록번호</legend>
-                <div>
-                  <input inputMode="numeric" autoComplete="off" aria-label="주민등록번호 앞 6자리" value={identity.residentFront} onChange={(event) => setIdentity({ ...identity, residentFront: event.target.value.replace(/\D/g, '').slice(0, 6) })} required />
-                  <span>−</span>
-                  <input type="password" inputMode="numeric" autoComplete="off" aria-label="주민등록번호 뒤 7자리" value={identity.residentBack} onChange={(event) => setIdentity({ ...identity, residentBack: event.target.value.replace(/\D/g, '').slice(0, 7) })} required />
+              <div className="identity-field">
+                <span className="identity-field-label" id="resident-number-label">주민등록번호</span>
+                <div className="resident-number-control" role="group" aria-labelledby="resident-number-label">
+                  <input className="identity-control" inputMode="numeric" autoComplete="off" aria-label="주민등록번호 앞 6자리" value={identity.residentFront} onChange={(event) => setIdentity({ ...identity, residentFront: event.target.value.replace(/\D/g, '').slice(0, 6) })} required />
+                  <span aria-hidden="true">−</span>
+                  <input className="identity-control" type="password" inputMode="numeric" autoComplete="off" aria-label="주민등록번호 뒤 7자리" value={identity.residentBack} onChange={(event) => setIdentity({ ...identity, residentBack: event.target.value.replace(/\D/g, '').slice(0, 7) })} required />
                 </div>
                 <small className={`field-error identity-field-error ${identityTouched && residentIdentity.error ? 'is-visible' : ''}`} aria-live="polite">
                   {identityTouched ? residentIdentity.error : ''}
                 </small>
-              </fieldset>
+              </div>
             </div>
             <p className="identity-security-note">주민등록번호 원문은 저장하지 않으며 신분 확인용 HMAC 해시와 마스킹 값만 보관합니다.</p>
             <label className="weight-field">
