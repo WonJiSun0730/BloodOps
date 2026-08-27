@@ -2,13 +2,16 @@ package com.shop.center.service;
 
 import com.shop.center.constant.CenterSource;
 import com.shop.center.dto.CenterCreateRequestDto;
+import com.shop.center.dto.CenterMapResponseDto;
 import com.shop.center.dto.CenterResponseDto;
 import com.shop.center.dto.CenterUpdateRequestDto;
 import com.shop.center.entity.Center;
 import com.shop.center.repository.CenterRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -49,6 +52,74 @@ public class CenterService {
                 .findByAddressContainingIgnoreCase(trimmedKeyword)
                 .stream()
                 .map(CenterResponseDto::from)
+                .toList();
+    }
+
+    public Page<CenterResponseDto> getCenterPage(
+            String keyword,
+            int page
+    ) {
+
+        int safePage =
+                Math.max(page, 0);
+
+        Pageable pageable =
+                PageRequest.of(
+                        safePage,
+                        10,
+                        Sort.by(
+                                Sort.Order.asc("centerName"),
+                                Sort.Order.asc("id")
+                        )
+                );
+
+        if (keyword == null || keyword.isBlank()) {
+
+            return centerRepository
+                    .findAll(pageable)
+                    .map(CenterResponseDto::from);
+        }
+
+        String trimmedKeyword =
+                keyword.trim();
+
+        return centerRepository
+                .findByCenterNameContainingIgnoreCaseOrAddressContainingIgnoreCase(
+                        trimmedKeyword,
+                        trimmedKeyword,
+                        pageable
+                )
+                .map(CenterResponseDto::from);
+    }
+
+
+    public List<CenterMapResponseDto>
+    getCenterMapCenters(
+            String keyword
+    ) {
+
+        List<Center> centers;
+
+        if (keyword == null || keyword.isBlank()) {
+
+            centers =
+                    centerRepository.findAll();
+
+        } else {
+
+            String trimmedKeyword =
+                    keyword.trim();
+
+            centers =
+                    centerRepository
+                            .findByCenterNameContainingIgnoreCaseOrAddressContainingIgnoreCase(
+                                    trimmedKeyword,
+                                    trimmedKeyword
+                            );
+        }
+
+        return centers.stream()
+                .map(CenterMapResponseDto::from)
                 .toList();
     }
 

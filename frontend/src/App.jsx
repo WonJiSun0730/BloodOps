@@ -110,7 +110,11 @@ function App() {
 
         <Route
           path="/reservations/new"
-          element={<ReservationCreatePage />}
+          element={
+            <MemberRoute>
+              <ReservationCreatePage />
+            </MemberRoute>
+          }
         />
 
         <Route

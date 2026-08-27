@@ -21,7 +21,9 @@ import com.shop.reservation.dto.AdminReservationSlotUpdateDto;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
@@ -199,6 +201,82 @@ public class ReservationSlotService {
                 .stream()
                 .map(this::toResponseDto)
                 .toList();
+    }
+
+    @Transactional(readOnly = true)
+    public Set<LocalDate> getAvailableDates(
+            Long centerId,
+            int year,
+            int month
+    ) {
+        if (centerId == null) {
+            throw new IllegalArgumentException(
+                    "헌혈센터를 선택해주세요."
+            );
+        }
+
+        if (month < 1 || month > 12) {
+            throw new IllegalArgumentException(
+                    "조회 월이 올바르지 않습니다."
+            );
+        }
+
+        LocalDate monthStart =
+                LocalDate.of(year, month, 1);
+
+        LocalDate monthEnd =
+                monthStart.withDayOfMonth(
+                        monthStart.lengthOfMonth()
+                );
+
+        LocalDate tomorrow =
+                LocalDate.now().plusDays(1);
+
+        LocalDate reservationLimit =
+                LocalDate.now().plusMonths(2);
+
+        LocalDate searchStart =
+                monthStart.isBefore(tomorrow)
+                        ? tomorrow
+                        : monthStart;
+
+        LocalDate searchEnd =
+                monthEnd.isAfter(reservationLimit)
+                        ? reservationLimit
+                        : monthEnd;
+
+        if (searchStart.isAfter(searchEnd)) {
+            return Set.of();
+        }
+
+        List<ReservationSlot> slots =
+                reservationSlotRepository
+                        .findByCenter_IdAndReservationDateBetweenOrderByReservationDateAscStartTimeAsc(
+                                centerId,
+                                searchStart,
+                                searchEnd
+                        );
+
+        Set<LocalDate> availableDates =
+                new LinkedHashSet<>();
+
+        for (ReservationSlot slot : slots) {
+
+            if (!slot.isActive()) {
+                continue;
+            }
+
+            AdminReservationSlotResponseDto response =
+                    toResponseDto(slot);
+
+            if (response.getRemainingCapacity() > 0) {
+                availableDates.add(
+                        slot.getReservationDate()
+                );
+            }
+        }
+
+        return availableDates;
     }
 
 

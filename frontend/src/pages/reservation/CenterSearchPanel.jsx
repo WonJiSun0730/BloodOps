@@ -1,6 +1,7 @@
 import {
   useEffect,
   useMemo,
+  useRef,
   useState,
 } from 'react'
 
@@ -12,9 +13,16 @@ function CenterSearchPanel({
   selectedCenterId,
   initialKeyword,
   onSelectCenter,
+  onNextStep,
 }) {
   const [keyword, setKeyword] =
     useState('')
+
+  const centerListRef =
+    useRef(null)
+
+  const centerCardRefs =
+    useRef({})
 
   useEffect(() => {
     if (!initialKeyword) {
@@ -82,6 +90,44 @@ function CenterSearchPanel({
           === String(selectedCenterId)
     )
 
+  function scrollToCenterCard(
+    centerId
+  ) {
+    const listElement =
+      centerListRef.current
+
+    const cardElement =
+      centerCardRefs.current[
+        String(centerId)
+      ]
+
+    if (
+      !listElement
+      || !cardElement
+    ) {
+      return
+    }
+
+    const listRect =
+      listElement.getBoundingClientRect()
+
+    const cardRect =
+      cardElement.getBoundingClientRect()
+
+    const nextScrollTop =
+      listElement.scrollTop
+      + (
+        cardRect.top
+        - listRect.top
+      )
+      - 8
+
+    listElement.scrollTo({
+      top: nextScrollTop,
+      behavior: 'smooth',
+    })
+  }
+
   function handleMapCenterSelect(
     centerId
   ) {
@@ -99,9 +145,26 @@ function CenterSearchPanel({
       return
     }
 
-    onSelectCenter(
+    const nextCenterId =
       String(center.id)
+
+    const centerChanged =
+      nextCenterId
+        !== String(selectedCenterId)
+
+    onSelectCenter(
+      nextCenterId
     )
+
+    if (centerChanged) {
+      window.requestAnimationFrame(
+        () => {
+          scrollToCenterCard(
+            nextCenterId
+          )
+        }
+      )
+    }
   }
 
   function handleLocationView(
@@ -210,7 +273,10 @@ function CenterSearchPanel({
       </div>
 
 
-      <div className="reservation-center-list">
+      <div
+        ref={centerListRef}
+        className="reservation-center-list"
+      >
 
         {filteredCenters.length === 0 ? (
           <p className="reservation-center-empty">
@@ -232,6 +298,17 @@ function CenterSearchPanel({
               return (
                 <article
                   key={center.id}
+                  ref={(element) => {
+                      if (element) {
+                        centerCardRefs.current[
+                          String(center.id)
+                        ] = element
+                      } else {
+                        delete centerCardRefs.current[
+                          String(center.id)
+                        ]
+                      }
+                    }}
                   className={
                     `reservation-center-card${
                       selected
@@ -309,7 +386,10 @@ function CenterSearchPanel({
                     <button
                       type="button"
                       className="reservation-center-select-button"
-                      disabled={inactive}
+                      disabled={
+                        inactive
+                        || selected
+                      }
                       onClick={() =>
                         onSelectCenter(
                           String(center.id)
@@ -332,6 +412,43 @@ function CenterSearchPanel({
         )}
 
       </div>
+
+    <div className="reservation-step-navigation">
+
+            <div className="reservation-step-progress">
+              <span>
+                STEP 01
+              </span>
+
+              <strong>
+                {selectedCenter
+                  ? `${selectedCenter.centerName} 선택 완료`
+                  : '예약할 헌혈센터를 선택해주세요'}
+              </strong>
+            </div>
+
+
+            <button
+              type="button"
+              className="reservation-step-next"
+              disabled={!selectedCenter}
+              onClick={onNextStep}
+            >
+              <span>
+                예약 조건 선택
+              </span>
+
+              <span
+                className="reservation-step-arrow"
+                aria-hidden="true"
+              >
+                →
+              </span>
+            </button>
+
+          </div>
+
+
 
     </section>
   )

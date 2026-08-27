@@ -1,5 +1,6 @@
 import {
   useEffect,
+  useRef,
   useState,
 } from 'react'
 
@@ -9,11 +10,16 @@ import {
 
 import {
   getCenter,
-  getCenters,
+  getCenterMapCenters,
+  getCenterPage,
+  getCurrentUser,
 } from '../../api/apiClient.js'
 
 import CenterMapArea
   from '../../components/center/CenterMapArea.jsx'
+
+import ConfirmModal
+  from '../../components/modal/ConfirmModal.jsx'
 
 import './CenterSearchPage.css'
 
@@ -23,8 +29,55 @@ function CenterSearchPage() {
   const [keyword, setKeyword] =
     useState('')
 
+  const [
+    hasSearched,
+    setHasSearched,
+  ] = useState(false)
+
   const [centers, setCenters] =
     useState([])
+
+  const [
+    mapCenters,
+    setMapCenters,
+  ] = useState([])
+
+  const [
+    totalElements,
+    setTotalElements,
+  ] = useState(0)
+
+  const [page, setPage] =
+    useState(0)
+
+  const [
+    hasNextPage,
+    setHasNextPage,
+  ] = useState(false)
+
+  const [
+    loadingMore,
+    setLoadingMore,
+  ] = useState(false)
+
+  const [
+    loadMoreError,
+    setLoadMoreError,
+  ] = useState('')
+
+  const [
+    activeKeyword,
+    setActiveKeyword,
+  ] = useState('')
+
+  const requestIdRef =
+    useRef(0)
+
+  const detailRequestIdRef =
+    useRef(0)
+
+  const loadingMoreRef =
+    useRef(false)
 
   const [loading, setLoading] =
     useState(true)
@@ -47,28 +100,125 @@ function CenterSearchPage() {
     setDetailError,
   ] = useState('')
 
+  const [
+    loginModalOpen,
+    setLoginModalOpen,
+  ] = useState(false)
+
+  const [
+    reservationTarget,
+    setReservationTarget,
+  ] = useState(null)
+
   async function loadCenters(
-    searchKeyword = ''
+    searchKeyword = '',
+    selectFirst = false
   ) {
+    const trimmedKeyword =
+      searchKeyword.trim()
+
+    const requestId =
+      requestIdRef.current + 1
+
+    requestIdRef.current =
+      requestId
+
+    /*
+     * 이전 센터 상세 요청이 늦게 도착해
+     * 새 검색 결과를 덮어쓰지 않도록 무효화합니다.
+     */
+    detailRequestIdRef.current += 1
+
     try {
       setLoading(true)
       setError('')
+      setLoadMoreError('')
+      setDetailError('')
+      setSelectedCenter(null)
+
+      setCenters([])
+      setMapCenters([])
+      setTotalElements(0)
+      setPage(0)
+      setHasNextPage(false)
+      setActiveKeyword(
+        trimmedKeyword
+      )
+
+      const [
+        pageData,
+        mapData,
+      ] = await Promise.all([
+        getCenterPage(
+          trimmedKeyword,
+          0
+        ),
+        getCenterMapCenters(
+          trimmedKeyword
+        ),
+      ])
+
+      if (
+        requestId
+        !== requestIdRef.current
+      ) {
+        return
+      }
 
       const centerData =
-        await getCenters(
-          searchKeyword
-        )
+        pageData.content || []
 
-      setCenters(centerData)
+      setCenters(
+        centerData
+      )
+
+      setMapCenters(
+        mapData
+      )
+
+      setTotalElements(
+        pageData.totalElements || 0
+      )
+
+      setPage(
+        pageData.number || 0
+      )
+
+      setHasNextPage(
+        pageData.last === false
+      )
+
+      if (
+        selectFirst
+        && centerData.length > 0
+      ) {
+        await handleCenterSelect(
+          centerData[0].id
+        )
+      }
     } catch (error) {
+      if (
+        requestId
+        !== requestIdRef.current
+      ) {
+        return
+      }
+
       setCenters([])
+      setMapCenters([])
+      setSelectedCenter(null)
 
       setError(
         error.message
         || '헌혈센터 목록을 불러오지 못했습니다.'
       )
     } finally {
-      setLoading(false)
+      if (
+        requestId
+        === requestIdRef.current
+      ) {
+        setLoading(false)
+      }
     }
   }
 
@@ -81,14 +231,28 @@ function CenterSearchPage() {
   ) {
     event.preventDefault()
 
+    const trimmedKeyword =
+      keyword.trim()
+
+    setHasSearched(
+      Boolean(trimmedKeyword)
+    )
+
     loadCenters(
-      keyword
+      trimmedKeyword,
+      Boolean(trimmedKeyword)
     )
   }
 
   async function handleCenterSelect(
     centerId
   ) {
+    const detailRequestId =
+      detailRequestIdRef.current + 1
+
+    detailRequestIdRef.current =
+      detailRequestId
+
     try {
       setDetailLoading(true)
       setDetailError('')
@@ -98,10 +262,24 @@ function CenterSearchPage() {
           centerId
         )
 
+      if (
+        detailRequestId
+        !== detailRequestIdRef.current
+      ) {
+        return
+      }
+
       setSelectedCenter(
         center
       )
     } catch (error) {
+      if (
+        detailRequestId
+        !== detailRequestIdRef.current
+      ) {
+        return
+      }
+
       setSelectedCenter(null)
 
       setDetailError(
@@ -109,8 +287,183 @@ function CenterSearchPage() {
         || '헌혈센터 상세 정보를 불러오지 못했습니다.'
       )
     } finally {
-      setDetailLoading(false)
+      if (
+        detailRequestId
+        === detailRequestIdRef.current
+      ) {
+        setDetailLoading(false)
+      }
     }
+  }
+
+  async function loadMoreCenters() {
+    if (
+      loading
+      || loadingMoreRef.current
+      || !hasNextPage
+    ) {
+      return
+    }
+
+    /*
+     * 스크롤 이벤트가 짧은 시간에 여러 번 발생해도
+     * 같은 페이지를 중복 요청하지 않도록 차단합니다.
+     */
+    loadingMoreRef.current =
+      true
+
+    setLoadingMore(true)
+    setLoadMoreError('')
+
+    const requestId =
+      requestIdRef.current
+
+    const nextPage =
+      page + 1
+
+    try {
+      const pageData =
+        await getCenterPage(
+          activeKeyword,
+          nextPage
+        )
+
+      /*
+       * 추가 조회 도중 새 검색을 시작했다면
+       * 이전 검색 결과를 현재 목록에 추가하지 않습니다.
+       */
+      if (
+        requestId
+        !== requestIdRef.current
+      ) {
+        return
+      }
+
+      setCenters(
+        (previous) => {
+          const knownIds =
+            new Set(
+              previous.map(
+                (center) =>
+                  center.id
+              )
+            )
+
+          const additionalCenters =
+            (pageData.content || [])
+              .filter(
+                (center) =>
+                  !knownIds.has(
+                    center.id
+                  )
+              )
+
+          return [
+            ...previous,
+            ...additionalCenters,
+          ]
+        }
+      )
+
+      setPage(
+        pageData.number
+      )
+
+      setHasNextPage(
+        pageData.last === false
+      )
+    } catch (error) {
+      if (
+        requestId
+        === requestIdRef.current
+      ) {
+        setLoadMoreError(
+          error.message
+          || '센터 목록을 추가로 불러오지 못했습니다.'
+        )
+      }
+    } finally {
+      loadingMoreRef.current =
+        false
+
+      if (
+        requestId
+        === requestIdRef.current
+      ) {
+        setLoadingMore(false)
+      }
+    }
+  }
+
+
+  function handleCenterListScroll(
+    event
+  ) {
+    const list =
+      event.currentTarget
+
+    const remainingDistance =
+      list.scrollHeight
+      - list.scrollTop
+      - list.clientHeight
+
+    if (remainingDistance <= 120) {
+      loadMoreCenters()
+    }
+  }
+
+
+
+  async function handleReservationClick() {
+    if (
+      !selectedCenter
+      || selectedCenter.active === false
+    ) {
+      return
+    }
+
+    const reservationPath =
+      `/reservations/new?centerId=${selectedCenter.id}`
+
+    try {
+      await getCurrentUser()
+
+      navigate(
+        reservationPath
+      )
+    } catch {
+      setReservationTarget({
+        pathname:
+          '/reservations/new',
+        search:
+          `?centerId=${selectedCenter.id}`,
+      })
+
+      setLoginModalOpen(true)
+    }
+  }
+
+  function handleConfirmLogin() {
+    if (!reservationTarget) {
+      return
+    }
+
+    setLoginModalOpen(false)
+
+    navigate(
+      '/login',
+      {
+        state: {
+          from:
+            reservationTarget,
+        },
+      }
+    )
+  }
+
+  function handleCloseLoginModal() {
+    setLoginModalOpen(false)
+    setReservationTarget(null)
   }
 
   return (
@@ -164,79 +517,156 @@ function CenterSearchPage() {
             </p>
           )}
 
-          {!loading
-            && !error
-            && centers.length === 0 && (
-            <p>
-              검색된 헌혈센터가 없습니다.
-            </p>
-          )}
+                    {!loading
+                      && !error && (
+                      <div
+                        className="center-search-results"
+                        onScroll={
+                          handleCenterListScroll
+                        }
+                      >
+                        <p className="center-search-count">
+                          총 {totalElements}개 센터
+                        </p>
 
-          {!loading
-            && !error
-            && centers.length > 0 && (
-            <div>
-              <p>
-                총 {centers.length}개 센터
-              </p>
+                        {centers.length === 0 && (
+                          <p className="center-search-empty">
+                            검색된 헌혈센터가 없습니다.
+                          </p>
+                        )}
 
-              {centers.map(
-                (center) => (
-                <article
-                  key={center.id}
-                  className={
-                    selectedCenter?.id === center.id
-                      ? 'selected'
-                      : ''
-                  }
-                >
-                  <button
-                    type="button"
-                    onClick={() =>
-                      handleCenterSelect(
-                        center.id
-                      )
-                    }
-                  >
-                    <strong>
-                      {center.centerName}
-                    </strong>
+                        {centers.map(
+                          (center) => (
+                            <article
+                              key={center.id}
+                              className={
+                                selectedCenter?.id
+                                  === center.id
+                                  ? 'selected'
+                                  : ''
+                              }
+                            >
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  handleCenterSelect(
+                                    center.id
+                                  )
+                                }
+                              >
+                                <div className="center-list-title">
+                                  <strong>
+                                    {center.centerName}
+                                  </strong>
 
-                    <p>
-                      {center.address}
-                    </p>
+                                  <span
+                                    className={
+                                      center.active === false
+                                        ? 'center-status-badge inactive'
+                                        : 'center-status-badge active'
+                                    }
+                                  >
+                                    {center.active === false
+                                      ? '운영 중단'
+                                      : '운영 중'}
+                                  </span>
+                                </div>
 
-                    <span>
-                      {center.phone
-                        || '전화번호 정보 없음'}
-                    </span>
-                  </button>
-                </article>
-              ))}
-            </div>
-          )}
+                                <p>
+                                  {center.address}
+                                </p>
+
+                                <span className="center-list-phone">
+                                  {center.phone
+                                    || '전화번호 정보 없음'}
+                                </span>
+                              </button>
+                            </article>
+                          )
+                        )}
+
+                        {loadingMore && (
+                          <p className="center-list-loading">
+                            센터를 더 불러오는 중입니다.
+                          </p>
+                        )}
+
+                        {loadMoreError && (
+                          <button
+                            type="button"
+                            className="center-list-retry"
+                            onClick={
+                              loadMoreCenters
+                            }
+                          >
+                            추가 목록 다시 불러오기
+                          </button>
+                        )}
+
+                        {!hasNextPage
+                          && centers.length > 0 && (
+                          <p className="center-list-end">
+                            모든 센터를 불러왔습니다.
+                          </p>
+                        )}
+
+                      </div>
+                    )}
 
         </div>
 
         <aside className="center-search-detail-area">
 
+          <div className="center-detail-panel">
+
           {detailLoading && (
-            <p>
-              센터 정보를 불러오는 중입니다.
-            </p>
+            <div className="center-detail-status">
+              <strong>
+                센터 정보를 불러오는 중입니다.
+              </strong>
+
+              <p>
+                잠시만 기다려주세요.
+              </p>
+            </div>
           )}
 
           {detailError && (
-            <p>
-              {detailError}
-            </p>
+            <div
+              className="center-detail-status error"
+              role="alert"
+            >
+              <strong>
+                센터 정보를 불러오지 못했습니다.
+              </strong>
+
+              <p>
+                {detailError}
+              </p>
+            </div>
           )}
 
           {!detailLoading
             && !detailError
             && !selectedCenter && (
             <div className="center-search-placeholder">
-              센터를 선택하면 상세 정보가 표시됩니다.
+              <span aria-hidden="true">
+                +
+              </span>
+
+              <strong>
+                {hasSearched
+                   && totalElements === 0
+                  ? '검색 결과가 없습니다.'
+                  : '센터를 검색하고 예약해보세요.'}
+              </strong>
+
+              <p>
+                {hasSearched
+                   && totalElements === 0
+                  ? '다른 센터명이나 주소로 다시 검색해주세요.'
+                  : '센터명이나 주소를 검색하거나 목록에서 센터를 선택할 수 있습니다.'}
+              </p>
             </div>
           )}
 
@@ -329,27 +759,51 @@ function CenterSearchPage() {
 
               <button
                 type="button"
-                onClick={() =>
-                  navigate(
-                    `/reservations/new?centerId=${selectedCenter.id}`
-                  )
+                disabled={
+                  selectedCenter.active === false
+                }
+                onClick={
+                  handleReservationClick
                 }
               >
-                이 센터에서 예약하기
+                {selectedCenter.active === false
+                  ? '현재 예약할 수 없는 센터입니다'
+                  : '이 센터에서 예약하기'}
               </button>
 
             </div>
           )}
 
+          </div>
+
           <CenterMapArea
-            centers={centers}
+            centers={mapCenters}
             selectedCenter={selectedCenter}
             onCenterSelect={handleCenterSelect}
+            defaultViewport={
+              !hasSearched
+              || mapCenters.length === 0
+            }
           />
 
         </aside>
 
       </section>
+
+      <ConfirmModal
+              open={loginModalOpen}
+              title="로그인이 필요합니다"
+              message="로그인 후 예약 가능합니다. 진행하시겠습니까?"
+              confirmText="예"
+              cancelText="아니오"
+              onConfirm={
+                handleConfirmLogin
+              }
+              onCancel={
+                handleCloseLoginModal
+              }
+            />
+
     </main>
   )
 }

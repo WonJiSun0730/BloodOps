@@ -55,6 +55,12 @@ public class SecurityConfig {
                                 "/api/questionnaires/questions",
                                 "/api/questionnaires"
                         ).permitAll()
+                        // 비회원도 헌혈센터 목록과 상세 정보를 조회할 수 있습니다.
+                        .requestMatchers(
+                                org.springframework.http.HttpMethod.GET,
+                                "/api/centers",
+                                "/api/centers/**"
+                        ).permitAll()
                         // 관리자 전용 화면 및 API
                         .requestMatchers(
                                 "/admin/**",

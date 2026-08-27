@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Set;
 
 @RestController
 @RequestMapping("/api/reservations")
@@ -51,10 +52,21 @@ public class ReservationApiController {
                 )
                 .stream()
                 .filter(AdminReservationSlotResponseDto::isActive)
-                .filter(slot ->
-                        slot.getRemainingCapacity() > 0
-                )
                 .toList();
+    }
+
+    @GetMapping("/available-dates")
+    public Set<LocalDate> getAvailableDates(
+            @RequestParam Long centerId,
+            @RequestParam int year,
+            @RequestParam int month
+    ) {
+        return reservationSlotService
+                .getAvailableDates(
+                        centerId,
+                        year,
+                        month
+                );
     }
 
     /*
@@ -101,7 +113,7 @@ public class ReservationApiController {
         }
 
         return reservationService.createReservation(
-                request.getSlotId(),
+                request,
                 authentication.getName()
         );
     }

@@ -1,9 +1,11 @@
 package com.shop.reservation.service;
 
+import com.shop.changhyeon.identity.ResidentNumberHashService;
 import com.shop.member.entity.Member;
 import com.shop.member.repository.MemberRepository;
 import com.shop.reservation.constant.ReservationStatus;
 import com.shop.reservation.dto.AdminReservationResponseDto;
+import com.shop.reservation.dto.ReservationCreateDto;
 import com.shop.reservation.entity.EquipmentGroup;
 import com.shop.reservation.entity.Reservation;
 import com.shop.reservation.entity.ReservationSlot;
@@ -17,6 +19,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.List;
 
@@ -37,15 +40,25 @@ public class ReservationService {
     private final MemberRepository
             memberRepository;
 
+    private final ResidentNumberHashService
+            residentNumberHashService;
+
     public AdminReservationResponseDto createReservation(
-            Long slotId,
+            ReservationCreateDto request,
             String email
     ) {
-        if (slotId == null) {
+        if (request == null || request.getSlotId() == null) {
             throw new IllegalArgumentException(
                     "예약 슬롯을 선택해주세요."
             );
         }
+
+        Long slotId =
+                request.getSlotId();
+
+        validateReservationPersonalInfo(
+                request
+        );
 
         Member member =
                 memberRepository.findByEmail(email);
@@ -68,11 +81,11 @@ public class ReservationService {
                 LocalDate.now();
 
         if (
-                slot.getReservationDate()
-                        .isBefore(today)
+                !slot.getReservationDate()
+                        .isAfter(today)
         ) {
             throw new IllegalStateException(
-                    "이미 지난 날짜에는 예약할 수 없습니다."
+                    "당일 및 지난 날짜에는 예약할 수 없습니다."
             );
         }
 
@@ -85,17 +98,6 @@ public class ReservationService {
         ) {
             throw new IllegalStateException(
                     "예약은 오늘부터 2개월 이내의 날짜만 가능합니다."
-            );
-        }
-
-        if (
-                slot.getReservationDate()
-                        .isEqual(today)
-                        && !slot.getStartTime()
-                        .isAfter(LocalTime.now())
-        ) {
-            throw new IllegalStateException(
-                    "이미 지난 시간에는 예약할 수 없습니다."
             );
         }
 
@@ -139,12 +141,39 @@ public class ReservationService {
             );
         }
 
+        LocalDateTime consentedAt =
+                LocalDateTime.now();
+
         Reservation reservation =
                 Reservation.builder()
                         .member(member)
                         .slot(slot)
                         .status(
                                 ReservationStatus.RESERVED
+                        )
+                        .donorName(
+                                request.getDonorName().trim()
+                        )
+                        .phone(
+                                normalizePhone(
+                                        request.getPhone()
+                                )
+                        )
+                        .residentNumberHash(
+                                residentNumberHashService.hash(
+                                        request.getResidentRegistrationNumber()
+                                )
+                        )
+                        .residentNumberMasked(
+                                residentNumberHashService.mask(
+                                        request.getResidentRegistrationNumber()
+                                )
+                        )
+                        .privacyConsentedAt(
+                                consentedAt
+                        )
+                        .privacyRetentionUntil(
+                                consentedAt.plusYears(5)
                         )
                         .build();
 
@@ -153,6 +182,68 @@ public class ReservationService {
 
         return new AdminReservationResponseDto(
                 savedReservation
+        );
+    }
+
+    private void validateReservationPersonalInfo(
+            ReservationCreateDto request
+    ) {
+        if (
+                request.getDonorName() == null
+                        || request.getDonorName()
+                        .trim()
+                        .isEmpty()
+        ) {
+            throw new IllegalArgumentException(
+                    "성명을 입력해주세요."
+            );
+        }
+
+        if (
+                request.getPhone() == null
+                        || request.getPhone()
+                        .trim()
+                        .isEmpty()
+        ) {
+            throw new IllegalArgumentException(
+                    "휴대전화를 입력해주세요."
+            );
+        }
+
+        if (
+                request.getResidentRegistrationNumber() == null
+                        || request.getResidentRegistrationNumber()
+                        .trim()
+                        .isEmpty()
+        ) {
+            throw new IllegalArgumentException(
+                    "주민등록번호를 입력해주세요."
+            );
+        }
+
+        /*
+         * 실제 주민번호 진위 검증은 하지 않고
+         * 전자문진과 동일하게 13자리 형식만 확인합니다.
+         */
+        residentNumberHashService.normalize(
+                request.getResidentRegistrationNumber()
+        );
+
+        if (!request.isPrivacyConsented()) {
+            throw new IllegalArgumentException(
+                    "개인정보 수집 및 이용에 동의해주세요."
+            );
+        }
+    }
+
+    private String normalizePhone(
+            String phone
+    ) {
+        return phone == null
+                ? ""
+                : phone.replaceAll(
+                "[^0-9]",
+                ""
         );
     }
 

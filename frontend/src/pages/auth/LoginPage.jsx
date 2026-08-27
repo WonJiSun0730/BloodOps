@@ -6,6 +6,7 @@ import {
 
 import {
   Link,
+  useLocation,
   useSearchParams,
 } from 'react-router-dom'
 
@@ -27,6 +28,20 @@ import BackgroundOrbit
   from '../../components/decorations/BackgroundOrbit.jsx'
 
 function LoginPage() {
+  const location = useLocation()
+
+  const requestedLocation =
+    location.state?.from
+
+  const returnTo =
+    requestedLocation?.pathname
+      ? [
+          requestedLocation.pathname,
+          requestedLocation.search || '',
+          requestedLocation.hash || '',
+        ].join('')
+      : '/'
+
   const loginAlertShown =
     useRef(false)
 
@@ -100,7 +115,9 @@ function LoginPage() {
             )
           }
 
-          window.location.replace('/')
+          window.location.replace(
+            returnTo
+          )
           return
         }
       } catch {
@@ -114,7 +131,7 @@ function LoginPage() {
     }
 
     checkSession()
-  }, [])
+  }, [returnTo])
 
   function validateLoginForm() {
     const nextErrors = {
@@ -161,7 +178,8 @@ function LoginPage() {
         password
       )
 
-      window.location.href = '/'
+      window.location.href =
+        returnTo
     } catch (error) {
       setErrorMessage(
         error.message

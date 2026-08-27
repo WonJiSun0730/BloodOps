@@ -6,6 +6,8 @@ import com.shop.reservation.constant.ReservationStatus;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.time.LocalDateTime;
+
 @Entity
 @Table(name = "reservation")
 @Getter
@@ -55,4 +57,36 @@ public class Reservation extends BaseEntity {
     @Builder.Default
     private ReservationStatus status =
             ReservationStatus.RESERVED;
+
+    /*
+     * 예약 당시 예약자 정보의 스냅샷입니다.
+     * 회원정보가 이후 변경되어도 예약 당시 값을 유지합니다.
+     */
+    @Column(name = "donor_name", length = 100)
+    private String donorName;
+
+    @Column(name = "phone", length = 30)
+    private String phone;
+
+    /*
+     * 주민등록번호 원문은 저장하지 않고
+     * 전자문진과 동일하게 hash + masked 값만 저장합니다.
+     */
+    @Column(name = "resident_number_hash", length = 64)
+    private String residentNumberHash;
+
+    @Column(name = "resident_number_masked", length = 14)
+    private String residentNumberMasked;
+
+    /*
+     * 개인정보 수집·이용 동의 시각
+     */
+    @Column(name = "privacy_consented_at")
+    private LocalDateTime privacyConsentedAt;
+
+    /*
+     * 예약 개인정보 보유 만료 시각
+     */
+    @Column(name = "privacy_retention_until")
+    private LocalDateTime privacyRetentionUntil;
 }

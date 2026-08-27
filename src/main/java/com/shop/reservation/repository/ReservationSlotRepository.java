@@ -24,4 +24,11 @@ public interface ReservationSlotRepository
             LocalDate reservationDate,
             DonationType donationType
     );
+
+    List<ReservationSlot>
+    findByCenter_IdAndReservationDateBetweenOrderByReservationDateAscStartTimeAsc(
+            Long centerId,
+            LocalDate startDate,
+            LocalDate endDate
+    );
 }

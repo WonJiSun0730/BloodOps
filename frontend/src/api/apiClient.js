@@ -199,6 +199,56 @@ export function getCenters(keyword = '') {
 }
 
 /*
+ * 센터 검색 화면의 목록을
+ * 서버에서 10개씩 조회합니다.
+ */
+export function getCenterPage(
+  keyword = '',
+  page = 0
+) {
+  const params =
+    new URLSearchParams({
+      page: String(page),
+    })
+
+  const trimmedKeyword =
+    keyword.trim()
+
+  if (trimmedKeyword) {
+    params.set(
+      'keyword',
+      trimmedKeyword
+    )
+  }
+
+  return apiRequest(
+    `/api/centers/page?${params.toString()}`
+  )
+}
+
+
+/*
+ * 검색 조건에 해당하는
+ * 지도 마커 전체를 조회합니다.
+ */
+export function getCenterMapCenters(
+  keyword = ''
+) {
+  const trimmedKeyword =
+    keyword.trim()
+
+  if (!trimmedKeyword) {
+    return apiRequest(
+      '/api/centers/map'
+    )
+  }
+
+  return apiRequest(
+    `/api/centers/map?keyword=${encodeURIComponent(trimmedKeyword)}`
+  )
+}
+
+/*
  * ADMIN 헌혈센터 목록을 페이지 단위로 조회합니다.
  */
 export function getAdminCenters(
@@ -561,11 +611,31 @@ export function getReservationSlots(
   )
 }
 
+/*
+ * 선택한 센터의 월별 예약 가능 날짜를 조회합니다.
+ */
+export function getAvailableReservationDates(
+  centerId,
+  year,
+  month
+) {
+  const params = new URLSearchParams({
+    centerId: String(centerId),
+    year: String(year),
+    month: String(month),
+  })
+
+  return apiRequest(
+    `/api/reservations/available-dates?${params.toString()}`
+  )
+}
 
 /*
  * 로그인 사용자가 예약을 생성합니다.
  */
-export async function createReservation(slotId) {
+export async function createReservation(
+  reservationData
+) {
   const csrf = await getCsrfToken()
 
   return apiRequest(
@@ -578,9 +648,9 @@ export async function createReservation(slotId) {
         [csrf.headerName]: csrf.token,
       },
 
-      body: JSON.stringify({
-        slotId,
-      }),
+      body: JSON.stringify(
+        reservationData
+      ),
     }
   )
 }
