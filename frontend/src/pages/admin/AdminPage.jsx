@@ -28,6 +28,14 @@ const adminMenus = [
       '회원 정보를 조회하고 서비스 접근 권한을 관리합니다.',
     to: '/admin/members',
   },
+  {
+    id: 'kakao-message',
+    eyebrow: 'KAKAO MESSAGE',
+    title: '카카오 예약 알림 관리',
+    description:
+      '예약 완료 시 나에게 보내는 카카오 메시지 내용과 발송 여부를 관리합니다.',
+    to: '/admin/kakao-message-template',
+  },
 ]
 
 

@@ -47,6 +47,8 @@ import AdminReservationsPage
   from './pages/admin/AdminReservationsPage.jsx'
 import AdminMembersPage
   from './pages/admin/AdminMembersPage.jsx'
+import AdminKakaoMessageTemplatePage
+  from './pages/admin/AdminKakaoMessageTemplatePage.jsx'
 
 import BloodUnitsManagementPage
   from './pages/medical/BloodUnitsManagementPage.jsx'
@@ -257,6 +259,15 @@ function App() {
           element={
             <AdminRoute>
               <AdminMembersPage />
+            </AdminRoute>
+          }
+        />
+
+        <Route
+          path="/admin/kakao-message-template"
+          element={
+            <AdminRoute>
+              <AdminKakaoMessageTemplatePage />
             </AdminRoute>
           }
         />
