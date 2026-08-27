@@ -2,6 +2,7 @@ package com.shop.changhyeon.donation.service;
 
 import com.shop.center.entity.Center;
 import com.shop.changhyeon.donation.dto.DonationHistoryResponseDto;
+import com.shop.changhyeon.donation.dto.MedicalDonationHistoryResponseDto;
 import com.shop.changhyeon.donation.entity.DonationHistory;
 import com.shop.changhyeon.donation.repository.DonationHistoryRepository;
 import com.shop.member.entity.Member;
@@ -68,6 +69,15 @@ public class DonationHistoryService {
                 .findByMember_IdOrderByDonationDateDescIdDesc(member.getId())
                 .stream()
                 .map(DonationHistoryResponseDto::from)
+                .toList();
+    }
+
+    @Transactional(readOnly = true)
+    public List<MedicalDonationHistoryResponseDto> getAllDonationHistory() {
+        return donationHistoryRepository
+                .findAllByOrderByRegTimeDescIdDesc()
+                .stream()
+                .map(MedicalDonationHistoryResponseDto::from)
                 .toList();
     }
 }

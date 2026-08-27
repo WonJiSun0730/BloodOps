@@ -19,6 +19,15 @@ function InventoryIcon() {
   )
 }
 
+function DonationHistoryIcon() {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M6 3h12a2 2 0 0 1 2 2v16H4V5a2 2 0 0 1 2-2Z" />
+      <path d="M8 8h8M8 12h8M8 16h5" />
+    </svg>
+  )
+}
+
 function MedicalMyPage() {
   const navigate = useNavigate()
 
@@ -80,6 +89,28 @@ function MedicalMyPage() {
             onClick={() => navigate('/medical/blood_units_management')}
           >
             재고 관리하기
+            <span aria-hidden="true">→</span>
+          </button>
+        </article>
+
+
+        <article className="medical-service-card">
+          <span className="medical-service-card__icon">
+            <DonationHistoryIcon />
+          </span>
+          <div className="medical-service-card__content">
+            <span className="medical-service-card__tag">헌혈 기록</span>
+            <h2>전체 헌혈 기록</h2>
+            <p>
+              완료 처리되어 저장된 모든 헌혈자의 헌혈 기록을
+              최신순으로 확인합니다.
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={() => navigate('/medical/donation_history')}
+          >
+            헌혈 기록 보기
             <span aria-hidden="true">→</span>
           </button>
         </article>
