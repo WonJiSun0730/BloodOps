@@ -7,6 +7,11 @@ import com.shop.changhyeon.reward.service.RewardProductService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.http.CacheControl;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+
+import java.util.concurrent.TimeUnit;
 
 import java.util.List;
 
@@ -26,5 +31,14 @@ public class RewardApiController {
     @GetMapping("/products")
     public List<RewardProductResponse> getProducts() {
         return rewardProductService.getAvailableProducts();
+    }
+
+    @GetMapping("/products/{productId}/image")
+    public ResponseEntity<byte[]> getProductImage(@PathVariable Long productId) {
+        var image = rewardProductService.getImage(productId);
+        return ResponseEntity.ok()
+                .contentType(MediaType.parseMediaType(image.contentType()))
+                .cacheControl(CacheControl.maxAge(1, TimeUnit.HOURS))
+                .body(image.data());
     }
 }

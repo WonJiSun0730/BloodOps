@@ -68,6 +68,7 @@ function MyPointsPage() {
         <div className="reward-product-grid">
           {products.map((product) => (
             <article key={product.id} className={product.stockQuantity === 0 ? 'sold-out' : ''}>
+              {product.imageUrl ? <img className="reward-product-image" src={product.imageUrl} alt={product.name} /> : <div className="reward-product-image placeholder">NO IMAGE</div>}
               <span>{product.stockQuantity === 0 ? '품절' : '교환 가능'}</span>
               <h4>{product.name}</h4><p>{product.description}</p>
               <div><strong>{product.pointPrice.toLocaleString()}P</strong><small>재고 {product.stockQuantity}개</small></div>
