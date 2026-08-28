@@ -6,6 +6,7 @@ import com.shop.changhyeon.reward.service.RewardProductService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -24,6 +25,14 @@ public class AdminRewardProductController {
     @PostMapping
     public RewardProductResponse create(@Valid @RequestBody RewardProductRequest request) {
         return rewardProductService.create(request);
+    }
+
+    @PutMapping("/{productId}/image")
+    public RewardProductResponse uploadImage(
+            @PathVariable Long productId,
+            @RequestPart("image") MultipartFile image
+    ) {
+        return rewardProductService.uploadImage(productId, image);
     }
 
     @PutMapping("/{productId}")

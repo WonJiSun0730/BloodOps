@@ -856,3 +856,21 @@ export async function updateAdminRewardProduct(productId, productData) {
     body: JSON.stringify(productData),
   })
 }
+
+
+export async function uploadAdminRewardProductImage(productId, imageFile) {
+  const csrf = await getCsrfToken()
+  const formData = new FormData()
+  formData.append('image', imageFile)
+
+  return apiRequest(
+    '/api/admin/reward-products/' + encodeURIComponent(productId) + '/image',
+    {
+      method: 'PUT',
+      headers: {
+        [csrf.headerName]: csrf.token,
+      },
+      body: formData,
+    }
+  )
+}

@@ -32,3 +32,13 @@
 @media (max-width: 1024px) { .admin-reward-form { grid-template-columns: 1fr 1fr; } .admin-reward-description { grid-column: 1 / -1; } }
 @media (max-width: 768px) { .admin-reward-page { padding-top: 38px; } .admin-reward-form { grid-template-columns: 1fr; } .admin-reward-description, .admin-reward-actions { grid-column: 1; } .admin-reward-actions { justify-content: stretch; } .admin-reward-actions button { flex: 1; } .admin-reward-row.heading { display: none; } .admin-reward-row { min-width: 0; padding: 14px; grid-template-columns: 1fr 1fr; gap: 8px; } .admin-reward-row > span { min-height: auto; padding: 4px; } .admin-reward-row > span:first-child { grid-column: 1 / -1; } }
 @media (max-width: 480px) { .admin-reward-form { padding: 18px; } .admin-reward-row { grid-template-columns: 1fr; } .admin-reward-row > span:first-child { grid-column: 1; } }
+
+.admin-reward-image { grid-column: 1 / -1; }
+.admin-reward-image input[type="file"] { padding: 8px; cursor: pointer; }
+.admin-reward-image small { color: var(--color-text-muted); font-weight: 500; }
+.admin-reward-preview { width: 160px; aspect-ratio: 4 / 3; grid-column: 1 / -1; border: 1px solid var(--color-border); border-radius: 10px; object-fit: cover; background: var(--color-background); }
+.admin-reward-row .admin-reward-product-name { flex-direction: row; align-items: center; justify-content: flex-start; gap: 12px; }
+.admin-reward-product-name > img, .admin-reward-no-image { width: 54px; height: 54px; flex: 0 0 auto; border: 1px solid var(--color-border); border-radius: 8px; object-fit: cover; background: var(--color-background); }
+.admin-reward-no-image { display: grid; place-items: center; color: var(--color-text-muted); font-size: .55rem; text-align: center; }
+.admin-reward-product-name > span:last-child { display: flex; min-width: 0; flex-direction: column; gap: 4px; }
+@media (max-width: 768px) { .admin-reward-preview { width: 100%; max-width: 240px; } }
