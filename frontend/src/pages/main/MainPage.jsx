@@ -2,6 +2,15 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 
 import {
+  getCenterMapCenters,
+} from '../../api/apiClient.js'
+
+import {
+  findNearestCenter,
+  getCurrentPosition,
+} from '../../utils/geolocation.js'
+
+import {
   CenterIcon,
   ReservationIcon,
   QuestionnaireIcon,
@@ -339,6 +348,20 @@ function MainPage() {
   const [activeTip, setActiveTip] =
     useState(0)
 
+  const [
+    nearestCenter,
+    setNearestCenter,
+  ] = useState(null)
+
+  const [
+    locationLoading,
+    setLocationLoading,
+  ] = useState(false)
+
+  const [
+    locationError,
+    setLocationError,
+  ] = useState('')
 
   /*
    * 이벤트 배너 자동 전환
@@ -384,6 +407,46 @@ function MainPage() {
     )
   }
 
+   async function handleFindNearestCenter() {
+     try {
+       setLocationLoading(true)
+       setLocationError('')
+
+       const position =
+         await getCurrentPosition()
+
+       const centerData =
+         await getCenterMapCenters()
+
+       const nearest =
+         findNearestCenter(
+           centerData,
+           position.latitude,
+           position.longitude
+         )
+
+       if (!nearest) {
+         setNearestCenter(null)
+
+         setLocationError(
+           '위치 정보가 등록된 운영 센터를 찾지 못했습니다.'
+         )
+
+         return
+       }
+
+       setNearestCenter(nearest)
+     } catch (error) {
+       setNearestCenter(null)
+
+       setLocationError(
+         error.message
+         || '가까운 헌혈의 집을 찾지 못했습니다.'
+       )
+     } finally {
+       setLocationLoading(false)
+     }
+   }
 
   return (
     <main className="main-page">
@@ -634,6 +697,95 @@ function MainPage() {
       {/* =================================================
           주요 서비스
           ================================================= */}
+
+            <section
+              className="nearest-center-section"
+              aria-labelledby="nearest-center-title"
+            >
+              <div className="nearest-center-copy">
+                <span className="section-eyebrow">
+                  NEARBY DONATION CENTER
+                </span>
+
+                {!nearestCenter ? (
+                  <>
+                    <h2 id="nearest-center-title">
+                      내 주변 헌혈의 집을 찾아보세요.
+                    </h2>
+
+                    <p>
+                      현재 위치를 기준으로 가장 가까운
+                      운영 중인 헌혈의 집을 안내해드립니다.
+                    </p>
+                  </>
+                ) : (
+                  <>
+                    <h2 id="nearest-center-title">
+                      가장 가까운 헌혈의 집은{' '}
+                      <strong>
+                        {nearestCenter.centerName}
+                      </strong>
+                      입니다!
+                    </h2>
+
+                    <p>
+                      가까운 곳에서 시작하는 작은 나눔이
+                      누군가에게는 소중한 내일이 됩니다.
+                    </p>
+
+                    <span className="nearest-center-distance">
+                      현재 위치에서 약{' '}
+                      {nearestCenter.distanceKm < 1
+                        ? `${Math.round(
+                            nearestCenter.distanceKm
+                            * 1000
+                          )}m`
+                        : `${nearestCenter.distanceKm.toFixed(
+                            1
+                          )}km`}
+                    </span>
+                  </>
+                )}
+
+                {locationError && (
+                  <p
+                    className="nearest-center-error"
+                    role="alert"
+                  >
+                    {locationError}
+                  </p>
+                )}
+              </div>
+
+              <div className="nearest-center-actions">
+                <button
+                  type="button"
+                  onClick={
+                    handleFindNearestCenter
+                  }
+                  disabled={locationLoading}
+                >
+                  {locationLoading
+                    ? '현재 위치 확인 중...'
+                    : nearestCenter
+                      ? '다시 찾기'
+                      : '가까운 헌혈의 집 찾기'}
+                </button>
+
+                {nearestCenter && (
+                  <Link
+                    to={
+                      `/reservations/new?centerId=${nearestCenter.id}`
+                    }
+                  >
+                    이 센터 예약하기
+                    <span aria-hidden="true">
+                      →
+                    </span>
+                  </Link>
+                )}
+              </div>
+            </section>
 
       <section
         className="main-service-section"

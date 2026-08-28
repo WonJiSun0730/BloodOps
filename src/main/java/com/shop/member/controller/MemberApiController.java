@@ -4,6 +4,8 @@ import com.shop.member.dto.MemberAdditionalInfoDto;
 import com.shop.member.dto.MemberFormDto;
 import com.shop.member.entity.Member;
 import com.shop.member.service.MemberService;
+import com.shop.member.verification.EmailVerificationService;
+import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -24,6 +26,10 @@ import java.util.Map;
 public class MemberApiController {
 
     private final MemberService memberService;
+
+    private final EmailVerificationService
+            emailVerificationService;
+
     private final PasswordEncoder passwordEncoder;
 
     /*
@@ -147,7 +153,8 @@ public class MemberApiController {
     public ResponseEntity<Map<String, Object>> updateAdditionalInfo(
             @Valid @RequestBody MemberAdditionalInfoDto dto,
             BindingResult bindingResult,
-            Authentication authentication
+            Authentication authentication,
+            HttpSession session
     ) {
 
         if (bindingResult.hasErrors()) {
@@ -174,10 +181,36 @@ public class MemberApiController {
         }
 
         try {
+            if (
+                    !emailVerificationService
+                            .isVerified(
+                                    dto.getEmail(),
+                                    session
+                            )
+            ) {
+                return ResponseEntity
+                        .badRequest()
+                        .body(
+                                Map.of(
+                                        "message",
+                                        "이메일 인증이 필요합니다.",
+                                        "errors",
+                                        Map.of(
+                                                "email",
+                                                "이메일 인증을 완료해주세요."
+                                        )
+                                )
+                        );
+            }
             memberService.updateAdditionalInfo(
                     authentication.getName(),
                     dto
             );
+
+            emailVerificationService
+                    .clearVerification(
+                            session
+                    );
 
             return ResponseEntity.ok(
                     Map.of(
@@ -201,6 +234,46 @@ public class MemberApiController {
             );
 
         } catch (IllegalArgumentException e) {
+
+            if (
+                    e.getMessage() != null
+                            && e.getMessage()
+                            .startsWith("생년월일")
+            ) {
+                return ResponseEntity
+                        .badRequest()
+                        .body(
+                                Map.of(
+                                        "message",
+                                        "입력 내용을 확인해주세요.",
+                                        "errors",
+                                        Map.of(
+                                                "birthDate",
+                                                e.getMessage()
+                                        )
+                                )
+                        );
+            }
+
+            if (
+                    e.getMessage() != null
+                            && e.getMessage()
+                            .startsWith("이메일")
+            ) {
+                return ResponseEntity
+                        .badRequest()
+                        .body(
+                                Map.of(
+                                        "message",
+                                        "입력 내용을 확인해주세요.",
+                                        "errors",
+                                        Map.of(
+                                                "email",
+                                                e.getMessage()
+                                        )
+                                )
+                        );
+            }
 
             return ResponseEntity.badRequest().body(
                     Map.of(

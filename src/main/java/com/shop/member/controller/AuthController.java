@@ -1,7 +1,7 @@
 package com.shop.member.controller;
 
 import com.shop.member.entity.Member;
-import com.shop.member.repository.MemberRepository;
+import com.shop.member.service.MemberService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.web.csrf.CsrfToken;
@@ -19,7 +19,7 @@ import java.util.Map;
 @RequestMapping("/api/auth")
 @RequiredArgsConstructor
 public class AuthController {
-    private final MemberRepository memberRepository;
+    private final MemberService memberService;
 
     // React가 로그인 요청 전에 CSRF 토큰을 받아가는 주소
     // 최종 주소: GET /api/auth/csrf
@@ -50,18 +50,17 @@ public class AuthController {
                 authentication.getName();
 
         Member member =
-                memberRepository.findByEmail(identifier);
-
-        if (member == null) {
-            throw new IllegalStateException(
-                    "회원 정보를 찾을 수 없습니다."
-            );
-        }
+                memberService
+                        .findByAuthenticationIdentifier(
+                                identifier
+                        );
 
         boolean additionalInfoRequired =
                 member.getBirthDate() == null
                         || member.getPhone() == null
-                        || member.getPhone().isBlank();
+                        || member.getPhone().isBlank()
+                        || member.getEmail() == null
+                        || member.getEmail().isBlank();
 
         Map<String, Object> response =
                 new LinkedHashMap<>();

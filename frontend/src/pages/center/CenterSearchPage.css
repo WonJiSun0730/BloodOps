@@ -438,6 +438,79 @@
   line-height: 1.65;
 }
 
+.center-location-button {
+  min-height: 42px;
+
+  margin-top: 20px;
+  padding: 0 16px;
+
+  border: 1px solid var(--color-primary);
+  border-radius: 9px;
+
+  color: #ffffff;
+  background-color: var(--color-primary);
+
+  font-size: 0.8rem;
+  font-weight: 750;
+
+  cursor: pointer;
+
+  transition:
+    background-color 0.18s ease,
+    transform 0.18s ease;
+}
+
+.center-location-button:hover:not(:disabled) {
+  background-color:
+    var(--color-primary-hover);
+
+  transform: translateY(-1px);
+}
+
+.center-location-button:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+
+.center-search-placeholder
+.center-location-error {
+  max-width: 380px;
+
+  margin-top: 12px;
+
+  color: var(--color-primary);
+
+  font-size: 0.74rem;
+}
+
+.center-nearest-badge {
+  width: fit-content;
+
+  margin: -10px 0 16px;
+  padding: 6px 10px;
+
+  border: 1px solid
+    color-mix(
+      in srgb,
+      var(--color-primary) 25%,
+      var(--color-border)
+    );
+
+  border-radius: 999px;
+
+  color: var(--color-primary);
+
+  background:
+    color-mix(
+      in srgb,
+      var(--color-primary) 8%,
+      var(--color-surface)
+    );
+
+  font-size: 0.72rem;
+  font-weight: 750;
+}
+
 .center-detail-status.error strong,
 .center-detail-status.error p {
   color: var(--color-primary);

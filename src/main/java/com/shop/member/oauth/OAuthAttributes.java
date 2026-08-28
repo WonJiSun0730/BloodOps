@@ -124,16 +124,18 @@ public class OAuthAttributes {
         }
 
         /*
-         * 카카오 이메일 제공 동의 여부와 관계없이
-         * 내부에서 사용할 수 있는 고유 이메일 값을 만듭니다.
+         * 카카오가 실제 이메일을 제공한 경우에만 저장합니다.
+         * 이메일 제공 동의를 받지 못한 경우 null로 두고
+         * BloodOps 추가정보 입력 화면에서 직접 입력받습니다.
          */
-        String internalEmail = providerId + "@kakao.local";
+        String email =
+                (String) kakaoAccount.get("email");
 
         return new OAuthAttributes(
                 attributes,
                 userNameAttributeName,
                 (String) profile.get("nickname"),
-                internalEmail,
+                email,
                 (String) profile.get("profile_image_url"),
                 birthDate,
                 phone,

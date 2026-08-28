@@ -61,9 +61,14 @@ public class CustomOAuth2UserService
         Map<String, Object> normalizedAttributes =
                 new HashMap<>(attributes.getAttributes());
 
+        String bloodOpsIdentifier =
+                member.getProvider().name()
+                        + ":"
+                        + member.getProviderId();
+
         normalizedAttributes.put(
                 "bloodops_identifier",
-                member.getEmail()
+                bloodOpsIdentifier
         );
 
         /*

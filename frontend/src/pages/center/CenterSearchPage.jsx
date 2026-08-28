@@ -15,6 +15,11 @@ import {
   getCurrentUser,
 } from '../../api/apiClient.js'
 
+import {
+  findNearestCenter,
+  getCurrentPosition,
+} from '../../utils/geolocation.js'
+
 import CenterMapArea
   from '../../components/center/CenterMapArea.jsx'
 
@@ -109,6 +114,21 @@ function CenterSearchPage() {
     reservationTarget,
     setReservationTarget,
   ] = useState(null)
+
+   const [
+     nearestCenter,
+     setNearestCenter,
+   ] = useState(null)
+
+   const [
+     locationLoading,
+     setLocationLoading,
+   ] = useState(false)
+
+   const [
+     locationError,
+     setLocationError,
+   ] = useState('')
 
   async function loadCenters(
     searchKeyword = '',
@@ -466,6 +486,64 @@ function CenterSearchPage() {
     setReservationTarget(null)
   }
 
+  async function handleFindNearestCenter() {
+    try {
+      setLocationLoading(true)
+      setLocationError('')
+
+      const position =
+        await getCurrentPosition()
+
+      let centerData =
+        mapCenters
+
+      if (
+        !Array.isArray(centerData)
+        || centerData.length === 0
+      ) {
+        centerData =
+          await getCenterMapCenters()
+      }
+
+      const nearest =
+        findNearestCenter(
+          centerData,
+          position.latitude,
+          position.longitude
+        )
+
+      if (!nearest) {
+        setNearestCenter(null)
+
+        setLocationError(
+          '위치 정보가 등록된 운영 센터를 찾지 못했습니다.'
+        )
+
+        return
+      }
+
+      setNearestCenter(nearest)
+
+      setKeyword('')
+      setHasSearched(false)
+
+      await loadCenters('')
+
+      await handleCenterSelect(
+        nearest.id
+      )
+    } catch (error) {
+      setNearestCenter(null)
+
+      setLocationError(
+        error.message
+        || '가까운 헌혈의 집을 찾지 못했습니다.'
+      )
+    } finally {
+      setLocationLoading(false)
+    }
+  }
+
   return (
     <main className="center-search-page">
       <section className="center-search-header">
@@ -646,29 +724,51 @@ function CenterSearchPage() {
             </div>
           )}
 
-          {!detailLoading
-            && !detailError
-            && !selectedCenter && (
-            <div className="center-search-placeholder">
-              <span aria-hidden="true">
-                +
-              </span>
+            {!detailLoading
+              && !detailError
+              && !selectedCenter && (
+              <div className="center-search-placeholder">
+                <span aria-hidden="true">
+                  ◎
+                </span>
 
-              <strong>
-                {hasSearched
-                   && totalElements === 0
-                  ? '검색 결과가 없습니다.'
-                  : '센터를 검색하고 예약해보세요.'}
-              </strong>
+                <strong>
+                  {hasSearched
+                    && totalElements === 0
+                    ? '검색 결과가 없습니다.'
+                    : '가장 가까운 곳을 찾으시나요?'}
+                </strong>
 
-              <p>
-                {hasSearched
-                   && totalElements === 0
-                  ? '다른 센터명이나 주소로 다시 검색해주세요.'
-                  : '센터명이나 주소를 검색하거나 목록에서 센터를 선택할 수 있습니다.'}
-              </p>
-            </div>
-          )}
+                <p>
+                  {hasSearched
+                    && totalElements === 0
+                    ? '다른 센터명이나 주소로 다시 검색하거나 현재 위치를 기준으로 가까운 센터를 찾아보세요.'
+                    : '센터명이나 주소를 검색하거나 현재 위치를 기준으로 가까운 헌혈의 집을 확인할 수 있습니다.'}
+                </p>
+
+                <button
+                  type="button"
+                  className="center-location-button"
+                  onClick={
+                    handleFindNearestCenter
+                  }
+                  disabled={locationLoading}
+                >
+                  {locationLoading
+                    ? '현재 위치 확인 중...'
+                    : '현재 위치로 확인하기'}
+                </button>
+
+                {locationError && (
+                  <p
+                    className="center-location-error"
+                    role="alert"
+                  >
+                    {locationError}
+                  </p>
+                )}
+              </div>
+            )}
 
           {!detailLoading
             && !detailError
@@ -682,6 +782,22 @@ function CenterSearchPage() {
               <p>
                 {selectedCenter.address}
               </p>
+
+              {nearestCenter?.id
+                  === selectedCenter.id && (
+                  <div className="center-nearest-badge">
+                    현재 위치에서 가장 가까운 센터
+                    {' · '}
+                    {nearestCenter.distanceKm < 1
+                      ? `${Math.round(
+                          nearestCenter.distanceKm
+                          * 1000
+                        )}m`
+                      : `${nearestCenter.distanceKm.toFixed(
+                          1
+                        )}km`}
+                  </div>
+                )}
 
               <dl>
                 <div>

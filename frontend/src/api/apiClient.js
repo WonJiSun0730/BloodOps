@@ -147,6 +147,60 @@ export async function updateAdditionalInfo(memberData) {
 }
 
 /*
+ * 추가정보 입력 화면에서
+ * 이메일 인증번호를 발송합니다.
+ */
+export async function sendEmailVerificationCode(
+  email
+) {
+  const csrf = await getCsrfToken()
+
+  return apiRequest(
+    '/api/members/email-verification/send',
+    {
+      method: 'POST',
+
+      headers: {
+        'Content-Type': 'application/json',
+        [csrf.headerName]: csrf.token,
+      },
+
+      body: JSON.stringify({
+        email,
+      }),
+    }
+  )
+}
+
+
+/*
+ * 이메일로 받은 6자리 인증번호를 확인합니다.
+ */
+export async function confirmEmailVerificationCode(
+  email,
+  code
+) {
+  const csrf = await getCsrfToken()
+
+  return apiRequest(
+    '/api/members/email-verification/confirm',
+    {
+      method: 'POST',
+
+      headers: {
+        'Content-Type': 'application/json',
+        [csrf.headerName]: csrf.token,
+      },
+
+      body: JSON.stringify({
+        email,
+        code,
+      }),
+    }
+  )
+}
+
+/*
  * 아이디 중복 여부를 확인합니다.
  *
  * 반환 예:
