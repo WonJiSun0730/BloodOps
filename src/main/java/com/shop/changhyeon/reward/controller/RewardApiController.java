@@ -4,6 +4,8 @@ import com.shop.changhyeon.reward.dto.MyPointResponse;
 import com.shop.changhyeon.reward.dto.RewardProductResponse;
 import com.shop.changhyeon.reward.service.PointRewardService;
 import com.shop.changhyeon.reward.service.RewardProductService;
+import com.shop.changhyeon.reward.service.RewardPurchaseService;
+import com.shop.changhyeon.reward.dto.RewardPurchaseResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
@@ -22,6 +24,7 @@ public class RewardApiController {
 
     private final PointRewardService pointRewardService;
     private final RewardProductService rewardProductService;
+    private final RewardPurchaseService rewardPurchaseService;
 
     @GetMapping("/me")
     public MyPointResponse getMyPoints(Authentication authentication) {
@@ -31,6 +34,14 @@ public class RewardApiController {
     @GetMapping("/products")
     public List<RewardProductResponse> getProducts() {
         return rewardProductService.getAvailableProducts();
+    }
+
+    @PostMapping("/products/{productId}/purchase")
+    public RewardPurchaseResponse purchase(
+            @PathVariable Long productId,
+            Authentication authentication
+    ) {
+        return rewardPurchaseService.purchase(productId, authentication.getName());
     }
 
     @GetMapping("/products/{productId}/image")

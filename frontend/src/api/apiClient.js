@@ -874,3 +874,30 @@ export async function uploadAdminRewardProductImage(productId, imageFile) {
     }
   )
 }
+
+
+export async function deleteAdminRewardProduct(productId) {
+  const csrf = await getCsrfToken()
+  return apiRequest(
+    '/api/admin/reward-products/' + encodeURIComponent(productId),
+    {
+      method: 'DELETE',
+      headers: {
+        [csrf.headerName]: csrf.token,
+      },
+    }
+  )
+}
+
+export async function purchaseRewardProduct(productId) {
+  const csrf = await getCsrfToken()
+  return apiRequest(
+    '/api/rewards/products/' + encodeURIComponent(productId) + '/purchase',
+    {
+      method: 'POST',
+      headers: {
+        [csrf.headerName]: csrf.token,
+      },
+    }
+  )
+}
