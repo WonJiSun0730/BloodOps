@@ -14,6 +14,7 @@ import {
   getAvailableReservationDates,
   getCenters,
   getCurrentUser,
+  getMyDonationEligibility,
   getReservationSlots,
 } from '../../api/apiClient.js'
 
@@ -128,6 +129,11 @@ function ReservationCreatePage() {
     setDonationType,
   ] = useState('')
 
+  const [
+    donationEligibility,
+    setDonationEligibility,
+  ] = useState(null)
+
   const [slots, setSlots] =
     useState([])
 
@@ -170,6 +176,11 @@ function ReservationCreatePage() {
     successMessage,
     setSuccessMessage,
   ] = useState('')
+
+  const [
+    reservationReplaceConfirm,
+    setReservationReplaceConfirm,
+  ] = useState(null)
 
   const [loading, setLoading] =
     useState(false)
@@ -264,6 +275,33 @@ function scrollToStep(stepRef) {
     }
 
     loadMemberInfo()
+
+    return () => {
+      cancelled = true
+    }
+  }, [])
+
+  useEffect(() => {
+    let cancelled = false
+
+    async function loadDonationEligibility() {
+      try {
+        const data =
+          await getMyDonationEligibility()
+
+        if (!cancelled) {
+          setDonationEligibility(
+            data || null
+          )
+        }
+      } catch {
+        if (!cancelled) {
+          setDonationEligibility(null)
+        }
+      }
+    }
+
+    loadDonationEligibility()
 
     return () => {
       cancelled = true
@@ -424,6 +462,52 @@ function scrollToStep(stepRef) {
         type.value === donationType
     )
 
+  const donationEligibilityDateMap = {
+    WHOLE_BLOOD:
+      donationEligibility
+        ?.wholeBloodNextAvailableDate,
+
+    PLATELET:
+      donationEligibility
+        ?.plateletNextAvailableDate,
+
+    PLASMA:
+      donationEligibility
+        ?.plasmaNextAvailableDate,
+
+    PLATELET_PLASMA:
+      donationEligibility
+        ?.plateletPlasmaNextAvailableDate,
+  }
+
+  const donationNextAvailableDate =
+    donationEligibilityDateMap[
+      donationType
+    ] || null
+
+  const donationRestrictionReasonMap = {
+    WHOLE_BLOOD:
+      donationEligibility
+        ?.wholeBloodRestrictionReason,
+
+    PLATELET:
+      donationEligibility
+        ?.plateletRestrictionReason,
+
+    PLASMA:
+      donationEligibility
+        ?.plasmaRestrictionReason,
+
+    PLATELET_PLASMA:
+      donationEligibility
+        ?.plateletPlasmaRestrictionReason,
+  }
+
+  const donationRestrictionReason =
+    donationRestrictionReasonMap[
+      donationType
+    ] || 'NONE'
+
   const selectedCenterName =
     selectedCenter?.centerName || ''
 
@@ -441,6 +525,29 @@ function scrollToStep(stepRef) {
       (slot) =>
         slot.remainingCapacity > 0
     ).length
+
+  const morningSlots =
+    slots.filter(
+      (slot) =>
+        Number(
+          slot.startTime?.slice(0, 2)
+        ) < 12
+    )
+
+  const afternoonSlots =
+    slots.filter(
+      (slot) =>
+        Number(
+          slot.startTime?.slice(0, 2)
+        ) >= 12
+    )
+
+  const filteredAvailableDates =
+    availableDates.filter(
+      (date) =>
+        !donationNextAvailableDate
+        || date >= donationNextAvailableDate
+    )
 
 function handleReservationSubmitAttempt() {
   let message = ''
@@ -561,6 +668,7 @@ function handleReservationSubmitAttempt() {
         residentRegistrationNumber,
         phone: phone.trim(),
         privacyConsented,
+        replaceExistingReservation: false,
       })
 
       const completedMessage =
@@ -600,6 +708,23 @@ function handleReservationSubmitAttempt() {
           previousDates
       )
     } catch (error) {
+      if (
+        error.code ===
+          'ACTIVE_RESERVATION_EXISTS'
+        && error.existingReservation
+      ) {
+        console.log(
+          '교체 팝업 데이터:',
+          error.existingReservation
+        )
+
+        setReservationReplaceConfirm(
+          error.existingReservation
+        )
+
+        return
+      }
+
       setError(
         error.message
         || '예약 처리 중 오류가 발생했습니다.'
@@ -609,9 +734,135 @@ function handleReservationSubmitAttempt() {
     }
   }
 
+async function handleReplaceReservation() {
+  if (!reservationReplaceConfirm) {
+    return
+  }
+
+  try {
+    setSubmitting(true)
+    setError('')
+
+    await createReservation({
+      slotId: selectedSlotId,
+      donorName: donorName.trim(),
+      residentRegistrationNumber,
+      phone: phone.trim(),
+      privacyConsented,
+      replaceExistingReservation: true,
+    })
+
+    setReservationReplaceConfirm(null)
+
+    const completedMessage =
+      `${displayCenterName}, ${
+        formatKoreanDate(
+          reservationDate
+        )
+      } ${
+        formatTime(
+          selectedSlot.startTime
+        )
+      } ${
+        selectedDonationType?.label || ''
+      }헌혈을 선택하셨습니다.`
+
+    setSuccessMessage(
+      completedMessage
+    )
+
+    const refreshedSlots =
+      await getReservationSlots(
+        centerId,
+        reservationDate,
+        donationType
+      )
+
+    setSlots(refreshedSlots)
+    setSelectedSlotId(null)
+    setResidentRegistrationNumber('')
+    setPrivacyConsented(false)
+  } catch (error) {
+    setError(
+      error.message
+      || '예약 변경 중 오류가 발생했습니다.'
+    )
+  } finally {
+    setSubmitting(false)
+  }
+}
 
   return (
     <main className="reservation-create-page">
+        {reservationReplaceConfirm && (
+          <div
+            className="reservation-replace-overlay"
+            role="presentation"
+          >
+            <section
+              className="reservation-replace-modal"
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="reservation-replace-title"
+            >
+              <span className="reservation-replace-eyebrow">
+                EXISTING RESERVATION
+              </span>
+
+              <h2 id="reservation-replace-title">
+                기존 예약이 있습니다
+              </h2>
+
+              <p>
+                <strong>
+                  {reservationReplaceConfirm.centerName}
+                </strong>
+                에서{' '}
+                <strong>
+                  {formatKoreanDate(
+                    reservationReplaceConfirm.reservationDate
+                  )}
+                </strong>{' '}
+                <strong>
+                  {formatTime(
+                    reservationReplaceConfirm.startTime
+                  )}
+                </strong>
+                에 예약되어 있습니다.
+              </p>
+
+              <p>
+                새 예약을 진행하면
+                기존 예약은 자동으로 취소됩니다.
+                정말 새로 예약하시겠습니까?
+              </p>
+
+              <div className="reservation-replace-actions">
+                <button
+                  type="button"
+                  onClick={() =>
+                    setReservationReplaceConfirm(null)
+                  }
+                  disabled={submitting}
+                >
+                  아니오
+                </button>
+
+                <button
+                  type="button"
+                  className="primary"
+                  onClick={handleReplaceReservation}
+                  disabled={submitting}
+                >
+                  {submitting
+                    ? '처리 중...'
+                    : '예, 새로 예약할게요'}
+                </button>
+              </div>
+            </section>
+          </div>
+        )}
+
 
       <section className="reservation-create-header">
         <span>
@@ -695,7 +946,12 @@ function handleReservationSubmitAttempt() {
 
             <ReservationCalendar
               value={reservationDate}
-              availableDates={availableDates}
+              availableDates={
+                filteredAvailableDates
+              }
+              minAvailableDate={
+                donationNextAvailableDate
+              }
               onVisibleMonthChange={(year, month) => {
                 setCalendarMonth({
                   year,
@@ -749,10 +1005,28 @@ function handleReservationSubmitAttempt() {
                           : 'reservation-donation-option'
                       }
                       onClick={() => {
-                        setDonationType(
+                        const nextType =
                           type.value
+
+                        const nextAvailableDate =
+                          donationEligibilityDateMap[
+                            nextType
+                          ] || null
+
+                        setDonationType(
+                          nextType
                         )
 
+                        if (
+                          reservationDate
+                          && nextAvailableDate
+                          && reservationDate
+                            < nextAvailableDate
+                        ) {
+                          setReservationDate('')
+                        }
+
+                        setSlots([])
                         setSelectedSlotId(null)
                         setSuccessMessage('')
                         setError('')
@@ -765,6 +1039,69 @@ function handleReservationSubmitAttempt() {
               )}
 
             </div>
+
+          {donationRestrictionReason === 'ANNUAL_LIMIT' && (
+            <div
+              className="reservation-donation-restriction annual"
+              role="status"
+            >
+              <div
+                className="reservation-donation-restriction-icon"
+                aria-hidden="true"
+              >
+                !
+              </div>
+
+              <div>
+                <strong>
+                  연간 헌혈 횟수 제한이 적용됩니다.
+                </strong>
+
+                <p>
+                  선택하신 헌혈 종류는 연간 헌혈 횟수 제한으로
+                  현재 예약할 수 없습니다.
+                </p>
+
+                <span>
+                  다음 헌혈 가능일
+                  <b>
+                    {donationNextAvailableDate}
+                  </b>
+                </span>
+              </div>
+            </div>
+          )}
+
+          {donationRestrictionReason === 'INTERVAL' && (
+            <div
+              className="reservation-donation-restriction interval"
+              role="status"
+            >
+              <div
+                className="reservation-donation-restriction-icon"
+                aria-hidden="true"
+              >
+                ?
+              </div>
+
+              <div>
+                <strong>
+                  헌혈 간격을 확인해주세요.
+                </strong>
+
+                <p>
+                  선택하신 헌혈 종류는 아래 날짜가 지난 후 예약할 수 있습니다.
+                </p>
+
+                <span>
+                  다음 헌혈 가능일
+                  <b>
+                    {donationNextAvailableDate}
+                  </b>
+                </span>
+              </div>
+            </div>
+          )}
 
           <div className="reservation-calendar-guide">
 
@@ -940,46 +1277,137 @@ function handleReservationSubmitAttempt() {
               </p>
             </div>
           ) : (
-            slots.map(
-              (slot) => (
-                <article
-                  key={slot.id}
-                  className={
-                    `reservation-slot-card${
-                      selectedSlotId === slot.id
-                        ? ' selected'
-                        : ''
-                    }${
-                      slot.remainingCapacity <= 0
-                        ? ' closed'
-                        : ''
-                    }`
-                  }
-                >
-                  <button
-                    type="button"
-                    disabled={
-                      slot.remainingCapacity <= 0
-                    }
-                    onClick={() =>
-                      setSelectedSlotId(
-                        slot.id
-                      )
-                    }
-                  >
+            <div className="reservation-slot-groups">
+
+              {morningSlots.length > 0 && (
+                <section className="reservation-slot-group">
+
+                  <div className="reservation-slot-group-title">
                     <strong>
-                      {formatTime(slot.startTime)}
+                      오전
                     </strong>
 
                     <span>
-                      {slot.remainingCapacity > 0
-                        ? '예약 가능'
-                        : '예약 마감'}
+                      {morningSlots.filter(
+                        (slot) =>
+                          slot.remainingCapacity > 0
+                      ).length}개 예약 가능
                     </span>
-                  </button>
-                </article>
-              )
-            )
+                  </div>
+
+                  <div className="reservation-slot-grid">
+                    {morningSlots.map(
+                      (slot) => (
+                        <article
+                          key={slot.id}
+                          className={
+                            `reservation-slot-card${
+                              selectedSlotId === slot.id
+                                ? ' selected'
+                                : ''
+                            }${
+                              slot.remainingCapacity <= 0
+                                ? ' closed'
+                                : ''
+                            }`
+                          }
+                        >
+                          <button
+                            type="button"
+                            disabled={
+                              slot.remainingCapacity <= 0
+                            }
+                            onClick={() =>
+                              setSelectedSlotId(
+                                slot.id
+                              )
+                            }
+                          >
+                            <strong>
+                              {formatTime(
+                                slot.startTime
+                              )}
+                            </strong>
+
+                            <span>
+                              {slot.remainingCapacity > 0
+                                ? '예약 가능'
+                                : '예약 마감'}
+                            </span>
+                          </button>
+                        </article>
+                      )
+                    )}
+                  </div>
+
+                </section>
+              )}
+
+              {afternoonSlots.length > 0 && (
+                <section className="reservation-slot-group">
+
+                  <div className="reservation-slot-group-title">
+                    <strong>
+                      오후
+                    </strong>
+
+                    <span>
+                      {afternoonSlots.filter(
+                        (slot) =>
+                          slot.remainingCapacity > 0
+                      ).length}개 예약 가능
+                    </span>
+                  </div>
+
+                  <div className="reservation-slot-grid">
+                    {afternoonSlots.map(
+                      (slot) => (
+                        <article
+                          key={slot.id}
+                          className={
+                            `reservation-slot-card${
+                              selectedSlotId === slot.id
+                                ? ' selected'
+                                : ''
+                            }${
+                              slot.remainingCapacity <= 0
+                                ? ' closed'
+                                : ''
+                            }`
+                          }
+                        >
+                          <button
+                            type="button"
+                            disabled={
+                              slot.remainingCapacity <= 0
+                            }
+                            onClick={() =>
+                              setSelectedSlotId(
+                                slot.id
+                              )
+                            }
+                          >
+                            <strong>
+                              {formatTime(
+                                slot.startTime
+                              )}
+                            </strong>
+
+                            <span>
+                              {slot.remainingCapacity > 0
+                                ? '예약 가능'
+                                : '예약 마감'}
+                            </span>
+                          </button>
+                        </article>
+                      )
+                    )}
+                  </div>
+
+                </section>
+              )}
+
+            </div>
           )}
 
         </div>

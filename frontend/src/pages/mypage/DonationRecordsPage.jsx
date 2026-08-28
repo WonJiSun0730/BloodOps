@@ -4,6 +4,7 @@ import {
 } from 'react'
 
 import {
+  getMyDonationEligibility,
   getMyDonationHistory,
 } from '../../api/apiClient.js'
 
@@ -21,6 +22,11 @@ function DonationRecordsPage() {
     records,
     setRecords,
   ] = useState([])
+
+  const [
+    eligibility,
+    setEligibility,
+  ] = useState(null)
 
   const [
     loading,
@@ -41,19 +47,30 @@ function DonationRecordsPage() {
         setLoading(true)
         setError('')
 
-        const data =
-          await getMyDonationHistory()
+        const [
+          historyData,
+          eligibilityData,
+        ] = await Promise.all([
+          getMyDonationHistory(),
+          getMyDonationEligibility(),
+        ])
 
         if (active) {
           setRecords(
-            Array.isArray(data)
-              ? data
+            Array.isArray(historyData)
+              ? historyData
               : []
+          )
+
+          setEligibility(
+            eligibilityData
+              || null
           )
         }
       } catch (error) {
         if (active) {
           setRecords([])
+          setEligibility(null)
 
           setError(
             error.message
@@ -77,24 +94,213 @@ function DonationRecordsPage() {
 
   return (
     <div className="mypage-page">
+      {eligibility && (
+        <section className="donation-eligibility-section">
 
-      <section className="mypage-page-description">
-        <div>
-          <span>
-            DONATION RECORDS
-          </span>
+          <div className="donation-eligibility-heading">
+            <div>
+              <span>
+                NEXT DONATION
+              </span>
 
-          <h3>
-            나의 헌혈기록
-          </h3>
+              <h3>
+                다음 헌혈 가능일
+              </h3>
 
-          <p>
-            헌혈 완료 후 등록된 기록을
-            최신순으로 확인할 수 있습니다.
-          </p>
-        </div>
-      </section>
+              <p>
+                최근 헌혈 기록과 연간 횟수 제한을
+                기준으로 계산됩니다.
+              </p>
+            </div>
+          </div>
 
+
+          <div className="donation-eligibility-grid">
+
+            <article className="donation-eligibility-card">
+              <span className="donation-eligibility-type">
+                전혈
+              </span>
+
+              <strong>
+                {
+                  eligibility
+                    .wholeBloodNextAvailableDate
+                }
+              </strong>
+
+              <div className="donation-eligibility-meta">
+                <span>
+                  최근 1년
+                </span>
+
+                <b>
+                  {
+                    eligibility
+                      .wholeBloodCountLastYear
+                  }
+                  {' / '}
+                  {
+                    eligibility
+                      .wholeBloodAnnualLimit
+                  }
+                  회
+                </b>
+              </div>
+
+              <div className="donation-eligibility-progress">
+                <span
+                  style={{
+                    width: `${
+                      Math.min(
+                        100,
+                        (
+                          eligibility
+                            .wholeBloodCountLastYear
+                          / eligibility
+                            .wholeBloodAnnualLimit
+                        ) * 100
+                      )
+                    }%`,
+                  }}
+                />
+              </div>
+            </article>
+
+
+            <article className="donation-eligibility-card">
+              <span className="donation-eligibility-type">
+                혈소판
+              </span>
+
+              <strong>
+                {
+                  eligibility
+                    .plateletNextAvailableDate
+                }
+              </strong>
+
+              <div className="donation-eligibility-meta">
+                <span>
+                  최근 1년
+                </span>
+
+                <b>
+                  {
+                    eligibility
+                      .plateletCountLastYear
+                  }
+                  {' / '}
+                  {
+                    eligibility
+                      .plateletAnnualLimit
+                  }
+                  회
+                </b>
+              </div>
+
+              <div className="donation-eligibility-progress">
+                <span
+                  style={{
+                    width: `${
+                      Math.min(
+                        100,
+                        (
+                          eligibility
+                            .plateletCountLastYear
+                          / eligibility
+                            .plateletAnnualLimit
+                        ) * 100
+                      )
+                    }%`,
+                  }}
+                />
+              </div>
+            </article>
+
+
+            <article className="donation-eligibility-card">
+              <span className="donation-eligibility-type">
+                혈장
+              </span>
+
+              <strong>
+                {
+                  eligibility
+                    .plasmaNextAvailableDate
+                }
+              </strong>
+
+              <div className="donation-eligibility-meta">
+                <span>
+                  간격 제한
+                </span>
+
+                <b>
+                  2주
+                </b>
+              </div>
+
+              <div className="donation-eligibility-note">
+                연간 횟수 제한 없음
+              </div>
+            </article>
+
+
+            <article className="donation-eligibility-card">
+              <span className="donation-eligibility-type">
+                혈소판혈장
+              </span>
+
+              <strong>
+                {
+                  eligibility
+                    .plateletPlasmaNextAvailableDate
+                }
+              </strong>
+
+              <div className="donation-eligibility-meta">
+                <span>
+                  최근 1년
+                </span>
+
+                <b>
+                  {
+                    eligibility
+                      .plateletCountLastYear
+                  }
+                  {' / '}
+                  {
+                    eligibility
+                      .plateletAnnualLimit
+                  }
+                  회
+                </b>
+              </div>
+
+              <div className="donation-eligibility-progress">
+                <span
+                  style={{
+                    width: `${
+                      Math.min(
+                        100,
+                        (
+                          eligibility
+                            .plateletCountLastYear
+                          / eligibility
+                            .plateletAnnualLimit
+                        ) * 100
+                      )
+                    }%`,
+                  }}
+                />
+              </div>
+            </article>
+
+          </div>
+
+        </section>
+      )}
 
       <section className="mypage-data-section">
         <header className="mypage-data-header">

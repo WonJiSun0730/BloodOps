@@ -95,6 +95,11 @@ public interface ReservationRepository
             Pageable pageable
     );
 
+    List<Reservation> findByMember_IdAndStatusOrderByIdDesc(
+            Long memberId,
+            ReservationStatus status
+    );
+
     List<Reservation> findByMember_EmailOrderByIdDesc(
             String email
     );

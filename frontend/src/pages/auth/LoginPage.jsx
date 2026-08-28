@@ -256,6 +256,7 @@ function LoginPage() {
                     loginId: '',
                   })
                 )
+                setErrorMessage('')
               }}
               autoComplete="username"
               aria-invalid={
@@ -305,6 +306,7 @@ function LoginPage() {
                       password: '',
                     })
                   )
+                  setErrorMessage('')
                 }}
                 autoComplete="current-password"
                 aria-invalid={
@@ -344,6 +346,15 @@ function LoginPage() {
           {oauthErrorMessage && (
             <p className="login-error">
               {oauthErrorMessage}
+            </p>
+          )}
+
+          {errorMessage && (
+            <p
+              className="login-error"
+              role="alert"
+            >
+              {errorMessage}
             </p>
           )}
 

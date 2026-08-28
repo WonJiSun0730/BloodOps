@@ -438,3 +438,215 @@
     padding: 24px 18px;
   }
 }
+
+/* ================================
+   헌혈 가능 현황
+   ================================ */
+
+.donation-eligibility-section {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+
+  margin-bottom: 24px;
+  padding: 22px;
+
+  border: 1px solid var(--color-border);
+  border-radius: 18px;
+
+  background:
+    color-mix(
+      in srgb,
+      var(--color-primary) 3%,
+      var(--color-surface)
+    );
+}
+
+.donation-eligibility-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.donation-eligibility-heading span {
+  display: block;
+
+  margin-bottom: 5px;
+
+  color: var(--color-primary);
+
+  font-size: 0.66rem;
+  font-weight: 850;
+  letter-spacing: 0.11em;
+}
+
+.donation-eligibility-heading h3 {
+  margin: 0;
+
+  color: var(--color-text);
+
+  font-size: 1.05rem;
+  letter-spacing: -0.02em;
+}
+
+.donation-eligibility-heading p {
+  margin: 6px 0 0;
+
+  color: var(--color-text-muted);
+
+  font-size: 0.76rem;
+  line-height: 1.55;
+}
+
+.donation-eligibility-grid {
+  display: grid;
+
+  grid-template-columns:
+    repeat(
+      4,
+      minmax(0, 1fr)
+    );
+
+  gap: 12px;
+}
+
+.donation-eligibility-card {
+  display: flex;
+  min-width: 0;
+
+  padding: 16px;
+
+  border:
+    1px solid
+    color-mix(
+      in srgb,
+      var(--color-primary) 10%,
+      var(--color-border)
+    );
+
+  border-radius: 14px;
+
+  flex-direction: column;
+  gap: 10px;
+
+  background: var(--color-surface);
+
+  transition:
+    border-color 0.18s ease,
+    transform 0.18s ease,
+    box-shadow 0.18s ease;
+}
+
+.donation-eligibility-card:hover {
+  border-color:
+    color-mix(
+      in srgb,
+      var(--color-primary) 30%,
+      var(--color-border)
+    );
+
+  transform: translateY(-2px);
+
+  box-shadow:
+    0 10px 22px
+    color-mix(
+      in srgb,
+      #000 9%,
+      transparent
+    );
+}
+
+.donation-eligibility-type {
+  color: var(--color-text-muted);
+
+  font-size: 0.72rem;
+  font-weight: 800;
+}
+
+.donation-eligibility-card > strong {
+  color: var(--color-text);
+
+  font-size: 1rem;
+  letter-spacing: -0.02em;
+}
+
+.donation-eligibility-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+
+  margin-top: auto;
+
+  color: var(--color-text-muted);
+
+  font-size: 0.68rem;
+}
+
+.donation-eligibility-meta b {
+  color: var(--color-text);
+
+  font-size: 0.72rem;
+}
+
+.donation-eligibility-progress {
+  overflow: hidden;
+
+  height: 5px;
+
+  border-radius: 999px;
+
+  background:
+    color-mix(
+      in srgb,
+      var(--color-text-muted) 14%,
+      transparent
+    );
+}
+
+.donation-eligibility-progress > span {
+  display: block;
+
+  height: 100%;
+
+  border-radius: inherit;
+
+  background: var(--color-primary);
+
+  transition:
+    width 0.25s ease;
+}
+
+.donation-eligibility-note {
+  margin-top: auto;
+
+  color: var(--color-text-muted);
+
+  font-size: 0.68rem;
+  font-weight: 700;
+}
+
+@media (max-width: 1024px) {
+  .donation-eligibility-grid {
+    grid-template-columns:
+      repeat(
+        2,
+        minmax(0, 1fr)
+      );
+  }
+}
+
+@media (max-width: 480px) {
+  .donation-eligibility-section {
+    padding: 16px;
+  }
+
+  .donation-eligibility-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .donation-eligibility-card {
+    padding: 14px;
+  }
+}

@@ -26,6 +26,7 @@ function ReservationCalendar({
   value,
   onChange,
   availableDates = [],
+  minAvailableDate = null,
   onVisibleMonthChange,
 }) {
   const today =
@@ -227,9 +228,16 @@ function ReservationCalendar({
             const dateKey =
               toDateKey(date)
 
+            const eligibilityBlocked =
+              Boolean(
+                minAvailableDate
+                && dateKey < minAvailableDate
+              )
+
             const disabled =
               date <= today
               || date > maxDate
+              || eligibilityBlocked
 
             const selected =
               dateKey === value

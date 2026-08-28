@@ -221,16 +221,6 @@
 }
 
 .reservation-slot-area {
-  display: grid;
-
-  grid-template-columns:
-    repeat(
-      4,
-      minmax(0, 1fr)
-    );
-
-  gap: 12px;
-
   min-height: 120px;
 
   padding: 22px;
@@ -243,6 +233,55 @@
 
   background:
     var(--color-surface);
+}
+
+.reservation-slot-groups {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+
+  width: 100%;
+}
+
+.reservation-slot-group {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.reservation-slot-group + .reservation-slot-group {
+  padding-top: 20px;
+
+  border-top: 1px solid var(--color-border);
+}
+
+.reservation-slot-group-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.reservation-slot-group-title > strong {
+  color: var(--color-text);
+
+  font-size: 0.9rem;
+  font-weight: 850;
+}
+
+.reservation-slot-group-title > span {
+  color: var(--color-text-muted);
+
+  font-size: 0.72rem;
+}
+
+.reservation-slot-grid {
+  display: grid;
+
+  grid-template-columns:
+    repeat(4, minmax(0, 1fr));
+
+  gap: 10px;
 }
 
 .reservation-slot-area > p {
@@ -313,24 +352,19 @@
 
 .reservation-slot-card button {
   display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
 
   width: 100%;
-  min-height: 88px;
+  min-height: 48px;
 
-  padding: 14px;
+  padding: 0 14px;
 
   border: 0;
 
-  flex-direction: column;
-  align-items: flex-start;
-  justify-content: center;
-  gap: 8px;
-
-  color:
-    var(--color-text);
-
-  background:
-    transparent;
+  color: var(--color-text);
+  background: transparent;
 
   cursor: pointer;
 }
@@ -503,6 +537,11 @@
     grid-template-columns:
       repeat(2, minmax(0, 1fr));
   }
+
+  .reservation-slot-grid {
+    grid-template-columns:
+      repeat(2, minmax(0, 1fr));
+  }
 }
 
 @media (max-width: 480px) {
@@ -577,6 +616,10 @@
 
   .reservation-donation-option {
     min-height: 50px;
+  }
+
+  .reservation-slot-grid {
+    grid-template-columns: 1fr;
   }
 }
 
@@ -2474,5 +2517,325 @@
 
     transform:
       translateY(0);
+  }
+}
+
+/* ================================
+   헌혈 이력 기반 예약 제한
+   ================================ */
+
+.reservation-donation-restriction {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+
+  margin-top: 16px;
+  padding: 15px 16px;
+
+  border:
+    1px solid
+    color-mix(
+      in srgb,
+      var(--color-primary) 26%,
+      var(--color-border)
+    );
+
+  border-radius: 13px;
+
+  background:
+    color-mix(
+      in srgb,
+      var(--color-primary) 6%,
+      var(--color-surface)
+    );
+}
+
+.reservation-donation-restriction-icon {
+  display: grid;
+
+  width: 30px;
+  height: 30px;
+
+  border-radius: 50%;
+
+  flex-shrink: 0;
+  place-items: center;
+
+  color: #fff;
+  background: var(--color-primary);
+
+  font-weight: 900;
+}
+
+.reservation-donation-restriction strong {
+  display: block;
+
+  color: var(--color-text);
+
+  font-size: 0.8rem;
+}
+
+.reservation-donation-restriction p {
+  margin: 5px 0 8px;
+
+  color: var(--color-text-muted);
+
+  font-size: 0.72rem;
+  line-height: 1.55;
+}
+
+.reservation-donation-restriction span {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+
+  color: var(--color-text-muted);
+
+  font-size: 0.7rem;
+}
+
+.reservation-donation-restriction b {
+  color: var(--color-primary);
+
+  font-size: 0.76rem;
+}
+
+/* 연간 헌혈 횟수 제한 */
+.reservation-donation-restriction.annual {
+  border-color:
+    color-mix(
+      in srgb,
+      var(--color-primary) 32%,
+      var(--color-border)
+    );
+
+  background:
+    color-mix(
+      in srgb,
+      var(--color-primary) 7%,
+      var(--color-surface)
+    );
+}
+
+.reservation-donation-restriction.annual
+  .reservation-donation-restriction-icon {
+  color: #fff;
+  background: var(--color-primary);
+}
+
+.reservation-donation-restriction.annual b {
+  color: var(--color-primary);
+}
+
+
+/* 헌혈 간격 제한 */
+.reservation-donation-restriction.interval {
+  border-color:
+    color-mix(
+      in srgb,
+      #d69e2e 38%,
+      var(--color-border)
+    );
+
+  background:
+    color-mix(
+      in srgb,
+      #d69e2e 8%,
+      var(--color-surface)
+    );
+}
+
+.reservation-donation-restriction.interval
+  .reservation-donation-restriction-icon {
+  color: #fff;
+  background: #d69e2e;
+}
+
+.reservation-donation-restriction.interval b {
+  color: #b7791f;
+}
+
+/* ================================
+   기존 예약 교체 확인 모달
+   ================================ */
+
+.reservation-replace-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 24px;
+
+  background: rgb(0 0 0 / 58%);
+  backdrop-filter: blur(4px);
+}
+
+.reservation-replace-modal {
+  width: min(100%, 480px);
+
+  padding: 26px;
+
+  border: 1px solid var(--color-border);
+  border-radius: 18px;
+
+  background: var(--color-surface);
+  box-shadow: 0 24px 70px rgb(0 0 0 / 28%);
+}
+
+.reservation-replace-eyebrow {
+  display: block;
+
+  margin-bottom: 8px;
+
+  color: var(--color-primary);
+
+  font-size: 0.7rem;
+  font-weight: 850;
+  letter-spacing: 0.12em;
+}
+
+.reservation-replace-modal h2 {
+  margin: 0;
+
+  color: var(--color-text);
+
+  font-size: 1.3rem;
+  letter-spacing: -0.03em;
+}
+
+.reservation-replace-modal > p {
+  margin: 10px 0 18px;
+
+  color: var(--color-text-muted);
+
+  font-size: 0.84rem;
+  line-height: 1.65;
+}
+
+.reservation-replace-info {
+  display: grid;
+  gap: 10px;
+
+  margin-bottom: 18px;
+  padding: 16px;
+
+  border: 1px solid var(--color-border);
+  border-radius: 13px;
+
+  background: var(--color-background);
+}
+
+.reservation-replace-info > div {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.reservation-replace-info span {
+  color: var(--color-text-muted);
+
+  font-size: 0.74rem;
+}
+
+.reservation-replace-info strong {
+  color: var(--color-text);
+
+  font-size: 0.8rem;
+  text-align: right;
+}
+
+.reservation-replace-warning {
+  margin: 0 0 20px !important;
+
+  color: var(--color-primary) !important;
+
+  font-size: 0.78rem !important;
+  font-weight: 750;
+}
+
+.reservation-replace-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.reservation-replace-actions button {
+  min-height: 44px;
+
+  padding: 0 16px;
+
+  border-radius: 10px;
+
+  font: inherit;
+  font-size: 0.82rem;
+  font-weight: 800;
+
+  cursor: pointer;
+
+  transition:
+    border-color 0.18s ease,
+    background-color 0.18s ease,
+    color 0.18s ease,
+    transform 0.18s ease;
+}
+
+.reservation-replace-actions button:first-child {
+  border: 1px solid var(--color-border);
+
+  color: var(--color-text);
+  background: var(--color-background);
+}
+
+.reservation-replace-actions button:first-child:hover {
+  border-color:
+    color-mix(
+      in srgb,
+      var(--color-text) 30%,
+      var(--color-border)
+    );
+
+  transform: translateY(-1px);
+}
+
+.reservation-replace-actions button:last-child {
+  border: 1px solid var(--color-primary);
+
+  color: #fff;
+  background: var(--color-primary);
+}
+
+.reservation-replace-actions button:last-child:hover {
+  background: var(--color-primary-hover);
+
+  transform: translateY(-1px);
+}
+
+@media (max-width: 480px) {
+  .reservation-replace-overlay {
+    padding: 16px;
+  }
+
+  .reservation-replace-modal {
+    padding: 21px 18px;
+    border-radius: 15px;
+  }
+
+  .reservation-replace-info > div {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .reservation-replace-info strong {
+    text-align: left;
+  }
+
+  .reservation-replace-actions {
+    grid-template-columns: 1fr;
   }
 }

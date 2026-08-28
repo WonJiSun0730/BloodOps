@@ -44,7 +44,7 @@ const heroBanners = [
     description:
       '원하는 헌혈센터와 시간대를 선택해 편리하게 예약할 수 있습니다.',
     actionLabel: '헌혈 예약하기',
-    actionTo: '/reservation',
+    actionTo: '/reservations/new',
     theme: 'soft',
   },
   {
@@ -107,7 +107,7 @@ const mainServices = [
     title: '헌혈예약',
     description:
       '원하는 날짜와 시간대를 선택해 미리 예약하세요.',
-    to: '/reservation',
+    to: '/reservations/new',
     icon: ReservationIcon,
     priority: true,
   },

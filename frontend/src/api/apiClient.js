@@ -16,9 +16,20 @@ export async function apiRequest(url, options = {}) {
     let message = `API 요청 실패: ${response.status}`
     let fieldErrors = {}
     let duplicateTimes = []
+    let errorCode = ''
+    let existingReservation = null
 
     try {
       const errorData = await response.json()
+
+      if (errorData.code) {
+        errorCode = errorData.code
+      }
+
+      if (errorData.existingReservation) {
+        existingReservation =
+          errorData.existingReservation
+      }
 
       if (errorData.message) {
         message = errorData.message
@@ -38,6 +49,10 @@ export async function apiRequest(url, options = {}) {
     const requestError = new Error(message)
     requestError.fieldErrors = fieldErrors
     requestError.duplicateTimes = duplicateTimes
+
+    requestError.code = errorCode
+    requestError.existingReservation =
+      existingReservation
 
     throw requestError
   }
@@ -713,6 +728,16 @@ export function getMedicalDonorQuestionnaire(confirmationId) {
 export function getMyDonationHistory() {
   return apiRequest(
     '/api/donations/me'
+  )
+}
+
+/*
+ * 로그인한 회원 본인의
+ * 헌혈 가능일과 최근 1년 헌혈 횟수를 조회합니다.
+ */
+export function getMyDonationEligibility() {
+  return apiRequest(
+    '/api/donations/me/eligibility'
   )
 }
 

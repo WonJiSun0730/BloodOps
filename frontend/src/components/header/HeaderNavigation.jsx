@@ -17,7 +17,7 @@ const menuItems = [
     title: '헌혈참여',
     items: [
       { label: '헌혈의 집 찾기', to: '/centers' },
-      { label: '헌혈 예약', to: '/reservation' },
+      { label: '헌혈 예약', to: '/reservations/new' },
       { label: '전자문진', to: '/questionnaire' },
     ],
   },

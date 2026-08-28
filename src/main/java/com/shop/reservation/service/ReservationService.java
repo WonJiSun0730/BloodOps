@@ -1,5 +1,7 @@
 package com.shop.reservation.service;
 
+import com.shop.changhyeon.donation.dto.DonationEligibilityResponseDto;
+import com.shop.changhyeon.donation.service.DonationHistoryService;
 import com.shop.changhyeon.identity.ResidentNumberHashService;
 import com.shop.member.entity.Member;
 import com.shop.member.repository.MemberRepository;
@@ -9,6 +11,7 @@ import com.shop.reservation.dto.ReservationCreateDto;
 import com.shop.reservation.entity.EquipmentGroup;
 import com.shop.reservation.entity.Reservation;
 import com.shop.reservation.entity.ReservationSlot;
+import com.shop.reservation.exception.ActiveReservationExistsException;
 import com.shop.reservation.repository.EquipmentGroupRepository;
 import com.shop.reservation.repository.ReservationRepository;
 import com.shop.reservation.repository.ReservationSlotRepository;
@@ -43,6 +46,9 @@ public class ReservationService {
     private final ResidentNumberHashService
             residentNumberHashService;
 
+    private final DonationHistoryService
+            donationHistoryService;
+
     public AdminReservationResponseDto createReservation(
             ReservationCreateDto request,
             String email
@@ -69,6 +75,10 @@ public class ReservationService {
             );
         }
 
+        cancelExpiredReservations(
+                member
+        );
+
         ReservationSlot slot =
                 reservationSlotRepository.findById(slotId)
                         .orElseThrow(() ->
@@ -76,6 +86,11 @@ public class ReservationService {
                                         "예약 슬롯을 찾을 수 없습니다."
                                 )
                         );
+
+        validateDonationEligibility(
+                slot,
+                email
+        );
 
         LocalDate today =
                 LocalDate.now();
@@ -107,17 +122,38 @@ public class ReservationService {
             );
         }
 
-        boolean alreadyReservedOnDate =
+        /*
+         * 한 회원은 동시에 하나의 진행 중 예약만 유지합니다.
+         */
+        List<Reservation> activeReservations =
                 reservationRepository
-                        .existsByMember_IdAndSlot_ReservationDateAndStatus(
+                        .findByMember_IdAndStatusOrderByIdDesc(
                                 member.getId(),
-                                slot.getReservationDate(),
                                 ReservationStatus.RESERVED
                         );
 
-        if (alreadyReservedOnDate) {
-            throw new IllegalStateException(
-                    "같은 날짜에는 하나의 헌혈 예약만 할 수 있습니다."
+        if (!activeReservations.isEmpty()) {
+
+            Reservation existingReservation =
+                    activeReservations.get(0);
+
+            if (!request.isReplaceExistingReservation()) {
+                throw new ActiveReservationExistsException(
+                        new AdminReservationResponseDto(
+                                existingReservation
+                        )
+                );
+            }
+
+            /*
+             * 과거 정책에서 RESERVED가 여러 건 남아 있을 수도 있으므로
+             * 교체 동의 시 진행 중 예약을 모두 취소합니다.
+             */
+            activeReservations.forEach(
+                    activeReservation ->
+                            activeReservation.setStatus(
+                                    ReservationStatus.CANCELED
+                            )
             );
         }
 
@@ -125,21 +161,6 @@ public class ReservationService {
                 slot,
                 null
         );
-
-        boolean alreadyReserved =
-                reservationRepository
-                        .existsByMember_IdAndSlot_IdAndStatus(
-                                member.getId(),
-                                slotId,
-                                ReservationStatus.RESERVED
-                        );
-
-
-        if (alreadyReserved) {
-            throw new IllegalStateException(
-                    "이미 해당 시간에 예약되어 있습니다."
-            );
-        }
 
         LocalDateTime consentedAt =
                 LocalDateTime.now();
@@ -183,6 +204,32 @@ public class ReservationService {
         return new AdminReservationResponseDto(
                 savedReservation
         );
+    }
+
+    private void cancelExpiredReservations(
+            Member member
+    ) {
+        LocalDate today =
+                LocalDate.now();
+
+        List<Reservation> reservedReservations =
+                reservationRepository
+                        .findByMember_IdAndStatusOrderByIdDesc(
+                                member.getId(),
+                                ReservationStatus.RESERVED
+                        );
+
+        reservedReservations.stream()
+                .filter(reservation ->
+                        reservation.getSlot()
+                                .getReservationDate()
+                                .isBefore(today)
+                )
+                .forEach(reservation ->
+                        reservation.setStatus(
+                                ReservationStatus.CANCELED
+                        )
+                );
     }
 
     private void validateReservationPersonalInfo(
@@ -247,10 +294,70 @@ public class ReservationService {
         );
     }
 
+    private void validateDonationEligibility(
+            ReservationSlot slot,
+            String email
+    ) {
+        DonationEligibilityResponseDto eligibility =
+                donationHistoryService
+                        .getMyDonationEligibility(
+                                email
+                        );
+
+        LocalDate nextAvailableDate =
+                switch (slot.getDonationType()) {
+                    case WHOLE_BLOOD ->
+                            eligibility
+                                    .wholeBloodNextAvailableDate();
+
+                    case PLATELET ->
+                            eligibility
+                                    .plateletNextAvailableDate();
+
+                    case PLASMA ->
+                            eligibility
+                                    .plasmaNextAvailableDate();
+
+                    case PLATELET_PLASMA ->
+                            eligibility
+                                    .plateletPlasmaNextAvailableDate();
+                };
+
+        if (
+                nextAvailableDate != null
+                        && slot.getReservationDate()
+                        .isBefore(
+                                nextAvailableDate
+                        )
+        ) {
+            String donationTypeName =
+                    switch (slot.getDonationType()) {
+                        case WHOLE_BLOOD ->
+                                "전혈";
+
+                        case PLATELET ->
+                                "혈소판";
+
+                        case PLASMA ->
+                                "혈장";
+
+                        case PLATELET_PLASMA ->
+                                "혈소판혈장";
+                    };
+
+            throw new IllegalStateException(
+                    "최근 헌혈 기록으로 인해 "
+                            + donationTypeName
+                            + "헌혈은 "
+                            + nextAvailableDate
+                            + "부터 예약할 수 있습니다."
+            );
+        }
+    }
+
     /*
      * 로그인한 회원의 예약 내역 조회
      */
-    @Transactional(readOnly = true)
     public List<AdminReservationResponseDto> getMyReservations(
             String email
     ) {
@@ -262,6 +369,14 @@ public class ReservationService {
                     "회원 정보를 찾을 수 없습니다."
             );
         }
+
+        /*
+         * 예약일이 지난 RESERVED 예약을
+         * 조회 시점에 자동 취소합니다.
+         */
+        cancelExpiredReservations(
+                member
+        );
 
         return reservationRepository
                 .findByMember_EmailOrderByIdDesc(email)

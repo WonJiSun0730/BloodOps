@@ -273,22 +273,6 @@ const [
 
   return (
     <div className="reservation-list-page">
-
-      <section className="reservation-list-header">
-        <span>
-          MY RESERVATIONS
-        </span>
-
-        <h1>
-          예약 내역
-        </h1>
-
-        <p>
-          신청한 헌혈 예약을 확인할 수 있습니다.
-        </p>
-      </section>
-
-
       <section className="reservation-list-content">
 
         {loading && (
@@ -368,9 +352,7 @@ const [
                       </dt>
 
                       <dd>
-                        {reservation.startTime}
-                        {' ~ '}
-                        {reservation.endTime}
+                        {reservation.startTime?.slice(0, 5)}
                       </dd>
                     </div>
 
@@ -468,9 +450,7 @@ const [
                                       : 'reservation-change-slot'
                                   }
                                 >
-                                  {slot.startTime}
-                                  {' ~ '}
-                                  {slot.endTime}
+                                  {slot.startTime?.slice(0, 5)}
 
                                   <span>
                                     {slot.remainingCapacity > 0
