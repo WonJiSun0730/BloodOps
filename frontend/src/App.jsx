@@ -35,6 +35,8 @@ import DonationRecordsPage
   from './pages/mypage/DonationRecordsPage.jsx'
 import TestResultsPage
   from './pages/mypage/TestResultsPage.jsx'
+import MyPointsPage
+  from './pages/mypage/MyPointsPage.jsx'
 
 import QuestionnairePage
   from './pages/questionnaire/QuestionnairePage.jsx'
@@ -49,6 +51,8 @@ import AdminMembersPage
   from './pages/admin/AdminMembersPage.jsx'
 import AdminKakaoMessageTemplatePage
   from './pages/admin/AdminKakaoMessageTemplatePage.jsx'
+import AdminRewardProductsPage
+  from './pages/admin/AdminRewardProductsPage.jsx'
 
 import BloodUnitsManagementPage
   from './pages/medical/BloodUnitsManagementPage.jsx'
@@ -141,6 +145,13 @@ function App() {
             path="/mypage/records"
             element={
               <DonationRecordsPage />
+            }
+          />
+
+          <Route
+            path="/mypage/points"
+            element={
+              <MyPointsPage />
             }
           />
 
@@ -259,6 +270,15 @@ function App() {
           element={
             <AdminRoute>
               <AdminMembersPage />
+            </AdminRoute>
+          }
+        />
+
+        <Route
+          path="/admin/reward-products"
+          element={
+            <AdminRoute>
+              <AdminRewardProductsPage />
             </AdminRoute>
           }
         />

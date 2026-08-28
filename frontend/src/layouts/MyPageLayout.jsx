@@ -42,6 +42,15 @@ const myPageMenuGroups = [
     ],
   },
   {
+    title: '포인트',
+    items: [
+      {
+        label: '내 포인트',
+        to: '/mypage/points',
+      },
+    ],
+  },
+  {
     title: '예약관리',
     items: [
       {
@@ -66,6 +75,15 @@ function getCurrentPage(
     return {
       group: '헌혈내역',
       title: '헌혈기록',
+    }
+  }
+
+  if (
+    pathname === '/mypage/points'
+  ) {
+    return {
+      group: '포인트',
+      title: '내 포인트',
     }
   }
 

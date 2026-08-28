@@ -5,6 +5,7 @@ import com.shop.changhyeon.donation.dto.DonationHistoryResponseDto;
 import com.shop.changhyeon.donation.dto.MedicalDonationHistoryResponseDto;
 import com.shop.changhyeon.donation.entity.DonationHistory;
 import com.shop.changhyeon.donation.repository.DonationHistoryRepository;
+import com.shop.changhyeon.reward.service.PointRewardService;
 import com.shop.member.entity.Member;
 import com.shop.member.repository.MemberRepository;
 import com.shop.reservation.constant.ReservationStatus;
@@ -25,6 +26,7 @@ public class DonationHistoryService {
     private final DonationHistoryRepository donationHistoryRepository;
     private final ReservationRepository reservationRepository;
     private final MemberRepository memberRepository;
+    private final PointRewardService pointRewardService;
 
     public DonationHistoryResponseDto completeDonation(Long reservationId, LocalDate donationDate) {
         Reservation reservation = reservationRepository.findById(reservationId)
@@ -54,8 +56,14 @@ public class DonationHistoryService {
                 .donationPlaceName(center.getCenterName())
                 .build();
 
+        DonationHistory savedHistory = donationHistoryRepository.save(history);
+        pointRewardService.awardDonationPoints(
+                reservation.getMember(),
+                reservation,
+                reservation.getSlot().getDonationType()
+        );
         reservation.setStatus(ReservationStatus.COMPLETED);
-        return DonationHistoryResponseDto.from(donationHistoryRepository.save(history));
+        return DonationHistoryResponseDto.from(savedHistory);
     }
 
     @Transactional(readOnly = true)
