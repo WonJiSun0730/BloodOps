@@ -50,6 +50,13 @@ public class RewardProduct {
     @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
 
+    public void decreaseStock() {
+        if (stockQuantity <= 0) {
+            throw new IllegalStateException("품절된 상품입니다.");
+        }
+        stockQuantity--;
+    }
+
     public void updateImage(byte[] imageData, String imageContentType) {
         this.imageData = imageData;
         this.imageContentType = imageContentType;

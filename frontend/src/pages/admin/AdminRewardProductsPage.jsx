@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import AdminSectionNav from '../../components/admin/AdminSectionNav.jsx'
-import { createAdminRewardProduct, getAdminRewardProducts, updateAdminRewardProduct, uploadAdminRewardProductImage } from '../../api/apiClient.js'
+import { createAdminRewardProduct, deleteAdminRewardProduct, getAdminRewardProducts, updateAdminRewardProduct, uploadAdminRewardProductImage } from '../../api/apiClient.js'
 import './AdminRewardProductsPage.css'
 
 const emptyForm = { name: '', description: '', pointPrice: '', stockQuantity: '', active: true }
@@ -30,6 +30,21 @@ function AdminRewardProductsPage() {
       setMessage(editingId ? '상품이 수정되었습니다.' : '상품이 등록되었습니다.')
       setEditingId(null); setForm(emptyForm); setImageFile(null); setImagePreview(''); await loadProducts()
     } catch (requestError) { setError(requestError.message) }
+  }
+
+  const remove = async (product) => {
+    if (!window.confirm('"' + product.name + '" 상품을 삭제하시겠습니까?\n삭제한 상품과 이미지는 복구할 수 없습니다.')) return
+    setError(''); setMessage('')
+    try {
+      await deleteAdminRewardProduct(product.id)
+      if (editingId === product.id) {
+        setEditingId(null); setForm(emptyForm); setImageFile(null); setImagePreview('')
+      }
+      setMessage('상품이 삭제되었습니다.')
+      await loadProducts()
+    } catch (requestError) {
+      setError(requestError.message)
+    }
   }
 
   const edit = (product) => {
@@ -67,7 +82,7 @@ function AdminRewardProductsPage() {
         <header><h2>등록 상품</h2><span>{products.length}개</span></header>
         <div className="admin-reward-table">
           <div className="admin-reward-row heading"><span>상품명</span><span>필요 포인트</span><span>재고</span><span>상태</span><span>관리</span></div>
-          {products.map((product) => <div className="admin-reward-row" key={product.id}><span className="admin-reward-product-name">{product.imageUrl ? <img src={product.imageUrl} alt="" /> : <span className="admin-reward-no-image">NO IMAGE</span>}<span><strong>{product.name}</strong><small>{product.description}</small></span></span><span>{product.pointPrice.toLocaleString()}P</span><span>{product.stockQuantity}개</span><span>{product.active ? '노출' : '숨김'}</span><span><button type="button" onClick={() => edit(product)}>수정</button></span></div>)}
+          {products.map((product) => <div className="admin-reward-row" key={product.id}><span className="admin-reward-product-name">{product.imageUrl ? <img src={product.imageUrl} alt="" /> : <span className="admin-reward-no-image">NO IMAGE</span>}<span><strong>{product.name}</strong><small>{product.description}</small></span></span><span>{product.pointPrice.toLocaleString()}P</span><span>{product.stockQuantity}개</span><span>{product.active ? '노출' : '숨김'}</span><span className="admin-reward-row-actions"><button type="button" onClick={() => edit(product)}>수정</button><button type="button" className="danger" onClick={() => remove(product)}>삭제</button></span></div>)}
         </div>
       </section>
     </main>

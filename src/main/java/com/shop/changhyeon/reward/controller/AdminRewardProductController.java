@@ -27,6 +27,11 @@ public class AdminRewardProductController {
         return rewardProductService.create(request);
     }
 
+    @DeleteMapping("/{productId}")
+    public void delete(@PathVariable Long productId) {
+        rewardProductService.delete(productId);
+    }
+
     @PutMapping("/{productId}/image")
     public RewardProductResponse uploadImage(
             @PathVariable Long productId,

@@ -72,6 +72,11 @@ public class RewardProductService {
         return RewardProductResponse.from(product);
     }
 
+    public void delete(Long productId) {
+        RewardProduct product = findProduct(productId);
+        rewardProductRepository.delete(product);
+    }
+
     public RewardProductResponse update(Long productId, RewardProductRequest request) {
         RewardProduct product = findProduct(productId);
         product.update(
