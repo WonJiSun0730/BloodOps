@@ -1,0 +1,38 @@
+.point-balance-card {
+  display: flex; min-height: 190px; padding: 28px; align-items: center;
+  justify-content: space-between; gap: 24px; border: 1px solid var(--color-border);
+  border-radius: 16px; background: linear-gradient(135deg, color-mix(in srgb, var(--color-primary) 10%, var(--color-surface)), var(--color-surface));
+}
+.point-balance-card span { color: var(--color-primary); font-size: .68rem; font-weight: 850; letter-spacing: .12em; }
+.point-balance-card h3 { margin: 8px 0; color: var(--color-text); }
+.point-balance-card p { margin: 0; color: var(--color-text-muted); font-size: .8rem; }
+.point-balance-card > strong { color: var(--color-text); font-size: clamp(2rem, 5vw, 3.2rem); }
+.point-policy-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+.point-policy-grid article { display: flex; padding: 18px; flex-direction: column; gap: 8px; border: 1px solid var(--color-border); border-radius: 12px; background: var(--color-surface); }
+.point-policy-grid span { color: var(--color-text-muted); font-size: .75rem; }
+.point-policy-grid strong { color: var(--color-primary); }
+.point-section { border: 1px solid var(--color-border); border-radius: 16px; overflow: hidden; background: var(--color-surface); }
+.point-section > header { display: flex; padding: 20px 22px; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--color-border); }
+.point-section h3, .reward-product-grid h4 { margin: 0; color: var(--color-text); }
+.point-section header p { margin: 6px 0 0; color: var(--color-text-muted); font-size: .75rem; }
+.point-section header > span { color: var(--color-primary); font-weight: 800; }
+.point-history-list article { display: flex; padding: 17px 22px; justify-content: space-between; gap: 20px; border-bottom: 1px solid var(--color-border); }
+.point-history-list article:last-child { border-bottom: 0; }
+.point-history-list div { display: flex; flex-direction: column; gap: 5px; }
+.point-history-list div:last-child { text-align: right; }
+.point-history-list strong { color: var(--color-text); font-size: .82rem; }
+.point-history-list span, .point-history-list time { color: var(--color-text-muted); font-size: .7rem; }
+.point-history-list .earned { color: var(--color-primary); }
+.point-history-list .used { color: var(--color-text-muted); }
+.reward-product-grid { display: grid; padding: 18px; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+.reward-product-grid article { padding: 20px; border: 1px solid var(--color-border); border-radius: 12px; background: var(--color-background); }
+.reward-product-grid article > span { color: var(--color-primary); font-size: .68rem; font-weight: 800; }
+.reward-product-grid h4 { margin-top: 10px; }
+.reward-product-grid p { min-height: 42px; color: var(--color-text-muted); font-size: .75rem; line-height: 1.5; }
+.reward-product-grid div { display: flex; align-items: end; justify-content: space-between; gap: 10px; }
+.reward-product-grid strong { color: var(--color-text); }
+.reward-product-grid small { color: var(--color-text-muted); }
+.reward-product-grid .sold-out { opacity: .58; }
+@media (max-width: 1024px) { .point-policy-grid, .reward-product-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 768px) { .point-balance-card { align-items: flex-start; flex-direction: column; } .point-policy-grid, .reward-product-grid { grid-template-columns: 1fr; } }
+@media (max-width: 480px) { .point-balance-card { padding: 22px; } .point-history-list article { flex-direction: column; } .point-history-list div:last-child { text-align: left; } }

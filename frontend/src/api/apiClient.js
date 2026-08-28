@@ -810,3 +810,49 @@ export async function submitQuestionnaire(questionnaireData) {
     body: JSON.stringify(questionnaireData),
   })
 }
+
+
+/*
+ * 로그인한 회원의 포인트 잔액과 거래 내역을 조회합니다.
+ */
+export function getMyPoints() {
+  return apiRequest('/api/rewards/me')
+}
+
+/*
+ * 회원에게 노출할 활성 포인트 상품을 조회합니다.
+ */
+export function getRewardProducts() {
+  return apiRequest('/api/rewards/products')
+}
+
+/*
+ * ADMIN 포인트 상품과 재고를 조회합니다.
+ */
+export function getAdminRewardProducts() {
+  return apiRequest('/api/admin/reward-products')
+}
+
+export async function createAdminRewardProduct(productData) {
+  const csrf = await getCsrfToken()
+  return apiRequest('/api/admin/reward-products', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      [csrf.headerName]: csrf.token,
+    },
+    body: JSON.stringify(productData),
+  })
+}
+
+export async function updateAdminRewardProduct(productId, productData) {
+  const csrf = await getCsrfToken()
+  return apiRequest('/api/admin/reward-products/' + encodeURIComponent(productId), {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+      [csrf.headerName]: csrf.token,
+    },
+    body: JSON.stringify(productData),
+  })
+}

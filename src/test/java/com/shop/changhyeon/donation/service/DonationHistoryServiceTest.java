@@ -3,6 +3,7 @@ package com.shop.changhyeon.donation.service;
 import com.shop.center.entity.Center;
 import com.shop.changhyeon.donation.entity.DonationHistory;
 import com.shop.changhyeon.donation.repository.DonationHistoryRepository;
+import com.shop.changhyeon.reward.service.PointRewardService;
 import com.shop.member.entity.Member;
 import com.shop.member.repository.MemberRepository;
 import com.shop.reservation.constant.DonationType;
@@ -31,6 +32,7 @@ class DonationHistoryServiceTest {
     @Mock DonationHistoryRepository donationHistoryRepository;
     @Mock ReservationRepository reservationRepository;
     @Mock MemberRepository memberRepository;
+    @Mock PointRewardService pointRewardService;
     @InjectMocks DonationHistoryService donationHistoryService;
 
     @Test
@@ -68,6 +70,11 @@ class DonationHistoryServiceTest {
         assertThat(captor.getValue().getDonationType()).isEqualTo(DonationType.PLATELET);
         assertThat(captor.getValue().getBloodCenterName()).isEqualTo("인천");
         assertThat(captor.getValue().getDonationPlaceName()).isEqualTo("헌혈의집 구월센터");
+        verify(pointRewardService).awardDonationPoints(
+                member,
+                reservation,
+                DonationType.PLATELET
+        );
         assertThat(reservation.getStatus()).isEqualTo(ReservationStatus.COMPLETED);
     }
 

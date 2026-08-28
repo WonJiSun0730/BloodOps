@@ -29,6 +29,14 @@ const adminMenus = [
     to: '/admin/members',
   },
   {
+    id: 'reward-products',
+    eyebrow: 'REWARD',
+    title: '포인트 상품·재고 관리',
+    description:
+      '헌혈 포인트로 선택할 상품과 재고 수량을 관리합니다.',
+    to: '/admin/reward-products',
+  },
+  {
     id: 'kakao-message',
     eyebrow: 'KAKAO MESSAGE',
     title: '카카오 예약 알림 관리',
