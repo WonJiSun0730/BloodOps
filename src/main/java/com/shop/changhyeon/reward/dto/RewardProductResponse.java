@@ -8,7 +8,8 @@ public record RewardProductResponse(
         String description,
         int pointPrice,
         int stockQuantity,
-        boolean active
+        boolean active,
+        String imageUrl
 ) {
     public static RewardProductResponse from(RewardProduct product) {
         return new RewardProductResponse(
@@ -17,7 +18,10 @@ public record RewardProductResponse(
                 product.getDescription(),
                 product.getPointPrice(),
                 product.getStockQuantity(),
-                product.isActive()
+                product.isActive(),
+                product.hasImage()
+                        ? "/api/rewards/products/" + product.getId() + "/image"
+                        : null
         );
     }
 }

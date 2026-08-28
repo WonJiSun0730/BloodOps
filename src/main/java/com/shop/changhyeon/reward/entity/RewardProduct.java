@@ -34,6 +34,14 @@ public class RewardProduct {
     @Column(nullable = false)
     private boolean active;
 
+    @Lob
+    @Basic(fetch = FetchType.LAZY)
+    @Column(name = "image_data", columnDefinition = "LONGBLOB")
+    private byte[] imageData;
+
+    @Column(name = "image_content_type", length = 100)
+    private String imageContentType;
+
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
@@ -41,6 +49,15 @@ public class RewardProduct {
     @UpdateTimestamp
     @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
+
+    public void updateImage(byte[] imageData, String imageContentType) {
+        this.imageData = imageData;
+        this.imageContentType = imageContentType;
+    }
+
+    public boolean hasImage() {
+        return imageData != null && imageData.length > 0;
+    }
 
     public void update(String name, String description, int pointPrice, int stockQuantity, boolean active) {
         this.name = name;
