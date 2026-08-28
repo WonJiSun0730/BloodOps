@@ -863,3 +863,45 @@ export async function submitQuestionnaire(questionnaireData) {
     body: JSON.stringify(questionnaireData),
   })
 }
+
+export function getFavoriteCenters() {
+  return apiRequest(
+    '/api/favorite-centers'
+  )
+}
+
+
+export async function addFavoriteCenter(
+  centerId
+) {
+  const csrf = await getCsrfToken()
+
+  return apiRequest(
+    `/api/favorite-centers/${centerId}`,
+    {
+      method: 'POST',
+
+      headers: {
+        [csrf.headerName]: csrf.token,
+      },
+    }
+  )
+}
+
+
+export async function removeFavoriteCenter(
+  centerId
+) {
+  const csrf = await getCsrfToken()
+
+  return apiRequest(
+    `/api/favorite-centers/${centerId}`,
+    {
+      method: 'DELETE',
+
+      headers: {
+        [csrf.headerName]: csrf.token,
+      },
+    }
+  )
+}

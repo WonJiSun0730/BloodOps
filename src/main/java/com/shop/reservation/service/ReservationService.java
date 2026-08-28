@@ -452,30 +452,56 @@ public class ReservationService {
             );
         }
 
-        /*
-         * 사용자 변경은 기존 예약과
-         * 같은 센터 / 날짜 / 헌혈 종류 안에서만 허용합니다.
-         */
         ReservationSlot oldSlot =
                 reservation.getSlot();
 
+        /*
+         * 사용자 예약 변경은
+         * 기존 센터와 헌혈 종류는 유지하고,
+         * 날짜와 시간은 변경할 수 있습니다.
+         */
         if (
                 !oldSlot.getCenter()
                         .getId()
                         .equals(
                                 newSlot.getCenter().getId()
                         )
-                        || !oldSlot.getReservationDate()
-                        .equals(
-                                newSlot.getReservationDate()
-                        )
                         || oldSlot.getDonationType()
                         != newSlot.getDonationType()
         ) {
             throw new IllegalStateException(
-                    "같은 센터와 날짜, 헌혈 종류의 예약 시간만 변경할 수 있습니다."
+                    "같은 센터와 헌혈 종류의 예약만 변경할 수 있습니다."
             );
         }
+
+        LocalDate today =
+                LocalDate.now();
+
+        if (
+                !newSlot.getReservationDate()
+                        .isAfter(today)
+        ) {
+            throw new IllegalStateException(
+                    "당일 및 지난 날짜에는 예약을 변경할 수 없습니다."
+            );
+        }
+
+        LocalDate maxReservationDate =
+                today.plusMonths(2);
+
+        if (
+                newSlot.getReservationDate()
+                        .isAfter(maxReservationDate)
+        ) {
+            throw new IllegalStateException(
+                    "예약은 오늘부터 2개월 이내의 날짜로만 변경할 수 있습니다."
+            );
+        }
+
+        validateDonationEligibility(
+                newSlot,
+                email
+        );
 
         validateEquipmentCapacity(
                 newSlot,

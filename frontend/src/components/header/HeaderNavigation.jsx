@@ -25,7 +25,6 @@ const menuItems = [
     title: '헌혈활동',
     items: [
       { label: '헌혈내역 조회', to: '/mypage/records' },
-      { label: '검사결과 조회', to: '/mypage/results' },
       { label: '증명서 발급', to: '/certificate' },
       { label: '혈액 사용 보류신청', to: '/blood-hold' },
     ],

@@ -4,10 +4,22 @@ import {
 } from 'react'
 
 import {
+  addFavoriteCenter,
+  getFavoriteCenters,
   getMyDonationEligibility,
   getMyDonationHistory,
+  removeFavoriteCenter,
 } from '../../api/apiClient.js'
 
+
+const PERIOD_OPTIONS = [
+  { value: 'WEEK', label: '1주일' },
+  { value: 'MONTH', label: '1개월' },
+  { value: 'THREE_MONTHS', label: '3개월' },
+  { value: 'SIX_MONTHS', label: '6개월' },
+  { value: 'YEAR', label: '1년' },
+  { value: 'ALL', label: '전체' },
+]
 
 const donationTypeLabels = {
   WHOLE_BLOOD: '전혈',
@@ -38,6 +50,25 @@ function DonationRecordsPage() {
     setError,
   ] = useState('')
 
+  const [periodFilter, setPeriodFilter] =
+    useState('ALL')
+
+  const [sortConfig, setSortConfig] =
+    useState({
+      key: 'donationDate',
+      direction: 'desc',
+    })
+
+  const [
+    favoriteCenterIds,
+    setFavoriteCenterIds,
+  ] = useState([])
+
+  const [
+    favoriteLoadingCenterId,
+    setFavoriteLoadingCenterId,
+  ] = useState(null)
+
 
   useEffect(() => {
     let active = true
@@ -50,9 +81,11 @@ function DonationRecordsPage() {
         const [
           historyData,
           eligibilityData,
+          favoriteData,
         ] = await Promise.all([
           getMyDonationHistory(),
           getMyDonationEligibility(),
+          getFavoriteCenters(),
         ])
 
         if (active) {
@@ -65,6 +98,15 @@ function DonationRecordsPage() {
           setEligibility(
             eligibilityData
               || null
+          )
+
+          setFavoriteCenterIds(
+            Array.isArray(favoriteData)
+              ? favoriteData.map(
+                  (favorite) =>
+                    favorite.centerId
+                )
+              : []
           )
         }
       } catch (error) {
@@ -91,6 +133,203 @@ function DonationRecordsPage() {
     }
   }, [])
 
+  const getPeriodStartDate = () => {
+    const today = new Date()
+
+    switch (periodFilter) {
+      case 'WEEK':
+        today.setDate(today.getDate() - 7)
+        return today
+
+      case 'MONTH':
+        today.setMonth(today.getMonth() - 1)
+        return today
+
+      case 'THREE_MONTHS':
+        today.setMonth(today.getMonth() - 3)
+        return today
+
+      case 'SIX_MONTHS':
+        today.setMonth(today.getMonth() - 6)
+        return today
+
+      case 'YEAR':
+        today.setFullYear(today.getFullYear() - 1)
+        return today
+
+      default:
+        return null
+    }
+  }
+
+
+  const filteredRecords =
+    records.filter((record) => {
+      const startDate =
+        getPeriodStartDate()
+
+      if (!startDate) {
+        return true
+      }
+
+      const donationDate =
+        new Date(
+          `${record.donationDate}T00:00:00`
+        )
+
+      return donationDate >= startDate
+    })
+
+
+  const sortedRecords = [
+    ...filteredRecords,
+  ].sort((a, b) => {
+    const aValue =
+      a[sortConfig.key] ?? ''
+
+    const bValue =
+      b[sortConfig.key] ?? ''
+
+    const result =
+      String(aValue).localeCompare(
+        String(bValue),
+        'ko',
+        {
+          numeric: true,
+        }
+      )
+
+    return (
+      sortConfig.direction === 'asc'
+        ? result
+        : -result
+    )
+  })
+
+
+  const handleSort = (key) => {
+    setSortConfig((current) => ({
+      key,
+      direction:
+        current.key === key
+        && current.direction === 'asc'
+          ? 'desc'
+          : 'asc',
+    }))
+  }
+
+
+  const getSortMark = (key) => {
+    if (sortConfig.key !== key) {
+      return '↕'
+    }
+
+    const handleFavoriteToggle =
+      async (centerId) => {
+        if (!centerId) {
+          return
+        }
+
+        if (
+          favoriteLoadingCenterId
+          === centerId
+        ) {
+          return
+        }
+
+        const isFavorite =
+          favoriteCenterIds.includes(
+            centerId
+          )
+
+        try {
+          setFavoriteLoadingCenterId(
+            centerId
+          )
+
+          if (isFavorite) {
+            await removeFavoriteCenter(
+              centerId
+            )
+
+            setFavoriteCenterIds(
+              (current) =>
+                current.filter(
+                  (id) =>
+                    id !== centerId
+                )
+            )
+          } else {
+            await addFavoriteCenter(
+              centerId
+            )
+
+            setFavoriteCenterIds(
+              (current) => [
+                ...current,
+                centerId,
+              ]
+            )
+          }
+        } catch (error) {
+          window.alert(
+            error.message
+            || '즐겨찾기 변경에 실패했습니다.'
+          )
+        } finally {
+          setFavoriteLoadingCenterId(
+            null
+          )
+        }
+      }
+
+    return (
+      sortConfig.direction === 'asc'
+        ? '↑'
+        : '↓'
+    )
+  }
+
+  const handleFavoriteToggle = async (centerId) => {
+    if (!centerId) {
+      return
+    }
+
+    if (favoriteLoadingCenterId === centerId) {
+      return
+    }
+
+    const isFavorite =
+      favoriteCenterIds.includes(centerId)
+
+    try {
+      setFavoriteLoadingCenterId(centerId)
+
+      if (isFavorite) {
+        await removeFavoriteCenter(centerId)
+
+        setFavoriteCenterIds((current) =>
+          current.filter(
+            (id) => id !== centerId
+          )
+        )
+      } else {
+        await addFavoriteCenter(centerId)
+
+        setFavoriteCenterIds((current) => [
+          ...current,
+          centerId,
+        ])
+      }
+    } catch (error) {
+      window.alert(
+        error.message
+        || '즐겨찾기 변경에 실패했습니다.'
+      )
+    } finally {
+      setFavoriteLoadingCenterId(null)
+    }
+  }
 
   return (
     <div className="mypage-page">
@@ -315,9 +554,38 @@ function DonationRecordsPage() {
             </p>
           </div>
 
-          <span>
-            총 {records.length}건
-          </span>
+          <div className="mypage-record-toolbar">
+            <div
+              className="mypage-period-filter"
+              aria-label="헌혈기록 조회 기간"
+            >
+              {PERIOD_OPTIONS.map(
+                (option) => (
+                  <button
+                    key={option.value}
+                    type="button"
+                    className={
+                      periodFilter
+                        === option.value
+                        ? 'active'
+                        : ''
+                    }
+                    onClick={() =>
+                      setPeriodFilter(
+                        option.value
+                      )
+                    }
+                  >
+                    {option.label}
+                  </button>
+                )
+              )}
+            </div>
+
+            <span>
+              총 {sortedRecords.length}건
+            </span>
+          </div>
         </header>
 
 
@@ -335,7 +603,7 @@ function DonationRecordsPage() {
           <div className="mypage-record-error">
             {error}
           </div>
-        ) : records.length === 0 ? (
+        ) : sortedRecords.length === 0 ? (
           <div className="mypage-empty-state standalone">
             <strong>
               조회된 헌혈기록이 없습니다.
@@ -350,18 +618,82 @@ function DonationRecordsPage() {
           <div className="mypage-table-shell">
             <div
               className="mypage-table-header"
-              aria-hidden="true"
             >
-              <span>구분</span>
-              <span>헌혈일자</span>
-              <span>헌혈종류</span>
-              <span>혈액원</span>
-              <span>헌혈장소</span>
-              <span>검사결과</span>
+              <span>
+                구분
+              </span>
+
+              <button
+                type="button"
+                onClick={() =>
+                  handleSort(
+                    'donationDate'
+                  )
+                }
+              >
+                헌혈일자
+                <b>
+                  {getSortMark(
+                    'donationDate'
+                  )}
+                </b>
+              </button>
+
+              <button
+                type="button"
+                onClick={() =>
+                  handleSort(
+                    'donationType'
+                  )
+                }
+              >
+                헌혈종류
+                <b>
+                  {getSortMark(
+                    'donationType'
+                  )}
+                </b>
+              </button>
+
+              <button
+                type="button"
+                onClick={() =>
+                  handleSort(
+                    'bloodCenterName'
+                  )
+                }
+              >
+                혈액원
+                <b>
+                  {getSortMark(
+                    'bloodCenterName'
+                  )}
+                </b>
+              </button>
+
+              <button
+                type="button"
+                onClick={() =>
+                  handleSort(
+                    'donationPlaceName'
+                  )
+                }
+              >
+                헌혈장소
+                <b>
+                  {getSortMark(
+                    'donationPlaceName'
+                  )}
+                </b>
+              </button>
+
+              <span>
+                즐겨찾기
+              </span>
             </div>
 
             <div className="mypage-table-body">
-              {records.map(
+              {sortedRecords.map(
                 (record, index) => (
                   <article
                     key={record.id}
@@ -392,10 +724,40 @@ function DonationRecordsPage() {
                       {record.donationPlaceName}
                     </span>
 
-                    <span data-label="검사결과">
-                      <span className="mypage-result-pending">
-                        개발 예정
-                      </span>
+                    <span data-label="즐겨찾기">
+                      <button
+                        type="button"
+                        className={
+                          favoriteCenterIds.includes(
+                            record.centerId
+                          )
+                            ? 'mypage-favorite-button active'
+                            : 'mypage-favorite-button'
+                        }
+                        aria-label={
+                          favoriteCenterIds.includes(
+                            record.centerId
+                          )
+                            ? `${record.donationPlaceName} 즐겨찾기 해제`
+                            : `${record.donationPlaceName} 즐겨찾기 추가`
+                        }
+                        disabled={
+                          !record.centerId
+                          || favoriteLoadingCenterId
+                            === record.centerId
+                        }
+                        onClick={() =>
+                          handleFavoriteToggle(
+                            record.centerId
+                          )
+                        }
+                      >
+                        {favoriteCenterIds.includes(
+                          record.centerId
+                        )
+                          ? '★'
+                          : '☆'}
+                      </button>
                     </span>
                   </article>
                 )

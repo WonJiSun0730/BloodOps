@@ -21,7 +21,7 @@ const myPageMenuGroups = [
     title: '마이페이지',
     items: [
       {
-        label: '마이페이지 홈',
+        label: 'HOME',
         to: '/mypage',
         end: true,
       },
@@ -33,12 +33,7 @@ const myPageMenuGroups = [
       {
         label: '헌혈기록',
         to: '/mypage/records',
-      },
-      {
-        label: '검사결과',
-        to: '/mypage/results',
-        disabled: true,
-      },
+      }
     ],
   },
   {
@@ -89,7 +84,7 @@ function getCurrentPage(
 
   return {
     group: '',
-    title: '마이페이지',
+    title: 'HOME',
   }
 }
 
@@ -172,7 +167,7 @@ function MyPageLayout() {
         )}
 
         {currentPage.title
-          !== '마이페이지' && (
+          !== 'HOME' && (
           <>
             <span aria-hidden="true">
               ›
