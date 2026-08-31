@@ -13,6 +13,7 @@ import {
 import {
   getCurrentUser,
   login,
+  saveOAuthReturnTo,
 } from '../../api/apiClient.js'
 
 import EyeIcon
@@ -157,6 +158,26 @@ function LoginPage() {
       !nextErrors.loginId
       && !nextErrors.password
     )
+  }
+
+  async function handleSocialLogin(
+    provider
+  ) {
+    setErrorMessage('')
+
+    try {
+      await saveOAuthReturnTo(
+        returnTo
+      )
+
+      window.location.href =
+        `/oauth2/authorization/${provider}`
+    } catch (error) {
+      setErrorMessage(
+        error.message
+          || '소셜 로그인을 시작할 수 없습니다.'
+      )
+    }
   }
 
   async function handleSubmit(
@@ -404,6 +425,10 @@ function LoginPage() {
             <a
               className="login-social-button kakao"
               href="/oauth2/authorization/kakao"
+              onClick={(event) => {
+                event.preventDefault()
+                handleSocialLogin('kakao')
+              }}
             >
               <span className="login-social-mark">
                 K
@@ -417,6 +442,10 @@ function LoginPage() {
             <a
               className="login-social-button naver"
               href="/oauth2/authorization/naver"
+              onClick={(event) => {
+                event.preventDefault()
+                handleSocialLogin('naver')
+              }}
             >
               <span className="login-social-mark">
                 N
@@ -430,6 +459,10 @@ function LoginPage() {
             <a
               className="login-social-button google"
               href="/oauth2/authorization/google"
+              onClick={(event) => {
+                event.preventDefault()
+                handleSocialLogin('google')
+              }}
             >
               <span className="login-social-mark">
                 G

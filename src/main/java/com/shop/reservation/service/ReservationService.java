@@ -4,7 +4,7 @@ import com.shop.changhyeon.donation.dto.DonationEligibilityResponseDto;
 import com.shop.changhyeon.donation.service.DonationHistoryService;
 import com.shop.changhyeon.identity.ResidentNumberHashService;
 import com.shop.member.entity.Member;
-import com.shop.member.repository.MemberRepository;
+import com.shop.member.service.MemberService;
 import com.shop.reservation.constant.ReservationStatus;
 import com.shop.reservation.dto.AdminReservationResponseDto;
 import com.shop.reservation.dto.ReservationCreateDto;
@@ -40,8 +40,8 @@ public class ReservationService {
     private final EquipmentGroupRepository
             equipmentGroupRepository;
 
-    private final MemberRepository
-            memberRepository;
+    private final MemberService
+            memberService;
 
     private final ResidentNumberHashService
             residentNumberHashService;
@@ -67,13 +67,9 @@ public class ReservationService {
         );
 
         Member member =
-                memberRepository.findByEmail(email);
-
-        if (member == null) {
-            throw new IllegalArgumentException(
-                    "회원 정보를 찾을 수 없습니다."
-            );
-        }
+                memberService.findByAuthenticationIdentifier(
+                        email
+                );
 
         cancelExpiredReservations(
                 member
@@ -89,7 +85,7 @@ public class ReservationService {
 
         validateDonationEligibility(
                 slot,
-                email
+                member.getEmail()
         );
 
         LocalDate today =
@@ -362,13 +358,9 @@ public class ReservationService {
             String email
     ) {
         Member member =
-                memberRepository.findByEmail(email);
-
-        if (member == null) {
-            throw new IllegalArgumentException(
-                    "회원 정보를 찾을 수 없습니다."
-            );
-        }
+                memberService.findByAuthenticationIdentifier(
+                        email
+                );
 
         /*
          * 예약일이 지난 RESERVED 예약을
@@ -379,7 +371,9 @@ public class ReservationService {
         );
 
         return reservationRepository
-                .findByMember_EmailOrderByIdDesc(email)
+                .findByMember_EmailOrderByIdDesc(
+                        member.getEmail()
+                )
                 .stream()
                 .map(AdminReservationResponseDto::new)
                 .toList();
@@ -399,6 +393,11 @@ public class ReservationService {
             );
         }
 
+        Member member =
+                memberService.findByAuthenticationIdentifier(
+                        email
+                );
+
         Reservation reservation =
                 reservationRepository
                         .findById(reservationId)
@@ -410,8 +409,8 @@ public class ReservationService {
 
         if (
                 !reservation.getMember()
-                        .getEmail()
-                        .equals(email)
+                        .getId()
+                        .equals(member.getId())
         ) {
             throw new IllegalStateException(
                     "본인의 예약만 변경할 수 있습니다."
@@ -500,7 +499,7 @@ public class ReservationService {
 
         validateDonationEligibility(
                 newSlot,
-                email
+                member.getEmail()
         );
 
         validateEquipmentCapacity(
@@ -632,6 +631,11 @@ public class ReservationService {
             Long reservationId,
             String email
     ) {
+        Member member =
+                memberService.findByAuthenticationIdentifier(
+                        email
+                );
+
         Reservation reservation =
                 reservationRepository
                         .findById(reservationId)
@@ -643,8 +647,8 @@ public class ReservationService {
 
         if (
                 !reservation.getMember()
-                        .getEmail()
-                        .equals(email)
+                        .getId()
+                        .equals(member.getId())
         ) {
             throw new IllegalStateException(
                     "본인의 예약만 취소할 수 있습니다."

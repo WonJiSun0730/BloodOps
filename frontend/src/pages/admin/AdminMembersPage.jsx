@@ -398,7 +398,7 @@ function AdminMembersPage() {
             <strong>
               {member.name}
 
-              {currentUser?.identifier === member.email && (
+              {currentUser?.email === member.email && (
                 <span className="admin-member-self">
                   본인
                 </span>

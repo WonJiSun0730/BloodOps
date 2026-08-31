@@ -134,6 +134,10 @@ export function findNearestCenter(
       .filter(
         (center) =>
           center.active !== false
+          && center.latitude !== null
+          && center.latitude !== ''
+          && center.longitude !== null
+          && center.longitude !== ''
           && Number.isFinite(
             Number(center.latitude)
           )

@@ -243,6 +243,43 @@ export async function logout() {
   })
 }
 
+export async function saveOAuthReturnTo(
+  returnTo
+) {
+  const csrf = await getCsrfToken()
+
+  const data =
+    new URLSearchParams()
+
+  data.append(
+    'returnTo',
+    returnTo
+  )
+
+  return apiRequest(
+    '/api/auth/oauth-return-to',
+    {
+      method: 'POST',
+
+      headers: {
+        'Content-Type':
+          'application/x-www-form-urlencoded',
+
+        [csrf.headerName]:
+          csrf.token,
+      },
+
+      body: data,
+    }
+  )
+}
+
+export function getOAuthReturnTo() {
+  return apiRequest(
+    '/api/auth/oauth-return-to'
+  )
+}
+
 // 현재 브라우저가 로그인된 상태인지 확인합니다.
 // 로그인 상태라면 사용자 식별값과 권한 목록을 반환합니다.
 export function getCurrentUser() {

@@ -494,16 +494,8 @@ function CenterSearchPage() {
       const position =
         await getCurrentPosition()
 
-      let centerData =
-        mapCenters
-
-      if (
-        !Array.isArray(centerData)
-        || centerData.length === 0
-      ) {
-        centerData =
-          await getCenterMapCenters()
-      }
+      const centerData =
+        await getCenterMapCenters()
 
       const nearest =
         findNearestCenter(

@@ -6,7 +6,7 @@ import com.shop.changhyeon.donation.dto.DonationHistoryResponseDto;
 import com.shop.changhyeon.donation.entity.DonationHistory;
 import com.shop.changhyeon.donation.repository.DonationHistoryRepository;
 import com.shop.member.entity.Member;
-import com.shop.member.repository.MemberRepository;
+import com.shop.member.service.MemberService;
 import com.shop.reservation.constant.DonationType;
 import com.shop.reservation.constant.ReservationStatus;
 import com.shop.reservation.entity.Reservation;
@@ -25,7 +25,7 @@ public class DonationHistoryService {
 
     private final DonationHistoryRepository donationHistoryRepository;
     private final ReservationRepository reservationRepository;
-    private final MemberRepository memberRepository;
+    private final MemberService memberService;
 
     public DonationHistoryResponseDto completeDonation(Long reservationId, LocalDate donationDate) {
         Reservation reservation = reservationRepository.findById(reservationId)
@@ -61,10 +61,10 @@ public class DonationHistoryService {
 
     @Transactional(readOnly = true)
     public List<DonationHistoryResponseDto> getMyDonationHistory(String email) {
-        Member member = memberRepository.findByEmail(email);
-        if (member == null) {
-            throw new IllegalArgumentException("회원 정보를 찾을 수 없습니다.");
-        }
+        Member member =
+                memberService.findByAuthenticationIdentifier(
+                        email
+                );
 
         return donationHistoryRepository
                 .findByMember_IdOrderByDonationDateDescIdDesc(member.getId())
@@ -77,13 +77,10 @@ public class DonationHistoryService {
     public DonationEligibilityResponseDto getMyDonationEligibility(
             String email
     ) {
-        Member member = memberRepository.findByEmail(email);
-
-        if (member == null) {
-            throw new IllegalArgumentException(
-                    "회원 정보를 찾을 수 없습니다."
-            );
-        }
+        Member member =
+                memberService.findByAuthenticationIdentifier(
+                        email
+                );
 
         LocalDate today = LocalDate.now();
         LocalDate oneYearAgo = today.minusYears(1);

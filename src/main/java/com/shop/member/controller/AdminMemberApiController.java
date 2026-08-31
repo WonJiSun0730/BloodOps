@@ -3,6 +3,7 @@ package com.shop.member.controller;
 import com.shop.member.constant.Role;
 import com.shop.member.dto.AdminMemberResponseDto;
 import com.shop.member.dto.AdminMemberRoleUpdateDto;
+import com.shop.member.entity.Member;
 import com.shop.member.service.MemberService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -70,9 +71,14 @@ public class AdminMemberApiController {
                             request.getRole()
                     );
 
+            Member currentMember =
+                    memberService.findByAuthenticationIdentifier(
+                            authentication.getName()
+                    );
+
             boolean changedSelf =
-                    authentication.getName()
-                            .equals(member.getEmail());
+                    currentMember.getId()
+                            .equals(member.getId());
 
             boolean lostAdminAccess =
                     changedSelf

@@ -6,7 +6,7 @@ import com.shop.favorite.dto.FavoriteCenterResponseDto;
 import com.shop.favorite.entity.FavoriteCenter;
 import com.shop.favorite.repository.FavoriteCenterRepository;
 import com.shop.member.entity.Member;
-import com.shop.member.repository.MemberRepository;
+import com.shop.member.service.MemberService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -19,7 +19,7 @@ import java.util.List;
 public class FavoriteCenterService {
 
     private final FavoriteCenterRepository favoriteCenterRepository;
-    private final MemberRepository memberRepository;
+    private final MemberService memberService;
     private final CenterRepository centerRepository;
 
 
@@ -92,16 +92,10 @@ public class FavoriteCenterService {
     }
 
 
-    private Member getMember(String email) {
-        Member member =
-                memberRepository.findByEmail(email);
-
-        if (member == null) {
-            throw new IllegalArgumentException(
-                    "회원 정보를 찾을 수 없습니다."
-            );
-        }
-
-        return member;
+    private Member getMember(String identifier) {
+        return memberService
+                .findByAuthenticationIdentifier(
+                        identifier
+                );
     }
 }

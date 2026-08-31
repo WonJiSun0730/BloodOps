@@ -8,6 +8,7 @@ import { useNavigate } from 'react-router-dom'
 import {
   confirmEmailVerificationCode,
   getCurrentUser,
+  getOAuthReturnTo,
   logout,
   sendEmailVerificationCode,
   updateAdditionalInfo,
@@ -195,9 +196,15 @@ useEffect(() => {
          * 메인 화면으로 돌려보냅니다.
          */
         if (!user.additionalInfoRequired) {
-          navigate('/', {
-            replace: true,
-          })
+          const returnData =
+            await getOAuthReturnTo()
+
+          navigate(
+            returnData?.returnTo || '/',
+            {
+              replace: true,
+            }
+          )
 
           return
         }
@@ -600,13 +607,18 @@ async function handleConfirmVerificationCode() {
         emailAgreed: form.emailAgreed,
       })
 
-      /*
-       * 저장이 성공하면 추가정보 입력이 완료된 상태이므로
-       * 메인 화면으로 이동합니다.
-       */
-      navigate('/', {
-        replace: true,
-      })
+      const returnData =
+        await getOAuthReturnTo()
+
+      const returnTo =
+        returnData?.returnTo || '/'
+
+      navigate(
+        returnTo,
+        {
+          replace: true,
+        }
+      )
     } catch (error) {
       /*
        * apiRequest()가 서버의 errors 객체를
