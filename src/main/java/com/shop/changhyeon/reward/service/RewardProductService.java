@@ -41,10 +41,22 @@ public class RewardProductService {
     public RewardProductResponse update(Long id, RewardProductRequest request) {
         RewardProduct product = find(id);
         RewardProductType type = request.resolvedProductType();
-        if (product.getProductType() != type && product.getStockQuantity() > 0) {
-            throw new IllegalStateException("재고가 있는 상품은 상품 유형을 변경할 수 없습니다.");
+        if (product.getProductType() == RewardProductType.DIGITAL_VOUCHER
+                && type == RewardProductType.PHYSICAL
+                && product.getStockQuantity() > 0) {
+            throw new IllegalStateException(
+                    "사용 가능한 상품권 코드가 남아 있어 실물 상품으로 변경할 수 없습니다."
+            );
         }
-        int stock = type == RewardProductType.DIGITAL_VOUCHER ? product.getStockQuantity() : request.stockQuantity();
+
+        int stock;
+        if (type == RewardProductType.DIGITAL_VOUCHER) {
+            stock = product.getProductType() == RewardProductType.DIGITAL_VOUCHER
+                    ? product.getStockQuantity()
+                    : 0;
+        } else {
+            stock = request.stockQuantity();
+        }
         product.update(request.name().trim(), request.description().trim(), request.pointPrice(), stock, type, request.active());
         return RewardProductResponse.from(product);
     }
