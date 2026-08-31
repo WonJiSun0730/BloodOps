@@ -11,6 +11,7 @@ function MyPointsPage() {
   const [centers,setCenters]=useState([])
   const [selected,setSelected]=useState(null)
   const [centerId,setCenterId]=useState('')
+  const [centerSearch,setCenterSearch]=useState('')
   const [purchasing,setPurchasing]=useState(false)
   const [message,setMessage]=useState('')
   const [error,setError]=useState('')
@@ -25,6 +26,7 @@ function MyPointsPage() {
   const selectProduct = async (product) => {
     setSelected(product)
     setCenterId('')
+    setCenterSearch('')
     setCenters([])
     setError('')
     setMessage('')
@@ -47,6 +49,19 @@ function MyPointsPage() {
       )
     }
   }
+
+  const filteredCenters = centers.filter((center) => {
+    const keyword = centerSearch.trim().toLowerCase()
+
+    if (!keyword) {
+      return true
+    }
+
+    return (
+      center.centerName?.toLowerCase().includes(keyword)
+      || center.address?.toLowerCase().includes(keyword)
+    )
+  })
 
   const purchase=async()=>{
     if(!selected||purchasing)return
@@ -97,7 +112,60 @@ function MyPointsPage() {
         <div className="reward-detail-image-shell">{selected.imageUrl?<img src={selected.imageUrl} alt={selected.name}/>:<span>NO IMAGE</span>}</div>
         <div className="reward-detail-content"><span className="reward-detail-eyebrow">{selected.productType==='DIGITAL_VOUCHER'?'DIGITAL VOUCHER':'PHYSICAL REWARD'}</span><h3>{selected.name}</h3><p>{selected.description}</p>
           <dl><div><dt>필요 포인트</dt><dd>{selected.pointPrice.toLocaleString()}P</dd></div><div><dt>보유 포인트</dt><dd>{Number(pointData.balance).toLocaleString()}P</dd></div><div><dt>재고</dt><dd>{selected.stockQuantity}개</dd></div></dl>
-          {selected.productType === 'PHYSICAL'&&<label className="reward-pickup-select">수령할 헌혈의 집<select value={centerId} onChange={e=>setCenterId(e.target.value)}><option value="">센터를 선택하세요</option>{centers.map(c=><option key={c.id} value={c.id}>{c.centerName} · {c.address}</option>)}</select><small>신청 후 7일 이내 방문하여 수령 코드를 보여주세요.</small></label>}
+          {selected.productType === 'PHYSICAL' && (
+            <div className="reward-pickup-select">
+              <label htmlFor="reward-center-search">
+                수령할 헌혈의 집
+              </label>
+              <input
+                id="reward-center-search"
+                type="search"
+                value={centerSearch}
+                placeholder="센터명 또는 주소 검색"
+                autoComplete="off"
+                onChange={(event) => {
+                  setCenterSearch(event.target.value)
+                }}
+              />
+              <div
+                className="reward-center-options"
+                role="listbox"
+                aria-label="수령센터 검색 결과"
+              >
+                {filteredCenters.length === 0 ? (
+                  <p>검색 결과가 없습니다.</p>
+                ) : (
+                  filteredCenters.map((center) => (
+                    <button
+                      type="button"
+                      key={center.id}
+                      role="option"
+                      aria-selected={
+                        String(centerId)
+                        === String(center.id)
+                      }
+                      className={
+                        String(centerId)
+                        === String(center.id)
+                          ? 'selected'
+                          : ''
+                      }
+                      onClick={() => {
+                        setCenterId(center.id)
+                      }}
+                    >
+                      <strong>{center.centerName}</strong>
+                      <span>{center.address}</span>
+                    </button>
+                  ))
+                )}
+              </div>
+              <small>
+                신청 후 7일 이내 방문하여
+                수령 코드를 보여주세요.
+              </small>
+            </div>
+          )}
           <button type="button" className="reward-purchase-button" disabled={purchasing||selected.stockQuantity===0||Number(pointData.balance)<selected.pointPrice} onClick={purchase}>{purchasing?'교환 처리 중...':selected.stockQuantity===0?'품절된 상품입니다':Number(pointData.balance)<selected.pointPrice?'포인트가 부족합니다':'포인트로 교환하기'}</button>
         </div>
       </section></div>}
