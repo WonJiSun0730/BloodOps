@@ -1,5 +1,6 @@
 package com.shop.changhyeon.reward.entity;
 
+import com.shop.changhyeon.reward.constant.RewardProductType;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
@@ -31,6 +32,12 @@ public class RewardProduct {
     @Column(name = "stock_quantity", nullable = false)
     private int stockQuantity;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "product_type", nullable = false, length = 30,
+            columnDefinition = "varchar(30) default 'PHYSICAL'")
+    @Builder.Default
+    private RewardProductType productType = RewardProductType.PHYSICAL;
+
     @Column(nullable = false)
     private boolean active;
 
@@ -57,6 +64,13 @@ public class RewardProduct {
         stockQuantity--;
     }
 
+    public void increaseStock(int quantity) {
+        if (quantity <= 0) {
+            throw new IllegalArgumentException("입고 수량은 1개 이상이어야 합니다.");
+        }
+        stockQuantity += quantity;
+    }
+
     public void updateImage(byte[] imageData, String imageContentType) {
         this.imageData = imageData;
         this.imageContentType = imageContentType;
@@ -66,11 +80,19 @@ public class RewardProduct {
         return imageData != null && imageData.length > 0;
     }
 
-    public void update(String name, String description, int pointPrice, int stockQuantity, boolean active) {
+    public void update(
+            String name,
+            String description,
+            int pointPrice,
+            int stockQuantity,
+            RewardProductType productType,
+            boolean active
+    ) {
         this.name = name;
         this.description = description;
         this.pointPrice = pointPrice;
         this.stockQuantity = stockQuantity;
+        this.productType = productType;
         this.active = active;
     }
 }

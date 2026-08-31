@@ -3,7 +3,7 @@ import AdminSectionNav from '../../components/admin/AdminSectionNav.jsx'
 import { createAdminRewardProduct, deleteAdminRewardProduct, getAdminRewardProducts, updateAdminRewardProduct, uploadAdminRewardProductImage } from '../../api/apiClient.js'
 import './AdminRewardProductsPage.css'
 
-const emptyForm = { name: '', description: '', pointPrice: '', stockQuantity: '', active: true }
+const emptyForm = { name: '', description: '', pointPrice: '', stockQuantity: '', productType: 'PHYSICAL', active: true }
 
 function AdminRewardProductsPage() {
   const [products, setProducts] = useState([])
@@ -49,7 +49,7 @@ function AdminRewardProductsPage() {
 
   const edit = (product) => {
     setEditingId(product.id)
-    setForm({ name: product.name, description: product.description, pointPrice: product.pointPrice, stockQuantity: product.stockQuantity, active: product.active })
+    setForm({ name: product.name, description: product.description, pointPrice: product.pointPrice, stockQuantity: product.stockQuantity, productType: product.productType || 'PHYSICAL', active: product.active })
     setImageFile(null)
     setImagePreview(product.imageUrl || '')
     window.scrollTo({ top: 0, behavior: 'smooth' })
@@ -61,8 +61,9 @@ function AdminRewardProductsPage() {
       <header className="admin-reward-header"><span>REWARD INVENTORY</span><h1>포인트 상품·재고 관리</h1><p>헌혈자가 포인트로 선택할 상품과 재고를 관리합니다.</p></header>
       <form className="admin-reward-form" onSubmit={submit}>
         <label>상품명<input required maxLength="100" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} /></label>
+        <label>상품 유형<select value={form.productType} onChange={(e) => setForm({ ...form, productType: e.target.value, stockQuantity: e.target.value === 'DIGITAL_VOUCHER' ? 0 : form.stockQuantity })}><option value="PHYSICAL">실물 상품</option><option value="DIGITAL_VOUCHER">디지털 코드</option></select></label>
         <label>필요 포인트<input required type="number" min="1" value={form.pointPrice} onChange={(e) => setForm({ ...form, pointPrice: e.target.value })} /></label>
-        <label>재고 수량<input required type="number" min="0" value={form.stockQuantity} onChange={(e) => setForm({ ...form, stockQuantity: e.target.value })} /></label>
+        <label>재고 수량<input required type="number" min="0" disabled={form.productType === 'DIGITAL_VOUCHER'} value={form.stockQuantity} onChange={(e) => setForm({ ...form, stockQuantity: e.target.value })} /></label>
         <label className="admin-reward-image">상품 이미지
           <input type="file" accept="image/jpeg,image/png,image/webp,image/gif" onChange={(e) => {
             const file = e.target.files?.[0] || null
@@ -82,7 +83,7 @@ function AdminRewardProductsPage() {
         <header><h2>등록 상품</h2><span>{products.length}개</span></header>
         <div className="admin-reward-table">
           <div className="admin-reward-row heading"><span>상품명</span><span>필요 포인트</span><span>재고</span><span>상태</span><span>관리</span></div>
-          {products.map((product) => <div className="admin-reward-row" key={product.id}><span className="admin-reward-product-name">{product.imageUrl ? <img src={product.imageUrl} alt="" /> : <span className="admin-reward-no-image">NO IMAGE</span>}<span><strong>{product.name}</strong><small>{product.description}</small></span></span><span>{product.pointPrice.toLocaleString()}P</span><span>{product.stockQuantity}개</span><span>{product.active ? '노출' : '숨김'}</span><span className="admin-reward-row-actions"><button type="button" onClick={() => edit(product)}>수정</button><button type="button" className="danger" onClick={() => remove(product)}>삭제</button></span></div>)}
+          {products.map((product) => <div className="admin-reward-row" key={product.id}><span className="admin-reward-product-name">{product.imageUrl ? <img src={product.imageUrl} alt="" /> : <span className="admin-reward-no-image">NO IMAGE</span>}<span><strong>{product.name}</strong><small>{product.description}</small></span></span><span>{product.pointPrice.toLocaleString()}P</span><span>{product.productType === 'DIGITAL_VOUCHER' ? '디지털 코드 · ' : '실물 · '}{product.stockQuantity}개</span><span>{product.active ? '노출' : '숨김'}</span><span className="admin-reward-row-actions"><button type="button" onClick={() => edit(product)}>수정</button><button type="button" className="danger" onClick={() => remove(product)}>삭제</button></span></div>)}
         </div>
       </section>
     </main>

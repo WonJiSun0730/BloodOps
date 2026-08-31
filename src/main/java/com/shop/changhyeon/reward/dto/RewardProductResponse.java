@@ -1,5 +1,6 @@
 package com.shop.changhyeon.reward.dto;
 
+import com.shop.changhyeon.reward.constant.RewardProductType;
 import com.shop.changhyeon.reward.entity.RewardProduct;
 
 public record RewardProductResponse(
@@ -8,6 +9,7 @@ public record RewardProductResponse(
         String description,
         int pointPrice,
         int stockQuantity,
+        RewardProductType productType,
         boolean active,
         String imageUrl
 ) {
@@ -18,6 +20,7 @@ public record RewardProductResponse(
                 product.getDescription(),
                 product.getPointPrice(),
                 product.getStockQuantity(),
+                product.getProductType() == null ? RewardProductType.PHYSICAL : product.getProductType(),
                 product.isActive(),
                 product.hasImage()
                         ? "/api/rewards/products/" + product.getId() + "/image"

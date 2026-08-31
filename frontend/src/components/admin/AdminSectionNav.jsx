@@ -21,6 +21,10 @@ const adminSections = [
         label: '상품·재고 관리',
     },
     {
+        to: '/admin/reward-fulfillment',
+        label: '상품권·수령 관리',
+    },
+    {
         to: '/admin/kakao-message-template',
         label: '카카오 예약 알림',
     },

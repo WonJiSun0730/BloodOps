@@ -889,15 +889,43 @@ export async function deleteAdminRewardProduct(productId) {
   )
 }
 
-export async function purchaseRewardProduct(productId) {
+export async function purchaseRewardProduct(productId, pickupCenterId = null) {
   const csrf = await getCsrfToken()
-  return apiRequest(
-    '/api/rewards/products/' + encodeURIComponent(productId) + '/purchase',
-    {
-      method: 'POST',
-      headers: {
-        [csrf.headerName]: csrf.token,
-      },
-    }
-  )
+  return apiRequest('/api/rewards/products/' + encodeURIComponent(productId) + '/purchase', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', [csrf.headerName]: csrf.token },
+    body: JSON.stringify({ pickupCenterId }),
+  })
 }
+
+export function getMyRewardOrders() {
+  return apiRequest('/api/rewards/orders/me')
+}
+
+export function revealRewardVoucherCode(purchaseId) {
+  return apiRequest('/api/rewards/orders/' + encodeURIComponent(purchaseId) + '/voucher-code')
+}
+
+export function getAdminRewardOrders() {
+  return apiRequest('/api/admin/reward-fulfillment/orders')
+}
+
+export async function generateRewardVoucherCodes(productId, quantity, validDays) {
+  const csrf = await getCsrfToken()
+  return apiRequest('/api/admin/reward-fulfillment/products/' + encodeURIComponent(productId) + '/voucher-codes', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', [csrf.headerName]: csrf.token },
+    body: JSON.stringify({ quantity: Number(quantity), validDays: Number(validDays) }),
+  })
+}
+
+async function patchRewardOrder(purchaseId, action) {
+  const csrf = await getCsrfToken()
+  return apiRequest('/api/admin/reward-fulfillment/orders/' + encodeURIComponent(purchaseId) + '/' + action, {
+    method: 'PATCH',
+    headers: { [csrf.headerName]: csrf.token },
+  })
+}
+
+export const completeRewardPickup = (purchaseId) => patchRewardOrder(purchaseId, 'pickup')
+export const cancelRewardOrder = (purchaseId) => patchRewardOrder(purchaseId, 'cancel')

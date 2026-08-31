@@ -1,5 +1,8 @@
 package com.shop.changhyeon.reward.entity;
 
+import com.shop.center.entity.Center;
+import com.shop.changhyeon.reward.constant.RewardProductType;
+import com.shop.changhyeon.reward.constant.RewardPurchaseStatus;
 import com.shop.member.entity.Member;
 import jakarta.persistence.*;
 import lombok.*;
@@ -38,7 +41,43 @@ public class RewardPurchase {
     @Column(name = "points_spent", nullable = false, updatable = false)
     private int pointsSpent;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "product_type", length = 30)
+    private RewardProductType productType;
+
+    @Enumerated(EnumType.STRING)
+    @Column(length = 30)
+    private RewardPurchaseStatus status;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "pickup_center_id")
+    private Center pickupCenter;
+
+    @Column(name = "pickup_code", length = 30)
+    private String pickupCode;
+
+    @Column(name = "pickup_deadline")
+    private LocalDateTime pickupDeadline;
+
+    @Column(name = "picked_up_at")
+    private LocalDateTime pickedUpAt;
+
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
+
+    public void completePickup() {
+        if (status != RewardPurchaseStatus.READY_FOR_PICKUP) {
+            throw new IllegalStateException("수령 대기 중인 상품만 완료 처리할 수 있습니다.");
+        }
+        status = RewardPurchaseStatus.PICKED_UP;
+        pickedUpAt = LocalDateTime.now();
+    }
+
+    public void cancel() {
+        if (status != RewardPurchaseStatus.READY_FOR_PICKUP) {
+            throw new IllegalStateException("수령 대기 중인 상품만 취소할 수 있습니다.");
+        }
+        status = RewardPurchaseStatus.CANCELED;
+    }
 }
