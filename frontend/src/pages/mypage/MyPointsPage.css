@@ -132,3 +132,103 @@
     margin-left: 0;
   }
 }
+
+
+.reward-pickup-select > label {
+  color: var(--color-text-muted);
+  font-size: 0.78rem;
+  font-weight: 750;
+}
+
+.reward-pickup-select input[type="search"] {
+  width: 100%;
+  min-height: 46px;
+  padding: 10px 12px;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  color: var(--color-text);
+  background: var(--color-background);
+}
+
+.reward-pickup-select input[type="search"]:focus {
+  outline: 2px solid
+    color-mix(
+      in srgb,
+      var(--color-primary) 42%,
+      transparent
+    );
+}
+
+.reward-center-options {
+  display: grid;
+  max-height: 210px;
+  padding: 6px;
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  overflow-y: auto;
+  background: var(--color-background);
+  gap: 4px;
+}
+
+.reward-center-options > p {
+  margin: 0;
+  padding: 18px 12px;
+  color: var(--color-text-muted);
+  font-size: 0.75rem;
+  text-align: center;
+}
+
+.reward-center-options button {
+  display: flex;
+  width: 100%;
+  min-height: 50px;
+  padding: 10px 12px;
+  align-items: flex-start;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  color: var(--color-text);
+  background: transparent;
+  text-align: left;
+  flex-direction: column;
+  gap: 4px;
+  cursor: pointer;
+}
+
+.reward-center-options button:hover {
+  background: var(--color-surface);
+}
+
+.reward-center-options button:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: -2px;
+}
+
+.reward-center-options button.selected {
+  border-color: var(--color-primary);
+  background:
+    color-mix(
+      in srgb,
+      var(--color-primary) 9%,
+      var(--color-surface)
+    );
+}
+
+.reward-center-options button strong {
+  font-size: 0.78rem;
+}
+
+.reward-center-options button span {
+  color: var(--color-text-muted);
+  font-size: 0.68rem;
+  line-height: 1.45;
+}
+
+@media (max-width: 768px) {
+  .reward-pickup-select input[type="search"] {
+    min-height: 44px;
+  }
+
+  .reward-center-options {
+    max-height: 190px;
+  }
+}
