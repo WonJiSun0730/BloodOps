@@ -232,3 +232,123 @@
     max-height: 190px;
   }
 }
+
+
+.reward-purchase-confirmation {
+  margin-top: auto;
+  padding: 20px;
+  border: 1px solid
+    color-mix(
+      in srgb,
+      var(--color-primary) 55%,
+      var(--color-border)
+    );
+  border-radius: 12px;
+  background:
+    color-mix(
+      in srgb,
+      var(--color-primary) 8%,
+      var(--color-background)
+    );
+}
+
+.reward-purchase-confirmation > span {
+  color: var(--color-primary);
+  font-size: 0.65rem;
+  font-weight: 850;
+  letter-spacing: 0.12em;
+}
+
+.reward-purchase-confirmation h4 {
+  margin: 8px 0 0;
+  color: var(--color-text);
+  font-size: 1.05rem;
+}
+
+.reward-purchase-confirmation > p {
+  margin: 10px 0 0;
+  color: var(--color-text-muted);
+  font-size: 0.78rem;
+  line-height: 1.6;
+}
+
+.reward-purchase-confirmation > p strong {
+  color: var(--color-text);
+}
+
+.reward-purchase-confirmation dl {
+  margin: 16px 0 0;
+}
+
+.reward-purchase-confirmation dl div {
+  padding: 10px 0;
+}
+
+.reward-purchase-confirmation
+.reward-confirmation-warning {
+  padding: 10px 12px;
+  border-left: 3px solid var(--color-primary);
+  color: var(--color-text);
+  background: var(--color-surface);
+}
+
+.reward-confirmation-actions {
+  display: grid;
+  margin-top: 16px;
+  grid-template-columns:
+    repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.reward-confirmation-actions button {
+  min-height: 46px;
+  padding: 0 14px;
+  border: 0;
+  border-radius: 9px;
+  color: #ffffff;
+  background: var(--color-primary);
+  font-weight: 850;
+  cursor: pointer;
+}
+
+.reward-confirmation-actions button:hover:not(:disabled) {
+  background: var(--color-primary-hover);
+}
+
+.reward-confirmation-actions button:focus-visible {
+  outline: 2px solid #ffffff;
+  outline-offset: 2px;
+}
+
+.reward-confirmation-actions button.secondary {
+  border: 1px solid var(--color-border);
+  color: var(--color-text);
+  background: var(--color-surface);
+}
+
+.reward-confirmation-actions button.secondary:hover:not(:disabled) {
+  border-color: var(--color-primary);
+  background: var(--color-surface);
+}
+
+.reward-confirmation-actions button:disabled {
+  color: var(--color-text-muted);
+  background: var(--color-border);
+  cursor: not-allowed;
+}
+
+@media (max-width: 768px) {
+  .reward-purchase-confirmation {
+    padding: 18px;
+  }
+
+  .reward-confirmation-actions button {
+    min-height: 44px;
+  }
+}
+
+@media (max-width: 480px) {
+  .reward-confirmation-actions {
+    grid-template-columns: 1fr;
+  }
+}
