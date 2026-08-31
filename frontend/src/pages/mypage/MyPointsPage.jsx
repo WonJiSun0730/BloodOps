@@ -16,14 +16,53 @@ function MyPointsPage() {
   const [error,setError]=useState('')
 
   const reload=()=>Promise.all([getMyPoints(),getRewardProducts()]).then(([p,r])=>{setPointData(p);setProducts(r)})
-  useEffect(()=>{ Promise.all([reload(),getCenters()]).then(([,c])=>setCenters(Array.isArray(c)?c:(c.content||[]))).catch(e=>setError(e.message)) },[])
+  useEffect(() => {
+    reload().catch((requestError) => {
+      setError(requestError.message)
+    })
+  }, [])
+
+  const selectProduct = async (product) => {
+    setSelected(product)
+    setCenterId('')
+    setCenters([])
+    setError('')
+    setMessage('')
+
+    if (product.productType !== 'PHYSICAL') {
+      return
+    }
+
+    try {
+      const centerData = await getCenters()
+      setCenters(
+        Array.isArray(centerData)
+          ? centerData
+          : (centerData.content || [])
+      )
+    } catch (requestError) {
+      setError(
+        requestError.message
+        || '수령센터 목록을 불러오지 못했습니다.'
+      )
+    }
+  }
 
   const purchase=async()=>{
     if(!selected||purchasing)return
     if((selected.productType||'PHYSICAL')==='PHYSICAL'&&!centerId){setError('수령할 헌혈의 집을 선택해주세요.');return}
     setPurchasing(true);setError('');setMessage('')
     try{
-      const result=await purchaseRewardProduct(selected.id,centerId||null)
+      const pickupCenterId =
+        selected.productType === 'PHYSICAL'
+          ? centerId
+          : null
+
+      const result =
+        await purchaseRewardProduct(
+          selected.id,
+          pickupCenterId
+        )
       await reload(); setSelected(null);setCenterId('')
       setMessage(result.productType==='DIGITAL_VOUCHER'
         ? '상품권 교환이 완료되었습니다. 상품권·교환 내역에서 코드를 확인하세요.'
@@ -48,7 +87,7 @@ function MyPointsPage() {
       {pointData.transactions.length===0?<div className="mypage-empty-state"><strong>포인트 내역이 없습니다.</strong></div>:<div className="point-history-list">{pointData.transactions.map(t=><article key={t.id}><div><strong>{t.description}</strong><span>{donationNames[t.donationType]||'포인트'}</span></div><div><strong className={t.points>=0?'earned':'used'}>{t.points>=0?'+':''}{t.points.toLocaleString()}P</strong><time>{new Date(t.createdAt).toLocaleString('ko-KR')}</time></div></article>)}</div>}
     </section>
     <section className="point-section"><header><div><h3>포인트 상품</h3><p>상품을 눌러 상세 정보와 교환 방법을 확인하세요.</p></div><span>{products.length}개</span></header>
-      <div className="reward-product-grid">{products.map(p=><button type="button" key={p.id} className={'reward-product-card '+(p.stockQuantity===0?'sold-out':'')} onClick={()=>{setSelected(p);setCenterId('');setError('')}}>
+      <div className="reward-product-grid">{products.map(p=><button type="button" key={p.id} className={'reward-product-card '+(p.stockQuantity===0?'sold-out':'')} onClick={() => selectProduct(p)}>
         {p.imageUrl?<img className="reward-product-image" src={p.imageUrl} alt={p.name}/>:<span className="reward-product-image placeholder">NO IMAGE</span>}
         <span className="reward-product-status">{p.stockQuantity===0?'품절':p.productType==='DIGITAL_VOUCHER'?'즉시 발급':'센터 수령'}</span><strong>{p.name}</strong><p>{p.description}</p><span className="reward-product-meta"><strong>{p.pointPrice.toLocaleString()}P</strong><small>재고 {p.stockQuantity}개</small></span>
       </button>)}</div>
@@ -58,7 +97,7 @@ function MyPointsPage() {
         <div className="reward-detail-image-shell">{selected.imageUrl?<img src={selected.imageUrl} alt={selected.name}/>:<span>NO IMAGE</span>}</div>
         <div className="reward-detail-content"><span className="reward-detail-eyebrow">{selected.productType==='DIGITAL_VOUCHER'?'DIGITAL VOUCHER':'PHYSICAL REWARD'}</span><h3>{selected.name}</h3><p>{selected.description}</p>
           <dl><div><dt>필요 포인트</dt><dd>{selected.pointPrice.toLocaleString()}P</dd></div><div><dt>보유 포인트</dt><dd>{Number(pointData.balance).toLocaleString()}P</dd></div><div><dt>재고</dt><dd>{selected.stockQuantity}개</dd></div></dl>
-          {(selected.productType||'PHYSICAL')==='PHYSICAL'&&<label className="reward-pickup-select">수령할 헌혈의 집<select value={centerId} onChange={e=>setCenterId(e.target.value)}><option value="">센터를 선택하세요</option>{centers.map(c=><option key={c.id} value={c.id}>{c.centerName} · {c.address}</option>)}</select><small>신청 후 7일 이내 방문하여 수령 코드를 보여주세요.</small></label>}
+          {selected.productType === 'PHYSICAL'&&<label className="reward-pickup-select">수령할 헌혈의 집<select value={centerId} onChange={e=>setCenterId(e.target.value)}><option value="">센터를 선택하세요</option>{centers.map(c=><option key={c.id} value={c.id}>{c.centerName} · {c.address}</option>)}</select><small>신청 후 7일 이내 방문하여 수령 코드를 보여주세요.</small></label>}
           <button type="button" className="reward-purchase-button" disabled={purchasing||selected.stockQuantity===0||Number(pointData.balance)<selected.pointPrice} onClick={purchase}>{purchasing?'교환 처리 중...':selected.stockQuantity===0?'품절된 상품입니다':Number(pointData.balance)<selected.pointPrice?'포인트가 부족합니다':'포인트로 교환하기'}</button>
         </div>
       </section></div>}
