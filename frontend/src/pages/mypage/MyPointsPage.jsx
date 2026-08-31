@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { getCenters, getMyPoints, getRewardProducts, purchaseRewardProduct } from '../../api/apiClient.js'
 import './MyPointsPage.css'
@@ -15,6 +15,8 @@ function MyPointsPage() {
   const [purchasing,setPurchasing]=useState(false)
   const [confirming,setConfirming]=useState(false)
   const [message,setMessage]=useState('')
+  const [completedProductType,setCompletedProductType]=useState('')
+  const successMessageRef=useRef(null)
   const [error,setError]=useState('')
 
   const reload=()=>Promise.all([getMyPoints(),getRewardProducts()]).then(([p,r])=>{setPointData(p);setProducts(r)})
@@ -23,6 +25,21 @@ function MyPointsPage() {
       setError(requestError.message)
     })
   }, [])
+
+  useEffect(() => {
+    if (!message || !successMessageRef.current) {
+      return
+    }
+
+    successMessageRef.current.scrollIntoView({
+      behavior: 'smooth',
+      block: 'center',
+    })
+
+    successMessageRef.current.focus({
+      preventScroll: true,
+    })
+  }, [message])
 
   const selectProduct = async (product) => {
     setSelected(product)
@@ -96,6 +113,7 @@ function MyPointsPage() {
           pickupCenterId
         )
       await reload(); setSelected(null);setConfirming(false);setCenterId('')
+      setCompletedProductType(result.productType)
       setMessage(result.productType==='DIGITAL_VOUCHER'
         ? '상품권 교환이 완료되었습니다. 상품권·교환 내역에서 코드를 확인하세요.'
         : '실물 상품 교환 신청이 완료되었습니다. 수령 코드: '+result.pickupCode)
@@ -112,7 +130,40 @@ function MyPointsPage() {
     </section>
 
     <section className="point-balance-card"><div><span>AVAILABLE POINT</span><h3>사용 가능한 포인트</h3><p>포인트는 헌혈 완료 시에만 적립되며 현금 충전은 지원하지 않습니다.</p></div><strong>{Number(pointData.balance).toLocaleString()}P</strong></section>
-    {message&&<p className="point-feedback success">{message} <Link to="/mypage/rewards">내역 보기</Link></p>}
+    {message && (
+      <section
+        ref={successMessageRef}
+        className="point-purchase-success"
+        role="status"
+        aria-live="polite"
+        tabIndex="-1"
+      >
+        <span
+          className="point-purchase-success-icon"
+          aria-hidden="true"
+        >
+          ✓
+        </span>
+        <div>
+          <span>REWARD COMPLETE</span>
+          <strong>
+            {completedProductType === 'DIGITAL_VOUCHER'
+              ? '상품권 교환이 완료되었습니다.'
+              : '상품 교환 신청이 완료되었습니다.'}
+          </strong>
+          <p>{message}</p>
+        </div>
+        <Link
+          to="/mypage/rewards"
+          className="point-purchase-success-link"
+        >
+          {completedProductType === 'DIGITAL_VOUCHER'
+            ? '상품권 코드 확인하기'
+            : '교환 내역 확인하기'}
+          <span aria-hidden="true">→</span>
+        </Link>
+      </section>
+    )}
     {error&&<p className="mypage-record-error">{error}</p>}
     <section className="point-policy-grid">{[['전혈','5,000P'],['혈장','8,000P'],['혈소판단종','10,000P'],['혈소판다종','13,000P']].map(([n,p])=><article key={n}><span>{n}</span><strong>{p}</strong></article>)}</section>
     <section className="point-section"><header><div><h3>포인트 내역</h3><p>최근 적립 및 사용 내역입니다.</p></div></header>
