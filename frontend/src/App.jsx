@@ -58,6 +58,10 @@ import AdminRewardProductsPage
 import AdminRewardFulfillmentPage
   from './pages/admin/AdminRewardFulfillmentPage.jsx'
 
+import PromotionsPage from './pages/promotion/PromotionsPage.jsx'
+import PromotionDetailPage from './pages/promotion/PromotionDetailPage.jsx'
+import AdminPromotionsPage from './pages/admin/AdminPromotionsPage.jsx'
+
 import BloodUnitsManagementPage
   from './pages/medical/BloodUnitsManagementPage.jsx'
 import DonorIdentityPage
@@ -119,6 +123,10 @@ function App() {
           path="/centers"
           element={<CenterSearchPage />}
         />
+
+        <Route path="/promotion" element={<PromotionsPage />} />
+        <Route path="/promotion/:promotionId" element={<PromotionDetailPage />} />
+        <Route path="/promotions" element={<Navigate to="/promotion" replace />} />
 
         <Route
           path="/reservations/new"
@@ -290,6 +298,8 @@ function App() {
         />
 
         <Route path="/admin/reward-fulfillment" element={<AdminRoute><AdminRewardFulfillmentPage /></AdminRoute>} />
+
+        <Route path="/admin/promotions" element={<AdminRoute><AdminPromotionsPage /></AdminRoute>} />
 
         <Route
           path="/admin/kakao-message-template"

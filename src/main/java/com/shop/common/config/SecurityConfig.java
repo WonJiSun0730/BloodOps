@@ -42,6 +42,8 @@ public class SecurityConfig {
                 .requestMatchers("/", "/item/**", "/images/**").permitAll()
                         .requestMatchers(
                                 "/api/public/**",
+                                "/api/promotions",
+                                "/api/promotions/*",
 
                                 // 로그인 관련 공개 API
                                 "/api/auth/csrf",
