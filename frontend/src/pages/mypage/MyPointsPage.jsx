@@ -32,6 +32,14 @@ function MyPointsPage() {
   }
 
   return <div className="mypage-page reward-point-page">
+    <section className="mypage-page-description">
+      <div>
+        <span>DONATION POINT</span>
+        <h3>내 포인트</h3>
+        <p>헌혈로 적립한 포인트와 교환 가능한 상품을 확인할 수 있습니다.</p>
+      </div>
+    </section>
+
     <section className="point-balance-card"><div><span>AVAILABLE POINT</span><h3>사용 가능한 포인트</h3><p>포인트는 헌혈 완료 시에만 적립되며 현금 충전은 지원하지 않습니다.</p></div><strong>{Number(pointData.balance).toLocaleString()}P</strong></section>
     {message&&<p className="point-feedback success">{message} <Link to="/mypage/rewards">내역 보기</Link></p>}
     {error&&<p className="mypage-record-error">{error}</p>}
