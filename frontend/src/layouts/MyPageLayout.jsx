@@ -48,6 +48,10 @@ const myPageMenuGroups = [
         label: '내 포인트',
         to: '/mypage/points',
       },
+      {
+        label: '상품권·교환 내역',
+        to: '/mypage/rewards',
+      },
     ],
   },
   {
@@ -85,6 +89,10 @@ function getCurrentPage(
       group: '포인트',
       title: '내 포인트',
     }
+  }
+
+  if (pathname === '/mypage/rewards') {
+    return { group: '포인트', title: '상품권·교환 내역' }
   }
 
   if (

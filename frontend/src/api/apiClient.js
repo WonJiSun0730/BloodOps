@@ -889,15 +889,66 @@ export async function deleteAdminRewardProduct(productId) {
   )
 }
 
-export async function purchaseRewardProduct(productId) {
+export async function purchaseRewardProduct(productId, pickupCenterId = null) {
   const csrf = await getCsrfToken()
+  return apiRequest('/api/rewards/products/' + encodeURIComponent(productId) + '/purchase', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', [csrf.headerName]: csrf.token },
+    body: JSON.stringify({ pickupCenterId }),
+  })
+}
+
+export function getMyRewardOrders() {
+  return apiRequest('/api/rewards/orders/me')
+}
+
+export function revealRewardVoucherCode(purchaseId) {
+  return apiRequest('/api/rewards/orders/' + encodeURIComponent(purchaseId) + '/voucher-code')
+}
+
+export function getAdminRewardOrders() {
+  return apiRequest('/api/admin/reward-fulfillment/orders')
+}
+
+export async function generateRewardVoucherCodes(productId, quantity, validDays) {
+  const csrf = await getCsrfToken()
+  return apiRequest('/api/admin/reward-fulfillment/products/' + encodeURIComponent(productId) + '/voucher-codes', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', [csrf.headerName]: csrf.token },
+    body: JSON.stringify({ quantity: Number(quantity), validDays: Number(validDays) }),
+  })
+}
+
+async function patchRewardOrder(purchaseId, action) {
+  const csrf = await getCsrfToken()
+  return apiRequest('/api/admin/reward-fulfillment/orders/' + encodeURIComponent(purchaseId) + '/' + action, {
+    method: 'PATCH',
+    headers: { [csrf.headerName]: csrf.token },
+  })
+}
+
+export const completeRewardPickup = (purchaseId) => patchRewardOrder(purchaseId, 'pickup')
+export const cancelRewardOrder = (purchaseId) => patchRewardOrder(purchaseId, 'cancel')
+
+
+/*
+ * ADMIN 본인에게 로컬 테스트용 포인트를 지급합니다.
+ * REWARD_TEST_POINT_ENABLED=true인 환경에서만 동작합니다.
+ */
+export async function addAdminTestPoints(points) {
+  const csrf = await getCsrfToken()
+
   return apiRequest(
-    '/api/rewards/products/' + encodeURIComponent(productId) + '/purchase',
+    '/api/admin/reward-fulfillment/test-points',
     {
       method: 'POST',
       headers: {
+        'Content-Type': 'application/json',
         [csrf.headerName]: csrf.token,
       },
+      body: JSON.stringify({
+        points: Number(points),
+      }),
     }
   )
 }

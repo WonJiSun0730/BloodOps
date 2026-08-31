@@ -46,3 +46,91 @@
 .admin-reward-row .admin-reward-row-actions { display: flex; align-items: center; gap: 6px; }
 .admin-reward-row-actions .danger { border: 1px solid color-mix(in srgb, var(--color-primary) 50%, var(--color-border)); color: var(--color-primary); background: transparent; }
 .admin-reward-row-actions .danger:hover { color: #fff; background: var(--color-primary); }
+
+
+.admin-reward-form {
+  grid-template-columns:
+    minmax(220px, 2fr)
+    minmax(140px, 1fr)
+    minmax(140px, 1fr)
+    minmax(120px, 1fr);
+}
+
+.admin-reward-form select {
+  width: 100%;
+  min-height: 44px;
+  padding: 10px 12px;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  color: var(--color-text);
+  background: var(--color-background);
+}
+
+.admin-reward-form select:focus {
+  outline: 2px solid
+    color-mix(
+      in srgb,
+      var(--color-primary) 42%,
+      transparent
+    );
+}
+
+.admin-reward-form input:disabled {
+  color: var(--color-text-muted);
+  background:
+    color-mix(
+      in srgb,
+      var(--color-border) 45%,
+      var(--color-background)
+    );
+  cursor: not-allowed;
+}
+
+.admin-reward-row > span:nth-child(3) {
+  color: var(--color-text-muted);
+  line-height: 1.45;
+}
+
+@media (max-width: 1024px) {
+  .admin-reward-form {
+    grid-template-columns:
+      repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 768px) {
+  .admin-reward-form {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-reward-form > label,
+  .admin-reward-description,
+  .admin-reward-image,
+  .admin-reward-actions,
+  .admin-reward-preview {
+    grid-column: 1;
+  }
+
+  .admin-reward-row > span {
+    min-height: 44px;
+  }
+
+  .admin-reward-row-actions button {
+    min-height: 44px;
+  }
+}
+
+@media (max-width: 480px) {
+  .admin-reward-actions {
+    flex-direction: column;
+  }
+
+  .admin-reward-actions button,
+  .admin-reward-row-actions button {
+    width: 100%;
+  }
+
+  .admin-reward-row-actions {
+    flex-direction: column;
+  }
+}

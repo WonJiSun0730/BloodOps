@@ -10,6 +10,7 @@ import com.shop.member.repository.MemberRepository;
 import com.shop.reservation.constant.DonationType;
 import com.shop.reservation.entity.Reservation;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -20,6 +21,9 @@ public class PointRewardService {
 
     private final PointTransactionRepository pointTransactionRepository;
     private final MemberRepository memberRepository;
+
+    @Value("${reward.test-point.enabled:false}")
+    private boolean testPointEnabled;
 
     public void awardDonationPoints(Member member, Reservation reservation, DonationType donationType) {
         if (pointTransactionRepository.existsByReservation_Id(reservation.getId())) {
@@ -37,6 +41,45 @@ public class PointRewardService {
                         .description(PointRewardPolicy.displayName(donationType) + " 헌혈 완료")
                         .build()
         );
+    }
+
+    public MyPointResponse addAdminTestPoints(
+            String email,
+            int points
+    ) {
+        if (!testPointEnabled) {
+            throw new IllegalStateException(
+                    "관리자 테스트 포인트 기능이 비활성화되어 있습니다."
+            );
+        }
+
+        if (points < 1 || points > 1_000_000) {
+            throw new IllegalArgumentException(
+                    "테스트 포인트는 1P 이상 1,000,000P 이하로 입력해주세요."
+            );
+        }
+
+        Member member = memberRepository.findByEmail(email);
+        if (member == null) {
+            throw new IllegalArgumentException(
+                    "관리자 회원 정보를 찾을 수 없습니다."
+            );
+        }
+
+        pointTransactionRepository.save(
+                PointTransaction.builder()
+                        .member(member)
+                        .transactionType(
+                                PointTransactionType.ADMIN_ADJUSTMENT
+                        )
+                        .points(points)
+                        .description(
+                                "관리자 테스트 포인트 지급 (배포 전 제거)"
+                        )
+                        .build()
+        );
+
+        return getMyPoints(email);
     }
 
     @Transactional(readOnly = true)

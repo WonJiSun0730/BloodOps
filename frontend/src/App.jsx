@@ -37,6 +37,8 @@ import TestResultsPage
   from './pages/mypage/TestResultsPage.jsx'
 import MyPointsPage
   from './pages/mypage/MyPointsPage.jsx'
+import MyRewardOrdersPage
+  from './pages/mypage/MyRewardOrdersPage.jsx'
 
 import QuestionnairePage
   from './pages/questionnaire/QuestionnairePage.jsx'
@@ -53,6 +55,8 @@ import AdminKakaoMessageTemplatePage
   from './pages/admin/AdminKakaoMessageTemplatePage.jsx'
 import AdminRewardProductsPage
   from './pages/admin/AdminRewardProductsPage.jsx'
+import AdminRewardFulfillmentPage
+  from './pages/admin/AdminRewardFulfillmentPage.jsx'
 
 import BloodUnitsManagementPage
   from './pages/medical/BloodUnitsManagementPage.jsx'
@@ -154,6 +158,8 @@ function App() {
               <MyPointsPage />
             }
           />
+
+          <Route path="/mypage/rewards" element={<MyRewardOrdersPage />} />
 
           <Route
             path="/mypage/results"
@@ -282,6 +288,8 @@ function App() {
             </AdminRoute>
           }
         />
+
+        <Route path="/admin/reward-fulfillment" element={<AdminRoute><AdminRewardFulfillmentPage /></AdminRoute>} />
 
         <Route
           path="/admin/kakao-message-template"

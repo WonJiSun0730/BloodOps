@@ -1,0 +1,366 @@
+.fulfillment-panel {
+  margin-top: 22px;
+  border: 1px solid var(--color-border);
+  border-radius: 16px;
+  overflow: hidden;
+  background: var(--color-surface);
+}
+
+.fulfillment-panel > header {
+  display: flex;
+  padding: 18px 20px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.fulfillment-panel h2 {
+  margin: 0;
+  color: var(--color-text);
+  font-size: 1rem;
+}
+
+.fulfillment-panel > header span {
+  color: var(--color-primary);
+  font-size: 0.78rem;
+  font-weight: 800;
+}
+
+.voucher-stock-row {
+  display: grid;
+  padding: 16px 18px;
+  grid-template-columns:
+    minmax(180px, 2fr)
+    minmax(110px, 1fr)
+    100px
+    100px
+    auto;
+  align-items: end;
+  gap: 12px;
+  border-bottom: 1px solid var(--color-border);
+  color: var(--color-text);
+}
+
+.voucher-stock-row:last-child {
+  border-bottom: 0;
+}
+
+.voucher-stock-row > span {
+  min-height: 40px;
+  color: var(--color-text-muted);
+  font-size: 0.76rem;
+  line-height: 40px;
+}
+
+.voucher-stock-row label {
+  display: flex;
+  color: var(--color-text-muted);
+  font-size: 0.7rem;
+  font-weight: 750;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.voucher-stock-row input {
+  min-height: 42px;
+  padding: 8px 10px;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  color: var(--color-text);
+  background: var(--color-background);
+}
+
+.voucher-stock-row input:focus {
+  outline: 2px solid
+    color-mix(
+      in srgb,
+      var(--color-primary) 42%,
+      transparent
+    );
+}
+
+.voucher-stock-row button,
+.fulfillment-actions button {
+  min-height: 42px;
+  padding: 0 15px;
+  border: 0;
+  border-radius: 8px;
+  color: #ffffff;
+  background: var(--color-primary);
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.voucher-stock-row button:hover,
+.fulfillment-actions button:hover {
+  background: var(--color-primary-hover);
+}
+
+.voucher-stock-row button:focus-visible,
+.fulfillment-actions button:focus-visible {
+  outline: 2px solid #ffffff;
+  outline-offset: 2px;
+}
+
+.fulfillment-orders article {
+  display: grid;
+  padding: 16px 18px;
+  grid-template-columns:
+    minmax(180px, 2fr)
+    minmax(120px, 1fr)
+    auto;
+  align-items: center;
+  gap: 20px;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.fulfillment-orders article:last-child {
+  border-bottom: 0;
+}
+
+.fulfillment-orders article > div {
+  display: flex;
+  min-width: 0;
+  color: var(--color-text);
+  flex-direction: column;
+  gap: 6px;
+}
+
+.fulfillment-orders span,
+.fulfillment-orders small {
+  color: var(--color-text-muted);
+  font-size: 0.72rem;
+  overflow-wrap: anywhere;
+}
+
+.fulfillment-actions {
+  flex-direction: row !important;
+}
+
+.fulfillment-actions .danger {
+  border: 1px solid var(--color-primary);
+  color: var(--color-primary);
+  background: transparent;
+}
+
+.fulfillment-actions .danger:hover {
+  color: #ffffff;
+  background: var(--color-primary);
+}
+
+@media (max-width: 1024px) {
+  .voucher-stock-row {
+    grid-template-columns:
+      minmax(180px, 2fr)
+      minmax(110px, 1fr)
+      90px
+      90px;
+  }
+
+  .voucher-stock-row > button {
+    grid-column: 3 / -1;
+  }
+
+  .fulfillment-orders article {
+    grid-template-columns:
+      minmax(180px, 2fr)
+      minmax(120px, 1fr);
+  }
+
+  .fulfillment-actions {
+    grid-column: 1 / -1;
+    justify-content: flex-end;
+  }
+}
+
+@media (max-width: 768px) {
+  .voucher-stock-row,
+  .fulfillment-orders article {
+    grid-template-columns:
+      repeat(2, minmax(0, 1fr));
+    gap: 14px;
+  }
+
+  .voucher-stock-row > strong,
+  .fulfillment-orders article > div:first-child {
+    grid-column: 1 / -1;
+  }
+
+  .voucher-stock-row > button {
+    min-height: 44px;
+    grid-column: 1 / -1;
+  }
+
+  .fulfillment-actions {
+    justify-content: stretch;
+  }
+
+  .fulfillment-actions button {
+    min-height: 44px;
+    flex: 1;
+  }
+}
+
+@media (max-width: 480px) {
+  .fulfillment-panel > header {
+    padding: 16px;
+  }
+
+  .voucher-stock-row,
+  .fulfillment-orders article {
+    padding: 16px;
+    grid-template-columns: 1fr;
+  }
+
+  .voucher-stock-row > strong,
+  .fulfillment-orders article > div:first-child,
+  .voucher-stock-row > button,
+  .fulfillment-actions {
+    grid-column: 1;
+  }
+
+  .fulfillment-actions {
+    flex-direction: column !important;
+  }
+}
+
+
+.test-point-panel {
+  border-color:
+    color-mix(
+      in srgb,
+      var(--color-primary) 45%,
+      var(--color-border)
+    );
+}
+
+.test-point-panel > header div {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.test-point-panel > header span {
+  color: var(--color-primary);
+  font-size: 0.65rem;
+  font-weight: 850;
+  letter-spacing: 0.12em;
+}
+
+.test-point-form {
+  display: grid;
+  padding: 18px 20px;
+  grid-template-columns:
+    minmax(240px, 2fr)
+    minmax(160px, 1fr)
+    auto;
+  align-items: end;
+  gap: 16px;
+}
+
+.test-point-form > div {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.test-point-form strong {
+  color: var(--color-text);
+  font-size: 0.82rem;
+}
+
+.test-point-form p {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: 0.72rem;
+  line-height: 1.5;
+}
+
+.test-point-form label {
+  display: flex;
+  color: var(--color-text-muted);
+  font-size: 0.7rem;
+  font-weight: 750;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.test-point-form input {
+  min-height: 42px;
+  padding: 8px 10px;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  color: var(--color-text);
+  background: var(--color-background);
+}
+
+.test-point-form input:focus {
+  outline: 2px solid
+    color-mix(
+      in srgb,
+      var(--color-primary) 42%,
+      transparent
+    );
+}
+
+.test-point-form button {
+  min-height: 42px;
+  padding: 0 16px;
+  border: 0;
+  border-radius: 8px;
+  color: #ffffff;
+  background: var(--color-primary);
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.test-point-form button:hover:not(:disabled) {
+  background: var(--color-primary-hover);
+}
+
+.test-point-form button:focus-visible {
+  outline: 2px solid #ffffff;
+  outline-offset: 2px;
+}
+
+.test-point-form button:disabled {
+  color: var(--color-text-muted);
+  background: var(--color-border);
+  cursor: not-allowed;
+}
+
+@media (max-width: 1024px) {
+  .test-point-form {
+    grid-template-columns:
+      repeat(2, minmax(0, 1fr));
+  }
+
+  .test-point-form > div {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 768px) {
+  .test-point-form {
+    grid-template-columns: 1fr;
+  }
+
+  .test-point-form > div {
+    grid-column: 1;
+  }
+
+  .test-point-form button {
+    min-height: 44px;
+  }
+}
+
+@media (max-width: 480px) {
+  .test-point-form {
+    padding: 16px;
+  }
+
+  .test-point-form button {
+    width: 100%;
+  }
+}

@@ -71,3 +71,429 @@
 .reward-purchase-button:disabled { color: var(--color-text-muted); background: var(--color-border); cursor: not-allowed; }
 @media (max-width: 768px) { .reward-detail-backdrop { padding: 16px; } .reward-detail-modal { grid-template-columns: 1fr; max-height: calc(100vh - 32px); } .reward-detail-image-shell { min-height: 280px; } .reward-detail-image-shell img { max-height: 360px; } .reward-detail-content { padding: 26px 22px 22px; } }
 @media (max-width: 480px) { .reward-detail-backdrop { padding: 0; } .reward-detail-modal { width: 100%; height: 100%; max-height: none; border-radius: 0; } .reward-detail-image-shell { min-height: 240px; } .reward-detail-content { padding: 24px 18px; } }
+
+
+.reward-pickup-select {
+  display: flex;
+  margin: 0 0 18px;
+  color: var(--color-text-muted);
+  font-size: 0.78rem;
+  font-weight: 750;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.reward-pickup-select select {
+  width: 100%;
+  min-height: 46px;
+  padding: 10px 12px;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  color: var(--color-text);
+  background: var(--color-background);
+}
+
+.reward-pickup-select select:focus {
+  outline: 2px solid
+    color-mix(
+      in srgb,
+      var(--color-primary) 42%,
+      transparent
+    );
+}
+
+.reward-pickup-select small {
+  color: var(--color-text-muted);
+  font-weight: 500;
+  line-height: 1.5;
+}
+
+.point-feedback a {
+  margin-left: 8px;
+  color: var(--color-primary);
+  font-weight: 800;
+}
+
+.point-feedback a:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 3px;
+}
+
+@media (max-width: 768px) {
+  .reward-pickup-select select {
+    min-height: 44px;
+  }
+}
+
+@media (max-width: 480px) {
+  .point-feedback a {
+    display: inline-block;
+    margin-top: 8px;
+    margin-left: 0;
+  }
+}
+
+
+.reward-pickup-select > label {
+  color: var(--color-text-muted);
+  font-size: 0.78rem;
+  font-weight: 750;
+}
+
+.reward-pickup-select input[type="search"] {
+  width: 100%;
+  min-height: 46px;
+  padding: 10px 12px;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  color: var(--color-text);
+  background: var(--color-background);
+}
+
+.reward-pickup-select input[type="search"]:focus {
+  outline: 2px solid
+    color-mix(
+      in srgb,
+      var(--color-primary) 42%,
+      transparent
+    );
+}
+
+.reward-center-options {
+  display: grid;
+  max-height: 210px;
+  padding: 6px;
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  overflow-y: auto;
+  background: var(--color-background);
+  gap: 4px;
+}
+
+.reward-center-options > p {
+  margin: 0;
+  padding: 18px 12px;
+  color: var(--color-text-muted);
+  font-size: 0.75rem;
+  text-align: center;
+}
+
+.reward-center-options button {
+  display: flex;
+  width: 100%;
+  min-height: 50px;
+  padding: 10px 12px;
+  align-items: flex-start;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  color: var(--color-text);
+  background: transparent;
+  text-align: left;
+  flex-direction: column;
+  gap: 4px;
+  cursor: pointer;
+}
+
+.reward-center-options button:hover {
+  background: var(--color-surface);
+}
+
+.reward-center-options button:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: -2px;
+}
+
+.reward-center-options button.selected {
+  border-color: var(--color-primary);
+  background:
+    color-mix(
+      in srgb,
+      var(--color-primary) 9%,
+      var(--color-surface)
+    );
+}
+
+.reward-center-options button strong {
+  font-size: 0.78rem;
+}
+
+.reward-center-options button span {
+  color: var(--color-text-muted);
+  font-size: 0.68rem;
+  line-height: 1.45;
+}
+
+@media (max-width: 768px) {
+  .reward-pickup-select input[type="search"] {
+    min-height: 44px;
+  }
+
+  .reward-center-options {
+    max-height: 190px;
+  }
+}
+
+
+.reward-purchase-confirmation {
+  margin-top: auto;
+  padding: 20px;
+  border: 1px solid
+    color-mix(
+      in srgb,
+      var(--color-primary) 55%,
+      var(--color-border)
+    );
+  border-radius: 12px;
+  background:
+    color-mix(
+      in srgb,
+      var(--color-primary) 8%,
+      var(--color-background)
+    );
+}
+
+.reward-purchase-confirmation > span {
+  color: var(--color-primary);
+  font-size: 0.65rem;
+  font-weight: 850;
+  letter-spacing: 0.12em;
+}
+
+.reward-purchase-confirmation h4 {
+  margin: 8px 0 0;
+  color: var(--color-text);
+  font-size: 1.05rem;
+}
+
+.reward-purchase-confirmation > p {
+  margin: 10px 0 0;
+  color: var(--color-text-muted);
+  font-size: 0.78rem;
+  line-height: 1.6;
+}
+
+.reward-purchase-confirmation > p strong {
+  color: var(--color-text);
+}
+
+.reward-purchase-confirmation dl {
+  margin: 16px 0 0;
+}
+
+.reward-purchase-confirmation dl div {
+  padding: 10px 0;
+}
+
+.reward-purchase-confirmation
+.reward-confirmation-warning {
+  padding: 10px 12px;
+  border-left: 3px solid var(--color-primary);
+  color: var(--color-text);
+  background: var(--color-surface);
+}
+
+.reward-confirmation-actions {
+  display: grid;
+  margin-top: 16px;
+  grid-template-columns:
+    repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.reward-confirmation-actions button {
+  min-height: 46px;
+  padding: 0 14px;
+  border: 0;
+  border-radius: 9px;
+  color: #ffffff;
+  background: var(--color-primary);
+  font-weight: 850;
+  cursor: pointer;
+}
+
+.reward-confirmation-actions button:hover:not(:disabled) {
+  background: var(--color-primary-hover);
+}
+
+.reward-confirmation-actions button:focus-visible {
+  outline: 2px solid #ffffff;
+  outline-offset: 2px;
+}
+
+.reward-confirmation-actions button.secondary {
+  border: 1px solid var(--color-border);
+  color: var(--color-text);
+  background: var(--color-surface);
+}
+
+.reward-confirmation-actions button.secondary:hover:not(:disabled) {
+  border-color: var(--color-primary);
+  background: var(--color-surface);
+}
+
+.reward-confirmation-actions button:disabled {
+  color: var(--color-text-muted);
+  background: var(--color-border);
+  cursor: not-allowed;
+}
+
+@media (max-width: 768px) {
+  .reward-purchase-confirmation {
+    padding: 18px;
+  }
+
+  .reward-confirmation-actions button {
+    min-height: 44px;
+  }
+}
+
+@media (max-width: 480px) {
+  .reward-confirmation-actions {
+    grid-template-columns: 1fr;
+  }
+}
+
+
+.reward-modal-error {
+  margin: 0 0 14px;
+  padding: 12px 14px;
+  border: 1px solid var(--color-primary);
+  border-radius: 9px;
+  color: var(--color-text);
+  background:
+    color-mix(
+      in srgb,
+      var(--color-primary) 10%,
+      var(--color-surface)
+    );
+  font-size: 0.78rem;
+  font-weight: 750;
+  line-height: 1.5;
+}
+
+
+.point-purchase-success {
+  display: grid;
+  padding: 22px 24px;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 18px;
+  border: 1px solid
+    color-mix(
+      in srgb,
+      var(--color-primary) 62%,
+      var(--color-border)
+    );
+  border-radius: 16px;
+  background:
+    linear-gradient(
+      135deg,
+      color-mix(
+        in srgb,
+        var(--color-primary) 14%,
+        var(--color-surface)
+      ),
+      var(--color-surface)
+    );
+}
+
+.point-purchase-success:focus {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 3px;
+}
+
+.point-purchase-success-icon {
+  display: grid;
+  width: 48px;
+  height: 48px;
+  place-items: center;
+  border-radius: 50%;
+  color: #ffffff;
+  background: var(--color-primary);
+  font-size: 1.35rem;
+  font-weight: 900;
+}
+
+.point-purchase-success > div {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.point-purchase-success > div > span {
+  color: var(--color-primary);
+  font-size: 0.65rem;
+  font-weight: 850;
+  letter-spacing: 0.12em;
+}
+
+.point-purchase-success strong {
+  color: var(--color-text);
+  font-size: 1rem;
+}
+
+.point-purchase-success p {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: 0.78rem;
+  line-height: 1.55;
+}
+
+.point-purchase-success-link {
+  display: inline-flex;
+  min-height: 46px;
+  padding: 0 17px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9px;
+  color: #ffffff;
+  background: var(--color-primary);
+  font-size: 0.78rem;
+  font-weight: 850;
+  text-decoration: none;
+  gap: 9px;
+  white-space: nowrap;
+}
+
+.point-purchase-success-link:hover {
+  background: var(--color-primary-hover);
+}
+
+.point-purchase-success-link:focus-visible {
+  outline: 2px solid #ffffff;
+  outline-offset: 2px;
+}
+
+@media (max-width: 1024px) {
+  .point-purchase-success {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+
+  .point-purchase-success-link {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 768px) {
+  .point-purchase-success {
+    padding: 20px;
+  }
+
+  .point-purchase-success-link {
+    width: 100%;
+    min-height: 44px;
+  }
+}
+
+@media (max-width: 480px) {
+  .point-purchase-success {
+    padding: 18px;
+    grid-template-columns: 1fr;
+  }
+
+  .point-purchase-success-icon {
+    width: 42px;
+    height: 42px;
+  }
+}
