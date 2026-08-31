@@ -66,7 +66,7 @@ public class PromotionService {
         if (member == null) throw new IllegalArgumentException("회원 정보를 찾을 수 없습니다.");
         if (entryRepository.existsByPromotion_IdAndMember_Id(promotionId, member.getId())) throw new IllegalStateException("이미 응모한 프로모션입니다.");
         if (!hasDonationDuringPromotion(member, p)) {
-            throw new IllegalStateException("프로모션 기간 내 헌혈 완료 실적이 있어야 응모할 수 있습니다.");
+            throw new IllegalStateException("관리자가 설정한 헌혈 실적 인정 기간에 완료된 헌혈 기록이 있어야 응모할 수 있습니다.");
         }
         PromotionOption option = optionRepository.findById(optionId).filter(o -> o.getPromotion().getId().equals(promotionId)).orElseThrow(() -> new IllegalArgumentException("선택 항목이 올바르지 않습니다."));
         PromotionEntry saved = entryRepository.saveAndFlush(new PromotionEntry(p, member, option));
@@ -83,15 +83,18 @@ public class PromotionService {
                 : member == null
                     ? "로그인 후 응모 자격을 확인할 수 있습니다."
                     : eligible
-                        ? "프로모션 기간 내 헌혈 실적이 확인되었습니다."
-                        : "프로모션 기간 내 헌혈 완료 실적이 있어야 응모할 수 있습니다.";
+                        ? "헌혈 실적 인정 기간에 완료된 헌혈 기록이 확인되었습니다."
+                        : "관리자가 설정한 헌혈 실적 인정 기간에 완료된 헌혈 기록이 있어야 응모할 수 있습니다.";
         return PromotionResponse.from(promotion, entered, eligible, eligibilityMessage);
     }
 
     private boolean hasDonationDuringPromotion(Member member, Promotion promotion) {
+        LocalDate eligibilityStartDate = promotion.getDonationEligibilityStartDate() == null
+                ? promotion.getStartDate()
+                : promotion.getDonationEligibilityStartDate();
         return donationHistoryRepository.existsByMember_IdAndDonationDateBetween(
                 member.getId(),
-                promotion.getStartDate(),
+                eligibilityStartDate,
                 promotion.getEndDate()
         );
     }
@@ -99,9 +102,13 @@ public class PromotionService {
     private Promotion find(Long id) { return promotionRepository.findDetail(id).orElseThrow(() -> new IllegalArgumentException("프로모션을 찾을 수 없습니다.")); }
     private void apply(Promotion p, PromotionRequest r) {
         if (r.endDate().isBefore(r.startDate())) throw new IllegalArgumentException("종료일은 시작일보다 빠를 수 없습니다.");
+        LocalDate eligibilityStartDate = r.donationEligibilityStartDate() == null
+                ? r.startDate()
+                : r.donationEligibilityStartDate();
+        if (eligibilityStartDate.isAfter(r.endDate())) throw new IllegalArgumentException("헌혈 실적 인정 시작일은 프로모션 종료일보다 늦을 수 없습니다.");
         if (r.category() == PromotionCategory.REGIONAL && (r.regionName() == null || r.regionName().isBlank())) throw new IllegalArgumentException("지역별 프로모션은 지역명을 입력해야 합니다.");
         List<String> options = r.options() == null ? List.of() : r.options().stream().map(String::trim).filter(s -> !s.isEmpty()).distinct().toList();
         if (r.type() == PromotionType.LOTTERY && options.size() < 2) throw new IllegalArgumentException("추첨 프로모션은 선택 항목을 2개 이상 입력해야 합니다.");
-        p.setCategory(r.category()); p.setType(r.type()); p.setRegionName(r.category() == PromotionCategory.NATIONAL ? null : r.regionName().trim()); p.setTitle(r.title().trim()); p.setSummary(r.summary().trim()); p.setContent(r.content().trim()); p.setImageUrl(r.imageUrl() == null ? null : r.imageUrl().trim()); p.setStartDate(r.startDate()); p.setEndDate(r.endDate()); p.setActive(r.active()); p.replaceOptions(r.type() == PromotionType.LOTTERY ? options : List.of());
+        p.setCategory(r.category()); p.setType(r.type()); p.setRegionName(r.category() == PromotionCategory.NATIONAL ? null : r.regionName().trim()); p.setTitle(r.title().trim()); p.setSummary(r.summary().trim()); p.setContent(r.content().trim()); p.setImageUrl(r.imageUrl() == null ? null : r.imageUrl().trim()); p.setStartDate(r.startDate()); p.setEndDate(r.endDate()); p.setDonationEligibilityStartDate(eligibilityStartDate); p.setActive(r.active()); p.replaceOptions(r.type() == PromotionType.LOTTERY ? options : List.of());
     }
 }

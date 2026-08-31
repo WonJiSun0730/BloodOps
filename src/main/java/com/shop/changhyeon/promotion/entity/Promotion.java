@@ -25,6 +25,7 @@ public class Promotion {
     @Column(name = "image_url", length = 1000) private String imageUrl;
     @Column(name = "start_date", nullable = false) private LocalDate startDate;
     @Column(name = "end_date", nullable = false) private LocalDate endDate;
+    @Column(name = "donation_eligibility_start_date") private LocalDate donationEligibilityStartDate;
     @Column(nullable = false) private boolean active = true;
     @OneToMany(mappedBy = "promotion", cascade = CascadeType.ALL, orphanRemoval = true)
     @OrderBy("displayOrder asc, id asc") private List<PromotionOption> options = new ArrayList<>();
