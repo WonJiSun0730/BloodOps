@@ -8,7 +8,16 @@ function MyRewardOrdersPage(){
  const [orders,setOrders]=useState([]),[codes,setCodes]=useState({}),[error,setError]=useState('')
  useEffect(()=>{getMyRewardOrders().then(setOrders).catch(e=>setError(e.message))},[])
  const reveal=async(id)=>{try{const r=await revealRewardVoucherCode(id);setCodes(v=>({...v,[id]:r.code}))}catch(e){setError(e.message)}}
- const copy=async(code)=>{await navigator.clipboard.writeText(code)}
+ const copy=async(code)=>{
+  try{
+   await navigator.clipboard.writeText(code)
+   window.alert(
+    '상품권 코드가 클립보드에 복사되었습니다.\n타인에게 노출되지 않도록 주의해주세요.'
+   )
+  }catch(copyError){
+   setError('상품권 코드를 복사하지 못했습니다. 직접 선택하여 복사해주세요.')
+  }
+ }
  return (
   <div className="mypage-page reward-orders-page">
    <section className="mypage-page-description">
