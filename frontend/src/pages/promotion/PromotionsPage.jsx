@@ -14,7 +14,7 @@ export default function PromotionsPage() {
     <div className="promotion-tabs" role="tablist" aria-label="프로모션 구분">{tabs.map(tab => <button key={tab.value} role="tab" aria-selected={category === tab.value} className={category === tab.value ? 'active' : ''} onClick={() => { setError(''); setCategory(tab.value) }}>{tab.label}</button>)}</div>
     {error && <p className="promotion-status error">{error}</p>}
     {!error && promotions.length === 0 && <p className="promotion-status">진행 중인 프로모션이 없습니다.</p>}
-    <section className="promotion-grid" aria-live="polite">{promotions.map(item => <Link className="promotion-card" to={`/promotions/${item.id}`} key={item.id}>
+    <section className="promotion-grid" aria-live="polite">{promotions.map(item => <Link className="promotion-card" to={`/promotion/${item.id}`} key={item.id}>
       <div className="promotion-card-image">{item.imageUrl ? <img src={item.imageUrl} alt="" /> : <span>BloodOps Promotion</span>}<span className="promotion-type">{item.type === 'LOTTERY' ? '추첨' : '혜택'}</span></div>
       <div className="promotion-card-body"><div className="promotion-meta">{item.category === 'NATIONAL' ? '전국' : item.regionName}<span>{item.startDate} ~ {item.endDate}</span></div><h2>{item.title}</h2><p>{item.summary}</p><strong>자세히 보기 →</strong></div>
     </Link>)}</section>

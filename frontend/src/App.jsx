@@ -124,8 +124,9 @@ function App() {
           element={<CenterSearchPage />}
         />
 
-        <Route path="/promotions" element={<PromotionsPage />} />
-        <Route path="/promotions/:promotionId" element={<PromotionDetailPage />} />
+        <Route path="/promotion" element={<PromotionsPage />} />
+        <Route path="/promotion/:promotionId" element={<PromotionDetailPage />} />
+        <Route path="/promotions" element={<Navigate to="/promotion" replace />} />
 
         <Route
           path="/reservations/new"

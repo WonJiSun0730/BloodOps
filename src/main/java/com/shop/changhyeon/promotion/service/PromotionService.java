@@ -1,5 +1,6 @@
 package com.shop.changhyeon.promotion.service;
 
+import com.shop.changhyeon.donation.repository.DonationHistoryRepository;
 import com.shop.changhyeon.promotion.constant.*;
 import com.shop.changhyeon.promotion.dto.*;
 import com.shop.changhyeon.promotion.entity.*;
@@ -18,12 +19,13 @@ public class PromotionService {
     private final PromotionOptionRepository optionRepository;
     private final PromotionEntryRepository entryRepository;
     private final MemberRepository memberRepository;
+    private final DonationHistoryRepository donationHistoryRepository;
 
     @Transactional(readOnly = true)
     public List<PromotionResponse> published(PromotionCategory category, String email) {
         Member member = email == null ? null : memberRepository.findByEmail(email);
         return promotionRepository.findPublished(LocalDate.now(), category).stream()
-                .map(p -> PromotionResponse.from(p, member != null && entryRepository.existsByPromotion_IdAndMember_Id(p.getId(), member.getId())))
+                .map(p -> responseFor(p, member))
                 .toList();
     }
 
@@ -33,7 +35,7 @@ public class PromotionService {
         LocalDate today = LocalDate.now();
         if (!admin && (!p.isActive() || today.isBefore(p.getStartDate()) || today.isAfter(p.getEndDate()))) throw new IllegalArgumentException("현재 조회할 수 없는 프로모션입니다.");
         Member member = email == null ? null : memberRepository.findByEmail(email);
-        return PromotionResponse.from(p, member != null && entryRepository.existsByPromotion_IdAndMember_Id(id, member.getId()));
+        return responseFor(p, member);
     }
 
     @Transactional(readOnly = true)
@@ -63,9 +65,35 @@ public class PromotionService {
         Member member = memberRepository.findByEmail(email);
         if (member == null) throw new IllegalArgumentException("회원 정보를 찾을 수 없습니다.");
         if (entryRepository.existsByPromotion_IdAndMember_Id(promotionId, member.getId())) throw new IllegalStateException("이미 응모한 프로모션입니다.");
+        if (!hasDonationDuringPromotion(member, p)) {
+            throw new IllegalStateException("프로모션 기간 내 헌혈 완료 실적이 있어야 응모할 수 있습니다.");
+        }
         PromotionOption option = optionRepository.findById(optionId).filter(o -> o.getPromotion().getId().equals(promotionId)).orElseThrow(() -> new IllegalArgumentException("선택 항목이 올바르지 않습니다."));
         PromotionEntry saved = entryRepository.saveAndFlush(new PromotionEntry(p, member, option));
         return new PromotionEntryResponse(saved.getId(), promotionId, optionId, option.getLabel(), saved.getCreatedAt());
+    }
+
+    private PromotionResponse responseFor(Promotion promotion, Member member) {
+        boolean entered = member != null
+                && entryRepository.existsByPromotion_IdAndMember_Id(promotion.getId(), member.getId());
+        boolean eligible = promotion.getType() != PromotionType.LOTTERY
+                || (member != null && hasDonationDuringPromotion(member, promotion));
+        String eligibilityMessage = promotion.getType() != PromotionType.LOTTERY
+                ? null
+                : member == null
+                    ? "로그인 후 응모 자격을 확인할 수 있습니다."
+                    : eligible
+                        ? "프로모션 기간 내 헌혈 실적이 확인되었습니다."
+                        : "프로모션 기간 내 헌혈 완료 실적이 있어야 응모할 수 있습니다.";
+        return PromotionResponse.from(promotion, entered, eligible, eligibilityMessage);
+    }
+
+    private boolean hasDonationDuringPromotion(Member member, Promotion promotion) {
+        return donationHistoryRepository.existsByMember_IdAndDonationDateBetween(
+                member.getId(),
+                promotion.getStartDate(),
+                promotion.getEndDate()
+        );
     }
 
     private Promotion find(Long id) { return promotionRepository.findDetail(id).orElseThrow(() -> new IllegalArgumentException("프로모션을 찾을 수 없습니다.")); }
