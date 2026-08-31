@@ -183,6 +183,14 @@ function MyPointsPage() {
               </small>
             </div>
           )}
+          {error && (
+            <p
+              className="reward-modal-error"
+              role="alert"
+            >
+              {error}
+            </p>
+          )}
           {confirming ? (
             <section
               className="reward-purchase-confirmation"
