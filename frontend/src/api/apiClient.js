@@ -929,3 +929,26 @@ async function patchRewardOrder(purchaseId, action) {
 
 export const completeRewardPickup = (purchaseId) => patchRewardOrder(purchaseId, 'pickup')
 export const cancelRewardOrder = (purchaseId) => patchRewardOrder(purchaseId, 'cancel')
+
+
+/*
+ * ADMIN 본인에게 로컬 테스트용 포인트를 지급합니다.
+ * REWARD_TEST_POINT_ENABLED=true인 환경에서만 동작합니다.
+ */
+export async function addAdminTestPoints(points) {
+  const csrf = await getCsrfToken()
+
+  return apiRequest(
+    '/api/admin/reward-fulfillment/test-points',
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        [csrf.headerName]: csrf.token,
+      },
+      body: JSON.stringify({
+        points: Number(points),
+      }),
+    }
+  )
+}
