@@ -34,6 +34,10 @@ public interface ReservationRepository
             Long slotId
     );
 
+    boolean existsBySlot_Center_Id(
+            Long centerId
+    );
+
     @Query("""
         select r
         from Reservation r

@@ -10,7 +10,11 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/admin/centers")
@@ -61,5 +65,43 @@ public class CenterAdminController {
                 centerId,
                 request
         );
+    }
+
+    @DeleteMapping("/{centerId}")
+    public ResponseEntity<?> deleteCenter(
+            @PathVariable Long centerId
+    ) {
+
+        try {
+            centerService.deleteCenter(
+                    centerId
+            );
+
+            return ResponseEntity
+                    .noContent()
+                    .build();
+
+        } catch (IllegalStateException e) {
+
+            return ResponseEntity
+                    .status(HttpStatus.CONFLICT)
+                    .body(
+                            Map.of(
+                                    "message",
+                                    e.getMessage()
+                            )
+                    );
+
+        } catch (IllegalArgumentException e) {
+
+            return ResponseEntity
+                    .badRequest()
+                    .body(
+                            Map.of(
+                                    "message",
+                                    e.getMessage()
+                            )
+                    );
+        }
     }
 }

@@ -391,6 +391,23 @@ export async function updateCenter(
   )
 }
 
+export async function deleteCenter(
+  centerId
+) {
+  const csrf = await getCsrfToken()
+
+  return apiRequest(
+    `/api/admin/centers/${centerId}`,
+    {
+      method: 'DELETE',
+
+      headers: {
+        [csrf.headerName]: csrf.token,
+      },
+    }
+  )
+}
+
 /*
  * ADMIN 회원 관리 화면에서 전체 회원 목록을 조회합니다.
  */
@@ -489,6 +506,29 @@ export async function createAdminReservationSlots(
   )
 }
 
+/*
+ * ADMIN이 여러 날짜와 헌혈종류의
+ * 예약 슬롯을 일괄 생성합니다.
+ */
+export async function createAdminReservationSlotsBulk(
+  slotData
+) {
+  const csrf = await getCsrfToken()
+
+  return apiRequest(
+    '/api/admin/reservation-slots/bulk',
+    {
+      method: 'POST',
+
+      headers: {
+        'Content-Type': 'application/json',
+        [csrf.headerName]: csrf.token,
+      },
+
+      body: JSON.stringify(slotData),
+    }
+  )
+}
 
 /*
  * ADMIN이 예약 슬롯의 정원 또는 활성 상태를 변경합니다.

@@ -56,4 +56,8 @@ public interface EquipmentGroupRepository
             @Param("groupType")
             EquipmentGroupType groupType
     );
+
+    void deleteByCenter_Id(
+            Long centerId
+    );
 }

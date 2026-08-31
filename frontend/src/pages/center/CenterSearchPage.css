@@ -483,19 +483,28 @@
   font-size: 0.74rem;
 }
 
-.center-nearest-badge {
-  width: fit-content;
+.center-detail-title-row {
+  display: flex;
 
-  margin: -10px 0 16px;
-  padding: 6px 10px;
+  align-items: center;
+  gap: 10px;
+}
+
+.center-detail-title-row h2 {
+  margin: 0;
+}
+
+.center-nearest-distance {
+  flex: 0 0 auto;
+
+  padding: 3px 7px;
 
   border: 1px solid
     color-mix(
       in srgb,
-      var(--color-primary) 25%,
+      var(--color-primary) 24%,
       var(--color-border)
     );
-
   border-radius: 999px;
 
   color: var(--color-primary);
@@ -503,12 +512,13 @@
   background:
     color-mix(
       in srgb,
-      var(--color-primary) 8%,
+      var(--color-primary) 7%,
       var(--color-surface)
     );
 
-  font-size: 0.72rem;
+  font-size: 0.68rem;
   font-weight: 750;
+  line-height: 1.2;
 }
 
 .center-detail-status.error strong,

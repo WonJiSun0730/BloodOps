@@ -729,7 +729,7 @@ function CenterSearchPage() {
               && !selectedCenter && (
               <div className="center-search-placeholder">
                 <span aria-hidden="true">
-                  ◎
+                  +
                 </span>
 
                 <strong>
@@ -770,125 +770,123 @@ function CenterSearchPage() {
               </div>
             )}
 
-          {!detailLoading
-            && !detailError
-            && selectedCenter && (
-            <div className="center-detail-content">
+        {!detailLoading
+          && !detailError
+          && selectedCenter && (
+          <div className="center-detail-content">
 
+            <div className="center-detail-title-row">
               <h2>
                 {selectedCenter.centerName}
               </h2>
 
-              <p>
-                {selectedCenter.address}
-              </p>
-
-              {nearestCenter?.id
-                  === selectedCenter.id && (
-                  <div className="center-nearest-badge">
-                    현재 위치에서 가장 가까운 센터
-                    {' · '}
-                    {nearestCenter.distanceKm < 1
+              {nearestCenter?.id === selectedCenter.id && (
+                <span className="center-nearest-distance">
+                  약 {
+                    nearestCenter.distanceKm < 1
                       ? `${Math.round(
-                          nearestCenter.distanceKm
-                          * 1000
+                          nearestCenter.distanceKm * 1000
                         )}m`
-                      : `${nearestCenter.distanceKm.toFixed(
-                          1
-                        )}km`}
-                  </div>
-                )}
-
-              <dl>
-                <div>
-                  <dt>전화번호</dt>
-                  <dd>
-                    {selectedCenter.phone
-                      || '정보 없음'}
-                  </dd>
-                </div>
-
-                <div>
-                  <dt>평일 운영시간</dt>
-                  <dd>
-                    {selectedCenter.weekdayHours
-                      || '정보 없음'}
-                  </dd>
-                </div>
-
-                <div>
-                  <dt>토요일 운영시간</dt>
-                  <dd>
-                    {selectedCenter.saturdayHours
-                      || '정보 없음'}
-                  </dd>
-                </div>
-
-                <div>
-                  <dt>일요일 운영시간</dt>
-                  <dd>
-                    {selectedCenter.sundayHours
-                      || '정보 없음'}
-                  </dd>
-                </div>
-
-                <div>
-                  <dt>공휴일 운영시간</dt>
-                  <dd>
-                    {selectedCenter.holidayHours
-                      || '정보 없음'}
-                  </dd>
-                </div>
-
-                <div>
-                  <dt>헌혈 종류</dt>
-                  <dd>
-                    {selectedCenter.donationTypes
-                      || '정보 없음'}
-                  </dd>
-                </div>
-
-                <div>
-                  <dt>편의정보</dt>
-                  <dd>
-                    {selectedCenter.amenities
-                      || '정보 없음'}
-                  </dd>
-                </div>
-
-                <div>
-                  <dt>찾아오는 길</dt>
-                  <dd>
-                    {selectedCenter.directions
-                      || '정보 없음'}
-                  </dd>
-                </div>
-
-                <div>
-                  <dt>주차정보</dt>
-                  <dd>
-                    {selectedCenter.parkingInfo
-                      || '정보 없음'}
-                  </dd>
-                </div>
-              </dl>
-
-              <button
-                type="button"
-                disabled={
-                  selectedCenter.active === false
-                }
-                onClick={
-                  handleReservationClick
-                }
-              >
-                {selectedCenter.active === false
-                  ? '현재 예약할 수 없는 센터입니다'
-                  : '이 센터에서 예약하기'}
-              </button>
-
+                      : `${nearestCenter.distanceKm.toFixed(1)}km`
+                  }
+                </span>
+              )}
             </div>
-          )}
+
+            <p>
+              {selectedCenter.address}
+            </p>
+
+            <dl>
+              <div>
+                <dt>전화번호</dt>
+                <dd>
+                  {selectedCenter.phone
+                    || '정보 없음'}
+                </dd>
+              </div>
+
+              <div>
+                <dt>평일 운영시간</dt>
+                <dd>
+                  {selectedCenter.weekdayHours
+                    || '정보 없음'}
+                </dd>
+              </div>
+
+              <div>
+                <dt>토요일 운영시간</dt>
+                <dd>
+                  {selectedCenter.saturdayHours
+                    || '정보 없음'}
+                </dd>
+              </div>
+
+              <div>
+                <dt>일요일 운영시간</dt>
+                <dd>
+                  {selectedCenter.sundayHours
+                    || '정보 없음'}
+                </dd>
+              </div>
+
+              <div>
+                <dt>공휴일 운영시간</dt>
+                <dd>
+                  {selectedCenter.holidayHours
+                    || '정보 없음'}
+                </dd>
+              </div>
+
+              <div>
+                <dt>헌혈 종류</dt>
+                <dd>
+                  {selectedCenter.donationTypes
+                    || '정보 없음'}
+                </dd>
+              </div>
+
+              <div>
+                <dt>편의정보</dt>
+                <dd>
+                  {selectedCenter.amenities
+                    || '정보 없음'}
+                </dd>
+              </div>
+
+              <div>
+                <dt>찾아오는 길</dt>
+                <dd>
+                  {selectedCenter.directions
+                    || '정보 없음'}
+                </dd>
+              </div>
+
+              <div>
+                <dt>주차정보</dt>
+                <dd>
+                  {selectedCenter.parkingInfo
+                    || '정보 없음'}
+                </dd>
+              </div>
+            </dl>
+
+            <button
+              type="button"
+              disabled={
+                selectedCenter.active === false
+              }
+              onClick={
+                handleReservationClick
+              }
+            >
+              {selectedCenter.active === false
+                ? '현재 예약할 수 없는 센터입니다'
+                : '이 센터에서 예약하기'}
+            </button>
+
+          </div>
+        )}
 
           </div>
 

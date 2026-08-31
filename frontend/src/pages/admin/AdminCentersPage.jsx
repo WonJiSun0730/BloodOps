@@ -2,12 +2,15 @@ import { useEffect, useState } from 'react'
 
 import {
   createCenter,
+  deleteCenter,
   getAdminCenters,
   updateCenter,
 } from '../../api/apiClient.js'
 
 import AdminSectionNav
   from '../../components/admin/AdminSectionNav.jsx'
+import ConfirmModal
+  from '../../components/modal/ConfirmModal.jsx'
 
 import './AdminCentersPage.css'
 
@@ -127,15 +130,19 @@ function AdminCentersPage() {
   const [editForm, setEditForm] = useState({
     active: true,
 
+    weekdayOpen: true,
     weekdayStart: '',
     weekdayEnd: '',
 
+    saturdayOpen: true,
     saturdayStart: '',
     saturdayEnd: '',
 
+    sundayOpen: false,
     sundayStart: '',
     sundayEnd: '',
 
+    holidayOpen: false,
     holidayStart: '',
     holidayEnd: '',
 
@@ -156,29 +163,47 @@ function AdminCentersPage() {
 
   const [saving, setSaving] = useState(false)
 
+  const [
+    deleteTarget,
+    setDeleteTarget,
+  ] = useState(null)
+
+  const [
+    deleting,
+    setDeleting,
+  ] = useState(false)
+
   const weekdayTimeError =
-    getTimeRangeError(
-      editForm.weekdayStart,
-      editForm.weekdayEnd
-    )
+    editForm.weekdayOpen
+      ? getTimeRangeError(
+          editForm.weekdayStart,
+          editForm.weekdayEnd
+        )
+      : ''
 
   const saturdayTimeError =
-    getTimeRangeError(
-      editForm.saturdayStart,
-      editForm.saturdayEnd
-    )
+    editForm.saturdayOpen
+      ? getTimeRangeError(
+          editForm.saturdayStart,
+          editForm.saturdayEnd
+        )
+      : ''
 
   const sundayTimeError =
-    getTimeRangeError(
-      editForm.sundayStart,
-      editForm.sundayEnd
-    )
+    editForm.sundayOpen
+      ? getTimeRangeError(
+          editForm.sundayStart,
+          editForm.sundayEnd
+        )
+      : ''
 
   const holidayTimeError =
-    getTimeRangeError(
-      editForm.holidayStart,
-      editForm.holidayEnd
-    )
+    editForm.holidayOpen
+      ? getTimeRangeError(
+          editForm.holidayStart,
+          editForm.holidayEnd
+        )
+      : ''
 
 
   const hasTimeError =
@@ -204,20 +229,36 @@ function AdminCentersPage() {
     const holiday =
       parseHours(center.holidayHours)
 
+    const weekdayOpen =
+      Boolean(center.weekdayHours)
+
+    const saturdayOpen =
+      Boolean(center.saturdayHours)
+
+    const sundayOpen =
+      Boolean(center.sundayHours)
+
+    const holidayOpen =
+      Boolean(center.holidayHours)
+
     setSelectedCenter(center)
 
     setEditForm({
       active: center.active,
 
+      weekdayOpen,
       weekdayStart: weekday.start,
       weekdayEnd: weekday.end,
 
+      saturdayOpen,
       saturdayStart: saturday.start,
       saturdayEnd: saturday.end,
 
+      sundayOpen,
       sundayStart: sunday.start,
       sundayEnd: sunday.end,
 
+      holidayOpen,
       holidayStart: holiday.start,
       holidayEnd: holiday.end,
 
@@ -254,15 +295,19 @@ function AdminCentersPage() {
     setEditForm({
       active: true,
 
-      weekdayStart: '',
-      weekdayEnd: '',
+      weekdayOpen: true,
+      weekdayStart: '09:00',
+      weekdayEnd: '18:00',
 
-      saturdayStart: '',
-      saturdayEnd: '',
+      saturdayOpen: true,
+      saturdayStart: '09:00',
+      saturdayEnd: '17:00',
 
+      sundayOpen: false,
       sundayStart: '',
       sundayEnd: '',
 
+      holidayOpen: false,
       holidayStart: '',
       holidayEnd: '',
 
@@ -276,6 +321,56 @@ function AdminCentersPage() {
 
   function handleCloseEdit() {
     setSelectedCenter(null)
+  }
+
+  function handleOpenDelete(center) {
+    setDeleteTarget(center)
+  }
+
+  function handleCloseDelete() {
+    if (deleting) {
+      return
+    }
+
+    setDeleteTarget(null)
+  }
+
+  async function handleDeleteCenter() {
+    if (
+      !deleteTarget
+      || deleting
+    ) {
+      return
+    }
+
+    setDeleting(true)
+
+    try {
+      await deleteCenter(
+        deleteTarget.id
+      )
+
+      setDeleteTarget(null)
+
+      await loadCenters(
+        keyword,
+        0,
+        false
+      )
+
+    } catch (error) {
+      console.error(
+        '헌혈센터 삭제 실패:',
+        error
+      )
+
+      alert(
+        error.message
+        || '헌혈센터를 삭제하지 못했습니다.'
+      )
+    } finally {
+      setDeleting(false)
+    }
   }
 
 
@@ -356,6 +451,34 @@ function AdminCentersPage() {
     }))
   }
 
+  function handleHoursOpenChange(
+    prefix,
+    open
+  ) {
+    setEditForm((previous) => {
+      const defaultEnd =
+        prefix === 'saturday'
+          ? '17:00'
+          : '18:00'
+
+      return {
+        ...previous,
+
+        [`${prefix}Open`]: open,
+
+        [`${prefix}Start`]:
+          open
+            ? previous[`${prefix}Start`] || '09:00'
+            : '',
+
+        [`${prefix}End`]:
+          open
+            ? previous[`${prefix}End`] || defaultEnd
+            : '',
+      }
+    })
+  }
+
   function handleDonationTypeChange(type) {
     setEditForm((previous) => {
       const selected =
@@ -407,28 +530,36 @@ function AdminCentersPage() {
         active: editForm.active,
 
         weekdayHours:
-          buildHours(
-            editForm.weekdayStart,
-            editForm.weekdayEnd
-          ),
+          editForm.weekdayOpen
+            ? buildHours(
+                editForm.weekdayStart,
+                editForm.weekdayEnd
+              )
+            : '',
 
         saturdayHours:
-          buildHours(
-            editForm.saturdayStart,
-            editForm.saturdayEnd
-          ),
+          editForm.saturdayOpen
+            ? buildHours(
+                editForm.saturdayStart,
+                editForm.saturdayEnd
+              )
+            : '',
 
         sundayHours:
-          buildHours(
-            editForm.sundayStart,
-            editForm.sundayEnd
-          ),
+          editForm.sundayOpen
+            ? buildHours(
+                editForm.sundayStart,
+                editForm.sundayEnd
+              )
+            : '',
 
         holidayHours:
-          buildHours(
-            editForm.holidayStart,
-            editForm.holidayEnd
-          ),
+          editForm.holidayOpen
+            ? buildHours(
+                editForm.holidayStart,
+                editForm.holidayEnd
+              )
+            : '',
 
         donationTypes:
           editForm.donationTypes.join(', '),
@@ -711,13 +842,27 @@ function handleCenterListScroll(event) {
               {center.active ? '운영' : '운영 중단'}
             </span>
 
-            <button
-              type="button"
-              className="admin-row-action"
-              onClick={() => handleOpenEdit(center)}
-            >
-              수정
-            </button>
+            <div className="admin-center-row-actions">
+              <button
+                type="button"
+                className="admin-row-action"
+                onClick={() =>
+                  handleOpenEdit(center)
+                }
+              >
+                수정
+              </button>
+
+              <button
+                type="button"
+                className="admin-row-action delete"
+                onClick={() =>
+                  handleOpenDelete(center)
+                }
+              >
+                삭제
+              </button>
+            </div>
           </article>
         ))}
 
@@ -926,163 +1071,140 @@ function handleCenterListScroll(event) {
               </div>
 
 
-              <div className="admin-center-edit-field">
-                <span>평일 운영시간</span>
+              {[
+                {
+                  key: 'weekday',
+                  label: '평일 운영시간',
+                  placeholderStart: '09:00',
+                  placeholderEnd: '18:00',
+                  error: weekdayTimeError,
+                },
+                {
+                  key: 'saturday',
+                  label: '토요일 운영시간',
+                  placeholderStart: '09:00',
+                  placeholderEnd: '17:00',
+                  error: saturdayTimeError,
+                },
+                {
+                  key: 'sunday',
+                  label: '일요일 운영시간',
+                  placeholderStart: '09:00',
+                  placeholderEnd: '18:00',
+                  error: sundayTimeError,
+                },
+                {
+                  key: 'holiday',
+                  label: '공휴일 운영시간',
+                  placeholderStart: '09:00',
+                  placeholderEnd: '18:00',
+                  error: holidayTimeError,
+                },
+              ].map((schedule) => {
+                const open =
+                  editForm[`${schedule.key}Open`]
 
-                <div
-                  className={
-                    weekdayTimeError
-                      ? 'admin-center-time-range error'
-                      : 'admin-center-time-range'
-                  }
-                >
-                  <input
-                    type="text"
-                    name="weekdayStart"
-                    value={editForm.weekdayStart}
-                    onChange={handleTimeChange}
-                    inputMode="numeric"
-                    maxLength="5"
-                    placeholder="09:00"
-                  />
+                return (
+                  <div
+                    key={schedule.key}
+                    className="admin-center-edit-field"
+                  >
+                    <span>{schedule.label}</span>
 
-                  <span>~</span>
+                    <div className="admin-center-hours-options">
+                      <button
+                        type="button"
+                        className={
+                          open
+                            ? 'selected'
+                            : ''
+                        }
+                        onClick={() =>
+                          handleHoursOpenChange(
+                            schedule.key,
+                            true
+                          )
+                        }
+                      >
+                        운영
+                      </button>
 
-                  <input
-                    type="text"
-                    name="weekdayEnd"
-                    value={editForm.weekdayEnd}
-                    onChange={handleTimeChange}
-                    inputMode="numeric"
-                    maxLength="5"
-                    placeholder="18:00"
-                  />
-                </div>
+                      <button
+                        type="button"
+                        className={
+                          !open
+                            ? 'selected'
+                            : ''
+                        }
+                        onClick={() =>
+                          handleHoursOpenChange(
+                            schedule.key,
+                            false
+                          )
+                        }
+                      >
+                        휴무
+                      </button>
+                    </div>
 
-                {weekdayTimeError && (
-                  <small className="admin-center-field-error">
-                    {weekdayTimeError}
-                  </small>
-                )}
-              </div>
+                    {open ? (
+                      <>
+                        <div
+                          className={
+                            schedule.error
+                              ? 'admin-center-time-range error'
+                              : 'admin-center-time-range'
+                          }
+                        >
+                          <input
+                            type="text"
+                            name={`${schedule.key}Start`}
+                            value={
+                              editForm[
+                                `${schedule.key}Start`
+                              ]
+                            }
+                            onChange={handleTimeChange}
+                            inputMode="numeric"
+                            maxLength="5"
+                            placeholder={
+                              schedule.placeholderStart
+                            }
+                          />
 
+                          <span>~</span>
 
-              <div className="admin-center-edit-field">
-                <span>토요일 운영시간</span>
+                          <input
+                            type="text"
+                            name={`${schedule.key}End`}
+                            value={
+                              editForm[
+                                `${schedule.key}End`
+                              ]
+                            }
+                            onChange={handleTimeChange}
+                            inputMode="numeric"
+                            maxLength="5"
+                            placeholder={
+                              schedule.placeholderEnd
+                            }
+                          />
+                        </div>
 
-                <div
-                  className={
-                    saturdayTimeError
-                      ? 'admin-center-time-range error'
-                      : 'admin-center-time-range'
-                  }
-                >
-                    <input
-                      type="text"
-                      name="saturdayStart"
-                      value={editForm.saturdayStart}
-                      onChange={handleTimeChange}
-                      inputMode="numeric"
-                      maxLength="5"
-                      placeholder="09:00"
-                    />
-
-                    <span>~</span>
-
-                    <input
-                      type="text"
-                      name="saturdayEnd"
-                      value={editForm.saturdayEnd}
-                      onChange={handleTimeChange}
-                      inputMode="numeric"
-                      maxLength="5"
-                      placeholder="18:00"
-                    />
-                </div>
-                {saturdayTimeError && (
-                  <small className="admin-center-field-error">
-                    {saturdayTimeError}
-                  </small>
-                )}
-              </div>
-
-              <div className="admin-center-edit-field">
-                <span>일요일 운영시간</span>
-
-                <div
-                  className={
-                    sundayTimeError
-                      ? 'admin-center-time-range error'
-                      : 'admin-center-time-range'
-                  }
-                >
-                    <input
-                      type="text"
-                      name="sundayStart"
-                      value={editForm.sundayStart}
-                      onChange={handleTimeChange}
-                      inputMode="numeric"
-                      maxLength="5"
-                      placeholder="09:00"
-                    />
-
-                    <span>~</span>
-
-                    <input
-                      type="text"
-                      name="sundayEnd"
-                      value={editForm.sundayEnd}
-                      onChange={handleTimeChange}
-                      inputMode="numeric"
-                      maxLength="5"
-                      placeholder="18:00"
-                    />
-                </div>
-                {sundayTimeError && (
-                  <small className="admin-center-field-error">
-                    {sundayTimeError}
-                  </small>
-                )}
-              </div>
-
-              <div className="admin-center-edit-field">
-                <span>공휴일 운영시간</span>
-
-                <div
-                  className={
-                    holidayTimeError
-                      ? 'admin-center-time-range error'
-                      : 'admin-center-time-range'
-                  }
-                >
-                    <input
-                      type="text"
-                      name="holidayStart"
-                      value={editForm.holidayStart}
-                      onChange={handleTimeChange}
-                      inputMode="numeric"
-                      maxLength="5"
-                      placeholder="09:00"
-                    />
-
-                    <span>~</span>
-
-                    <input
-                      type="text"
-                      name="holidayEnd"
-                      value={editForm.holidayEnd}
-                      onChange={handleTimeChange}
-                      inputMode="numeric"
-                      maxLength="5"
-                      placeholder="18:00"
-                    />
-                </div>
-                {holidayTimeError && (
-                  <small className="admin-center-field-error">
-                    {holidayTimeError}
-                  </small>
-                )}
-              </div>
+                        {schedule.error && (
+                          <small className="admin-center-field-error">
+                            {schedule.error}
+                          </small>
+                        )}
+                      </>
+                    ) : (
+                      <div className="admin-center-hours-closed">
+                        휴무일로 설정되어 있습니다.
+                      </div>
+                    )}
+                  </div>
+                )
+              })}
 
               <div className="admin-center-edit-field">
                 <span>헌혈 종류</span>
@@ -1180,6 +1302,28 @@ function handleCenterListScroll(event) {
           </aside>
         </>
       )}
+
+    <ConfirmModal
+      open={Boolean(deleteTarget)}
+      title="헌혈센터 삭제"
+      message={
+        deleteTarget
+          ? `${deleteTarget.centerName} 센터를 삭제하시겠습니까? 운영 데이터가 존재하는 센터는 삭제할 수 없습니다.`
+          : ''
+      }
+      confirmText={
+        deleting
+          ? '삭제 중...'
+          : '삭제'
+      }
+      cancelText="취소"
+      onConfirm={
+        handleDeleteCenter
+      }
+      onCancel={
+        handleCloseDelete
+      }
+    />
 
     </main>
   )

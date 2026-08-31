@@ -31,4 +31,15 @@ public interface ReservationSlotRepository
             LocalDate startDate,
             LocalDate endDate
     );
+
+    List<ReservationSlot>
+    findByCenter_IdAndReservationDateBetweenAndActiveTrueOrderByReservationDateAscStartTimeAsc(
+            Long centerId,
+            LocalDate startDate,
+            LocalDate endDate
+    );
+
+    void deleteByCenter_Id(
+            Long centerId
+    );
 }

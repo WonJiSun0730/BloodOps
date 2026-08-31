@@ -298,6 +298,56 @@
   font-weight: 800;
 }
 
+.admin-center-hours-options {
+  display: flex;
+  gap: 8px;
+}
+
+.admin-center-hours-options button {
+  min-width: 72px;
+  padding: 8px 14px;
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  background: var(--color-surface);
+  color: var(--color-text-secondary);
+  font: inherit;
+  font-size: 0.88rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition:
+    border-color 0.2s ease,
+    background-color 0.2s ease,
+    color 0.2s ease;
+}
+
+.admin-center-hours-options button:hover {
+  border-color: color-mix(
+    in srgb,
+    var(--color-primary) 55%,
+    var(--color-border)
+  );
+}
+
+.admin-center-hours-options button.selected {
+  border-color: var(--color-primary);
+  background: color-mix(
+    in srgb,
+    var(--color-primary) 12%,
+    var(--color-surface)
+  );
+  color: var(--color-primary);
+}
+
+.admin-center-hours-closed {
+  display: flex;
+  min-height: 42px;
+  padding: 0 14px;
+  border: 1px dashed var(--color-border);
+  border-radius: 10px;
+  align-items: center;
+  color: var(--color-text-secondary);
+  font-size: 0.88rem;
+}
 
 .admin-center-drawer-actions {
   display: grid;
@@ -524,7 +574,7 @@
     minmax(150px, 1fr)
     minmax(140px, 0.9fr)
     100px
-    80px;
+    150px;
 
   align-items: center;
 
@@ -655,6 +705,37 @@
     color 0.18s ease;
 }
 
+.admin-center-row-actions {
+  display: grid;
+
+  grid-template-columns:
+    1fr
+    1fr;
+
+  gap: 6px;
+}
+
+.admin-row-action.delete {
+  border-color:
+    color-mix(
+      in srgb,
+      var(--color-primary) 35%,
+      var(--color-border)
+    );
+
+  color: var(--color-primary);
+}
+
+.admin-row-action.delete:hover {
+  border-color: var(--color-primary);
+
+  background:
+    color-mix(
+      in srgb,
+      var(--color-primary) 6%,
+      var(--color-background)
+    );
+}
 
 .admin-row-action:hover {
   border-color: var(--color-primary);
@@ -692,8 +773,12 @@
 
 
   .admin-center-status,
-  .admin-row-action {
+  .admin-center-row-actions {
     grid-column: 2;
+  }
+
+  .admin-center-row-actions {
+    min-width: 130px;
   }
 
 }

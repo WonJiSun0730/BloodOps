@@ -24,4 +24,8 @@ public interface FavoriteCenterRepository
             Long memberId,
             Long centerId
     );
+
+    void deleteByCenter_Id(
+            Long centerId
+    );
 }
