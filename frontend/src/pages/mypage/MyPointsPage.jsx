@@ -13,6 +13,7 @@ function MyPointsPage() {
   const [centerId,setCenterId]=useState('')
   const [centerSearch,setCenterSearch]=useState('')
   const [purchasing,setPurchasing]=useState(false)
+  const [confirming,setConfirming]=useState(false)
   const [message,setMessage]=useState('')
   const [error,setError]=useState('')
 
@@ -25,6 +26,7 @@ function MyPointsPage() {
 
   const selectProduct = async (product) => {
     setSelected(product)
+    setConfirming(false)
     setCenterId('')
     setCenterSearch('')
     setCenters([])
@@ -63,6 +65,21 @@ function MyPointsPage() {
     )
   })
 
+  const openPurchaseConfirmation = () => {
+    if (
+      selected?.productType === 'PHYSICAL'
+      && !centerId
+    ) {
+      setError(
+        '수령할 헌혈의 집을 선택해주세요.'
+      )
+      return
+    }
+
+    setError('')
+    setConfirming(true)
+  }
+
   const purchase=async()=>{
     if(!selected||purchasing)return
     if((selected.productType||'PHYSICAL')==='PHYSICAL'&&!centerId){setError('수령할 헌혈의 집을 선택해주세요.');return}
@@ -78,7 +95,7 @@ function MyPointsPage() {
           selected.id,
           pickupCenterId
         )
-      await reload(); setSelected(null);setCenterId('')
+      await reload(); setSelected(null);setConfirming(false);setCenterId('')
       setMessage(result.productType==='DIGITAL_VOUCHER'
         ? '상품권 교환이 완료되었습니다. 상품권·교환 내역에서 코드를 확인하세요.'
         : '실물 상품 교환 신청이 완료되었습니다. 수령 코드: '+result.pickupCode)
@@ -107,8 +124,8 @@ function MyPointsPage() {
         <span className="reward-product-status">{p.stockQuantity===0?'품절':p.productType==='DIGITAL_VOUCHER'?'즉시 발급':'센터 수령'}</span><strong>{p.name}</strong><p>{p.description}</p><span className="reward-product-meta"><strong>{p.pointPrice.toLocaleString()}P</strong><small>재고 {p.stockQuantity}개</small></span>
       </button>)}</div>
     </section>
-    {selected&&<div className="reward-detail-backdrop" role="presentation" onMouseDown={e=>{if(e.target===e.currentTarget)setSelected(null)}}>
-      <section className="reward-detail-modal" role="dialog" aria-modal="true"><button type="button" className="reward-detail-close" onClick={()=>setSelected(null)}>×</button>
+    {selected&&<div className="reward-detail-backdrop" role="presentation" onMouseDown={e=>{if(e.target===e.currentTarget){setSelected(null);setConfirming(false)}}}>
+      <section className="reward-detail-modal" role="dialog" aria-modal="true"><button type="button" className="reward-detail-close" onClick={()=>{setSelected(null);setConfirming(false)}}>×</button>
         <div className="reward-detail-image-shell">{selected.imageUrl?<img src={selected.imageUrl} alt={selected.name}/>:<span>NO IMAGE</span>}</div>
         <div className="reward-detail-content"><span className="reward-detail-eyebrow">{selected.productType==='DIGITAL_VOUCHER'?'DIGITAL VOUCHER':'PHYSICAL REWARD'}</span><h3>{selected.name}</h3><p>{selected.description}</p>
           <dl><div><dt>필요 포인트</dt><dd>{selected.pointPrice.toLocaleString()}P</dd></div><div><dt>보유 포인트</dt><dd>{Number(pointData.balance).toLocaleString()}P</dd></div><div><dt>재고</dt><dd>{selected.stockQuantity}개</dd></div></dl>
@@ -166,7 +183,84 @@ function MyPointsPage() {
               </small>
             </div>
           )}
-          <button type="button" className="reward-purchase-button" disabled={purchasing||selected.stockQuantity===0||Number(pointData.balance)<selected.pointPrice} onClick={purchase}>{purchasing?'교환 처리 중...':selected.stockQuantity===0?'품절된 상품입니다':Number(pointData.balance)<selected.pointPrice?'포인트가 부족합니다':'포인트로 교환하기'}</button>
+          {confirming ? (
+            <section
+              className="reward-purchase-confirmation"
+              aria-live="polite"
+            >
+              <span>FINAL CONFIRMATION</span>
+              <h4>포인트 상품을 교환하시겠습니까?</h4>
+              <p>
+                <strong>{selected.name}</strong> 교환에
+                {' '}{selected.pointPrice.toLocaleString()}P가 사용됩니다.
+              </p>
+              <dl>
+                <div>
+                  <dt>교환 후 예상 잔액</dt>
+                  <dd>
+                    {
+                      (
+                        Number(pointData.balance)
+                        - selected.pointPrice
+                      ).toLocaleString()
+                    }P
+                  </dd>
+                </div>
+                <div>
+                  <dt>수령 방식</dt>
+                  <dd>
+                    {selected.productType === 'DIGITAL_VOUCHER'
+                      ? '디지털 코드 즉시 발급'
+                      : '선택한 헌혈의 집 방문 수령'}
+                  </dd>
+                </div>
+              </dl>
+              <p className="reward-confirmation-warning">
+                교환 완료 후에는 관리자 취소 처리가 필요한 경우를 제외하고
+                사용자가 직접 취소할 수 없습니다.
+              </p>
+              <div className="reward-confirmation-actions">
+                <button
+                  type="button"
+                  className="secondary"
+                  disabled={purchasing}
+                  onClick={() => {
+                    setConfirming(false)
+                  }}
+                >
+                  다시 확인
+                </button>
+                <button
+                  type="button"
+                  disabled={purchasing}
+                  onClick={purchase}
+                >
+                  {purchasing
+                    ? '교환 처리 중...'
+                    : '확인하고 교환하기'}
+                </button>
+              </div>
+            </section>
+          ) : (
+            <button
+              type="button"
+              className="reward-purchase-button"
+              disabled={
+                purchasing
+                || selected.stockQuantity === 0
+                || Number(pointData.balance)
+                  < selected.pointPrice
+              }
+              onClick={openPurchaseConfirmation}
+            >
+              {selected.stockQuantity === 0
+                ? '품절된 상품입니다'
+                : Number(pointData.balance)
+                  < selected.pointPrice
+                  ? '포인트가 부족합니다'
+                  : '포인트로 교환하기'}
+            </button>
+          )}
         </div>
       </section></div>}
   </div>
