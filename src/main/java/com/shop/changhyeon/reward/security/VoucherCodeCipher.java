@@ -14,7 +14,7 @@ public class VoucherCodeCipher {
     private final SecretKey key;
     private final SecureRandom random = new SecureRandom();
 
-    public VoucherCodeCipher(@Value("\${reward.voucher.secret:BloodOps-Demo-Voucher-Key-2026}") String secret) {
+    public VoucherCodeCipher(@Value("${reward.voucher.secret:BloodOps-Demo-Voucher-Key-2026}") String secret) {
         try {
             byte[] digest = MessageDigest.getInstance("SHA-256")
                     .digest(secret.getBytes(StandardCharsets.UTF_8));
