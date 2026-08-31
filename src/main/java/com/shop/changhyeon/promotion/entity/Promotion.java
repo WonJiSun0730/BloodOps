@@ -13,7 +13,7 @@ import java.util.*;
         @Index(name = "idx_promotion_active_period", columnList = "active,start_date,end_date"),
         @Index(name = "idx_promotion_category", columnList = "category")
 })
-@Getter @Setter @NoArgsConstructor(access = AccessLevel.PROTECTED)
+@Getter @Setter @NoArgsConstructor
 public class Promotion {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY) private Long id;
     @Enumerated(EnumType.STRING) @Column(nullable = false, length = 20) private PromotionCategory category;
