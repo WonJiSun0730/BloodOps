@@ -115,8 +115,8 @@ function MyPointsPage() {
       await reload(); setSelected(null);setConfirming(false);setCenterId('')
       setCompletedProductType(result.productType)
       setMessage(result.productType==='DIGITAL_VOUCHER'
-        ? '상품권 교환이 완료되었습니다. 상품권·교환 내역에서 코드를 확인하세요.'
-        : '실물 상품 교환 신청이 완료되었습니다. 수령 코드: '+result.pickupCode)
+        ? '상품권·교환 내역에서 발급된 코드를 바로 확인할 수 있습니다.'
+        : '선택한 센터에서 수령 코드를 제시해주세요. 수령 코드: '+result.pickupCode)
     }catch(e){setError(e.message)}finally{setPurchasing(false)}
   }
 
