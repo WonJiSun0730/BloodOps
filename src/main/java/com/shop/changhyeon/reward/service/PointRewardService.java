@@ -1,6 +1,7 @@
 package com.shop.changhyeon.reward.service;
 
 import com.shop.changhyeon.reward.constant.PointTransactionType;
+import com.shop.changhyeon.promotion.service.MonthlyPromotionBonusPolicy;
 import com.shop.changhyeon.reward.dto.MyPointResponse;
 import com.shop.changhyeon.reward.dto.PointTransactionResponse;
 import com.shop.changhyeon.reward.entity.PointTransaction;
@@ -13,6 +14,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.time.LocalDate;
 
 @Service
 @RequiredArgsConstructor
@@ -30,7 +33,11 @@ public class PointRewardService {
             throw new IllegalStateException("이미 포인트가 지급된 예약입니다.");
         }
 
-        int points = PointRewardPolicy.pointsFor(donationType);
+        int basePoints = PointRewardPolicy.pointsFor(donationType);
+        int promotionBonus = MonthlyPromotionBonusPolicy.bonusFor(LocalDate.now());
+        int points = basePoints + promotionBonus;
+        String description = PointRewardPolicy.displayName(donationType) + " 헌혈 완료"
+                + (promotionBonus > 0 ? " · 매월 13일 프로모션 +5,000P" : "");
         pointTransactionRepository.save(
                 PointTransaction.builder()
                         .member(member)
@@ -38,7 +45,7 @@ public class PointRewardService {
                         .transactionType(PointTransactionType.DONATION_REWARD)
                         .donationType(donationType)
                         .points(points)
-                        .description(PointRewardPolicy.displayName(donationType) + " 헌혈 완료")
+                        .description(description)
                         .build()
         );
     }
