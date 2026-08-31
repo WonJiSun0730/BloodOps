@@ -224,3 +224,143 @@
     flex-direction: column !important;
   }
 }
+
+
+.test-point-panel {
+  border-color:
+    color-mix(
+      in srgb,
+      var(--color-primary) 45%,
+      var(--color-border)
+    );
+}
+
+.test-point-panel > header div {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.test-point-panel > header span {
+  color: var(--color-primary);
+  font-size: 0.65rem;
+  font-weight: 850;
+  letter-spacing: 0.12em;
+}
+
+.test-point-form {
+  display: grid;
+  padding: 18px 20px;
+  grid-template-columns:
+    minmax(240px, 2fr)
+    minmax(160px, 1fr)
+    auto;
+  align-items: end;
+  gap: 16px;
+}
+
+.test-point-form > div {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.test-point-form strong {
+  color: var(--color-text);
+  font-size: 0.82rem;
+}
+
+.test-point-form p {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: 0.72rem;
+  line-height: 1.5;
+}
+
+.test-point-form label {
+  display: flex;
+  color: var(--color-text-muted);
+  font-size: 0.7rem;
+  font-weight: 750;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.test-point-form input {
+  min-height: 42px;
+  padding: 8px 10px;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  color: var(--color-text);
+  background: var(--color-background);
+}
+
+.test-point-form input:focus {
+  outline: 2px solid
+    color-mix(
+      in srgb,
+      var(--color-primary) 42%,
+      transparent
+    );
+}
+
+.test-point-form button {
+  min-height: 42px;
+  padding: 0 16px;
+  border: 0;
+  border-radius: 8px;
+  color: #ffffff;
+  background: var(--color-primary);
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.test-point-form button:hover:not(:disabled) {
+  background: var(--color-primary-hover);
+}
+
+.test-point-form button:focus-visible {
+  outline: 2px solid #ffffff;
+  outline-offset: 2px;
+}
+
+.test-point-form button:disabled {
+  color: var(--color-text-muted);
+  background: var(--color-border);
+  cursor: not-allowed;
+}
+
+@media (max-width: 1024px) {
+  .test-point-form {
+    grid-template-columns:
+      repeat(2, minmax(0, 1fr));
+  }
+
+  .test-point-form > div {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 768px) {
+  .test-point-form {
+    grid-template-columns: 1fr;
+  }
+
+  .test-point-form > div {
+    grid-column: 1;
+  }
+
+  .test-point-form button {
+    min-height: 44px;
+  }
+}
+
+@media (max-width: 480px) {
+  .test-point-form {
+    padding: 16px;
+  }
+
+  .test-point-form button {
+    width: 100%;
+  }
+}
