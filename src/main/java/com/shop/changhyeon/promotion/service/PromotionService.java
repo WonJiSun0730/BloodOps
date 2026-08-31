@@ -40,7 +40,19 @@ public class PromotionService {
     public List<PromotionResponse> adminList() { return promotionRepository.findAll().stream().sorted(Comparator.comparing(Promotion::getId).reversed()).map(p -> PromotionResponse.from(p, false)).toList(); }
 
     public PromotionResponse create(PromotionRequest request) { Promotion p = new Promotion(); apply(p, request); return PromotionResponse.from(promotionRepository.save(p), false); }
-    public PromotionResponse update(Long id, PromotionRequest request) { Promotion p = find(id); apply(p, request); return PromotionResponse.from(p, false); }
+    public PromotionResponse update(Long id, PromotionRequest request) {
+        Promotion p = find(id);
+        if (entryRepository.countByPromotion_Id(id) > 0) {
+            List<String> currentOptions = p.getOptions().stream().map(PromotionOption::getLabel).toList();
+            List<String> requestedOptions = request.options() == null ? List.of() : request.options().stream()
+                    .map(String::trim).filter(s -> !s.isEmpty()).distinct().toList();
+            if (request.type() != PromotionType.LOTTERY || !currentOptions.equals(requestedOptions)) {
+                throw new IllegalStateException("응모 내역이 있는 프로모션의 유형과 선택 항목은 변경할 수 없습니다.");
+            }
+        }
+        apply(p, request);
+        return PromotionResponse.from(p, false);
+    }
     public void delete(Long id) { promotionRepository.delete(find(id)); }
 
     public PromotionEntryResponse enter(Long promotionId, Long optionId, String email) {
@@ -52,7 +64,7 @@ public class PromotionService {
         if (member == null) throw new IllegalArgumentException("회원 정보를 찾을 수 없습니다.");
         if (entryRepository.existsByPromotion_IdAndMember_Id(promotionId, member.getId())) throw new IllegalStateException("이미 응모한 프로모션입니다.");
         PromotionOption option = optionRepository.findById(optionId).filter(o -> o.getPromotion().getId().equals(promotionId)).orElseThrow(() -> new IllegalArgumentException("선택 항목이 올바르지 않습니다."));
-        PromotionEntry saved = entryRepository.save(new PromotionEntry(p, member, option));
+        PromotionEntry saved = entryRepository.saveAndFlush(new PromotionEntry(p, member, option));
         return new PromotionEntryResponse(saved.getId(), promotionId, optionId, option.getLabel(), saved.getCreatedAt());
     }
 

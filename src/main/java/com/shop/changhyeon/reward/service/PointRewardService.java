@@ -16,6 +16,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
+import java.time.ZoneId;
 
 @Service
 @RequiredArgsConstructor
@@ -34,7 +35,7 @@ public class PointRewardService {
         }
 
         int basePoints = PointRewardPolicy.pointsFor(donationType);
-        int promotionBonus = MonthlyPromotionBonusPolicy.bonusFor(LocalDate.now());
+        int promotionBonus = MonthlyPromotionBonusPolicy.bonusFor(LocalDate.now(ZoneId.of("Asia/Seoul")));
         int points = basePoints + promotionBonus;
         String description = PointRewardPolicy.displayName(donationType) + " 헌혈 완료"
                 + (promotionBonus > 0 ? " · 매월 13일 프로모션 +5,000P" : "");

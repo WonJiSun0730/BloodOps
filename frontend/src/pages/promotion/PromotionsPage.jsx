@@ -8,10 +8,10 @@ export default function PromotionsPage() {
   const [category, setCategory] = useState('NATIONAL')
   const [promotions, setPromotions] = useState([])
   const [error, setError] = useState('')
-  useEffect(() => { setError(''); apiRequest(`/api/promotions?category=${category}`).then(setPromotions).catch(e => setError(e.message)) }, [category])
+  useEffect(() => { apiRequest(`/api/promotions?category=${category}`).then(setPromotions).catch(e => setError(e.message)) }, [category])
   return <main className="promotion-page">
     <header className="promotion-hero"><span>PROMOTION</span><h1>헌혈 프로모션</h1><p>헌혈 참여로 누릴 수 있는 전국·지역별 혜택을 확인하세요.</p></header>
-    <div className="promotion-tabs" role="tablist" aria-label="프로모션 구분">{tabs.map(tab => <button key={tab.value} role="tab" aria-selected={category === tab.value} className={category === tab.value ? 'active' : ''} onClick={() => setCategory(tab.value)}>{tab.label}</button>)}</div>
+    <div className="promotion-tabs" role="tablist" aria-label="프로모션 구분">{tabs.map(tab => <button key={tab.value} role="tab" aria-selected={category === tab.value} className={category === tab.value ? 'active' : ''} onClick={() => { setError(''); setCategory(tab.value) }}>{tab.label}</button>)}</div>
     {error && <p className="promotion-status error">{error}</p>}
     {!error && promotions.length === 0 && <p className="promotion-status">진행 중인 프로모션이 없습니다.</p>}
     <section className="promotion-grid" aria-live="polite">{promotions.map(item => <Link className="promotion-card" to={`/promotions/${item.id}`} key={item.id}>
