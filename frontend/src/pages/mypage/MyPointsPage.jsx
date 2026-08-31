@@ -4,10 +4,12 @@ import { getCenters, getMyPoints, getRewardProducts, purchaseRewardProduct } fro
 import './MyPointsPage.css'
 
 const donationNames = { WHOLE_BLOOD:'전혈', PLASMA:'혈장', PLATELET:'혈소판단종', PLATELET_PLASMA:'혈소판다종' }
+const POINT_HISTORY_PAGE_SIZE = 10
 
 function MyPointsPage() {
   const [pointData,setPointData]=useState({balance:0,transactions:[]})
   const [products,setProducts]=useState([])
+  const [historyPage,setHistoryPage]=useState(0)
   const [centers,setCenters]=useState([])
   const [selected,setSelected]=useState(null)
   const [centerId,setCenterId]=useState('')
@@ -120,6 +122,25 @@ function MyPointsPage() {
     }catch(e){setError(e.message)}finally{setPurchasing(false)}
   }
 
+  const pointTransactions =
+    pointData.transactions || []
+
+  const historyPageCount =
+    Math.max(
+      1,
+      Math.ceil(
+        pointTransactions.length
+        / POINT_HISTORY_PAGE_SIZE
+      )
+    )
+
+  const visibleTransactions =
+    pointTransactions.slice(
+      historyPage * POINT_HISTORY_PAGE_SIZE,
+      (historyPage + 1)
+        * POINT_HISTORY_PAGE_SIZE
+    )
+
   return <div className="mypage-page reward-point-page">
     <section className="mypage-page-description">
       <div>
@@ -166,14 +187,112 @@ function MyPointsPage() {
     )}
     {error&&<p className="mypage-record-error">{error}</p>}
     <section className="point-policy-grid">{[['전혈','5,000P'],['혈장','8,000P'],['혈소판단종','10,000P'],['혈소판다종','13,000P']].map(([n,p])=><article key={n}><span>{n}</span><strong>{p}</strong></article>)}</section>
-    <section className="point-section"><header><div><h3>포인트 내역</h3><p>최근 적립 및 사용 내역입니다.</p></div></header>
-      {pointData.transactions.length===0?<div className="mypage-empty-state"><strong>포인트 내역이 없습니다.</strong></div>:<div className="point-history-list">{pointData.transactions.map(t=><article key={t.id}><div><strong>{t.description}</strong><span>{donationNames[t.donationType]||'포인트'}</span></div><div><strong className={t.points>=0?'earned':'used'}>{t.points>=0?'+':''}{t.points.toLocaleString()}P</strong><time>{new Date(t.createdAt).toLocaleString('ko-KR')}</time></div></article>)}</div>}
+
+    <section className="point-section">
+      <header>
+        <div>
+          <h3>포인트 상품</h3>
+          <p>상품을 눌러 상세 정보와 교환 방법을 확인하세요.</p>
+        </div>
+        <span>{products.length}개</span>
+      </header>
+      <div className="reward-product-grid">
+        {products.map(p=><button type="button" key={p.id} className={'reward-product-card '+(p.stockQuantity===0?'sold-out':'')} onClick={() => selectProduct(p)}>
+          {p.imageUrl?<img className="reward-product-image" src={p.imageUrl} alt={p.name}/>:<span className="reward-product-image placeholder">NO IMAGE</span>}
+          <span className="reward-product-status">{p.stockQuantity===0?'품절':p.productType==='DIGITAL_VOUCHER'?'즉시 발급':'센터 수령'}</span><strong>{p.name}</strong><p>{p.description}</p><span className="reward-product-meta"><strong>{p.pointPrice.toLocaleString()}P</strong><small>재고 {p.stockQuantity}개</small></span>
+        </button>)}
+      </div>
     </section>
-    <section className="point-section"><header><div><h3>포인트 상품</h3><p>상품을 눌러 상세 정보와 교환 방법을 확인하세요.</p></div><span>{products.length}개</span></header>
-      <div className="reward-product-grid">{products.map(p=><button type="button" key={p.id} className={'reward-product-card '+(p.stockQuantity===0?'sold-out':'')} onClick={() => selectProduct(p)}>
-        {p.imageUrl?<img className="reward-product-image" src={p.imageUrl} alt={p.name}/>:<span className="reward-product-image placeholder">NO IMAGE</span>}
-        <span className="reward-product-status">{p.stockQuantity===0?'품절':p.productType==='DIGITAL_VOUCHER'?'즉시 발급':'센터 수령'}</span><strong>{p.name}</strong><p>{p.description}</p><span className="reward-product-meta"><strong>{p.pointPrice.toLocaleString()}P</strong><small>재고 {p.stockQuantity}개</small></span>
-      </button>)}</div>
+
+    <section className="point-section">
+      <header>
+        <div>
+          <h3>포인트 내역</h3>
+          <p>최근 적립 및 사용 내역을 10건씩 확인합니다.</p>
+        </div>
+        <span>총 {pointTransactions.length}건</span>
+      </header>
+
+      {pointTransactions.length === 0 ? (
+        <div className="mypage-empty-state">
+          <strong>포인트 내역이 없습니다.</strong>
+        </div>
+      ) : (
+        <>
+          <div className="point-history-list">
+            {visibleTransactions.map((transaction) => (
+              <article key={transaction.id}>
+                <div>
+                  <strong>{transaction.description}</strong>
+                  <span>
+                    {donationNames[transaction.donationType] || '포인트'}
+                  </span>
+                </div>
+                <div>
+                  <strong
+                    className={
+                      transaction.points >= 0
+                        ? 'earned'
+                        : 'used'
+                    }
+                  >
+                    {transaction.points >= 0 ? '+' : ''}
+                    {transaction.points.toLocaleString()}P
+                  </strong>
+                  <time>
+                    {new Date(transaction.createdAt).toLocaleString('ko-KR')}
+                  </time>
+                </div>
+              </article>
+            ))}
+          </div>
+
+          {historyPageCount > 1 && (
+            <nav
+              className="point-history-pagination"
+              aria-label="포인트 내역 페이지"
+            >
+              <button
+                type="button"
+                disabled={historyPage === 0}
+                onClick={() => {
+                  setHistoryPage(
+                    (currentPage) =>
+                      Math.max(0, currentPage - 1)
+                  )
+                }}
+              >
+                이전
+              </button>
+
+              <span>
+                <strong>{historyPage + 1}</strong>
+                {' / '}
+                {historyPageCount}
+              </span>
+
+              <button
+                type="button"
+                disabled={
+                  historyPage
+                  >= historyPageCount - 1
+                }
+                onClick={() => {
+                  setHistoryPage(
+                    (currentPage) =>
+                      Math.min(
+                        historyPageCount - 1,
+                        currentPage + 1
+                      )
+                  )
+                }}
+              >
+                다음
+              </button>
+            </nav>
+          )}
+        </>
+      )}
     </section>
     {selected&&<div className="reward-detail-backdrop" role="presentation" onMouseDown={e=>{if(e.target===e.currentTarget){setSelected(null);setConfirming(false)}}}>
       <section className="reward-detail-modal" role="dialog" aria-modal="true"><button type="button" className="reward-detail-close" onClick={()=>{setSelected(null);setConfirming(false)}}>×</button>

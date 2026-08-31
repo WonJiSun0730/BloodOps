@@ -497,3 +497,71 @@
     height: 42px;
   }
 }
+
+
+.point-history-pagination {
+  display: flex;
+  padding: 16px 22px;
+  align-items: center;
+  justify-content: center;
+  border-top: 1px solid var(--color-border);
+  gap: 14px;
+}
+
+.point-history-pagination button {
+  min-width: 78px;
+  min-height: 42px;
+  padding: 0 14px;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  color: var(--color-text);
+  background: var(--color-background);
+  font-weight: 750;
+  cursor: pointer;
+}
+
+.point-history-pagination button:hover:not(:disabled) {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+
+.point-history-pagination button:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+.point-history-pagination button:disabled {
+  color: var(--color-text-muted);
+  background: var(--color-surface);
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.point-history-pagination > span {
+  min-width: 72px;
+  color: var(--color-text-muted);
+  font-size: 0.78rem;
+  text-align: center;
+}
+
+.point-history-pagination > span strong {
+  color: var(--color-primary);
+}
+
+@media (max-width: 768px) {
+  .point-history-pagination button {
+    min-height: 44px;
+  }
+}
+
+@media (max-width: 480px) {
+  .point-history-pagination {
+    padding: 14px 16px;
+    justify-content: space-between;
+    gap: 8px;
+  }
+
+  .point-history-pagination button {
+    min-width: 72px;
+  }
+}
