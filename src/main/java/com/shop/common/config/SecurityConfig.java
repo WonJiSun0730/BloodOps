@@ -44,6 +44,7 @@ public class SecurityConfig {
                                 "/api/public/**",
                                 "/api/promotions",
                                 "/api/promotions/*",
+                                "/api/promotions/*/image",
 
                                 // 로그인 관련 공개 API
                                 "/api/auth/csrf",

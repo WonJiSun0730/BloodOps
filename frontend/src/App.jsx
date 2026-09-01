@@ -60,7 +60,6 @@ import AdminRewardFulfillmentPage
 
 import PromotionsPage from './pages/promotion/PromotionsPage.jsx'
 import PromotionDetailPage from './pages/promotion/PromotionDetailPage.jsx'
-import AdminPromotionsPage from './pages/admin/AdminPromotionsPage.jsx'
 
 import BloodUnitsManagementPage
   from './pages/medical/BloodUnitsManagementPage.jsx'
@@ -298,8 +297,6 @@ function App() {
         />
 
         <Route path="/admin/reward-fulfillment" element={<AdminRoute><AdminRewardFulfillmentPage /></AdminRoute>} />
-
-        <Route path="/admin/promotions" element={<AdminRoute><AdminPromotionsPage /></AdminRoute>} />
 
         <Route
           path="/admin/kakao-message-template"

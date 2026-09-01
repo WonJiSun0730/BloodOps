@@ -37,13 +37,6 @@ const adminMenus = [
     to: '/admin/reward-products',
   },
   {
-    id: 'promotions',
-    eyebrow: 'PROMOTION',
-    title: '프로모션 관리',
-    description: '전국·지역별 프로모션과 추첨 응모 항목을 관리합니다.',
-    to: '/admin/promotions',
-  },
-  {
     id: 'kakao-message',
     eyebrow: 'KAKAO MESSAGE',
     title: '카카오 예약 알림 관리',
