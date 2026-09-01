@@ -171,11 +171,13 @@ export default function PromotionDetailPage() {
           />
         )}
 
-        <div className="promotion-content">
-          {item.content.split('\n').map((line, index) => (
-            <p key={index}>{line}</p>
-          ))}
-        </div>
+        {item.content && (
+          <div className="promotion-content">
+            {item.content.split('\n').map((line, index) => (
+              <p key={index}>{line}</p>
+            ))}
+          </div>
+        )}
 
         {item.type === 'LOTTERY' && (
           <form className="promotion-entry" onSubmit={enter}>
