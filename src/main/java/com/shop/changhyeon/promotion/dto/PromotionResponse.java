@@ -39,9 +39,13 @@ public record PromotionResponse(
     ) {
         PromotionRegion region = promotion.getRegionName() == null
                 ? null
-                : PromotionRegion.from(promotion.getRegionName());
-        String regionName = region == null ? null : region.name();
-        String regionDisplayName = region == null ? null : region.displayName();
+                : PromotionRegion.find(promotion.getRegionName()).orElse(null);
+        String regionName = region == null
+                ? promotion.getRegionName()
+                : region.name();
+        String regionDisplayName = region == null
+                ? promotion.getRegionName()
+                : region.displayName();
         String imageUrl = promotion.getImageData() != null && promotion.getImageData().length > 0
                 ? "/api/promotions/" + promotion.getId() + "/image"
                 : promotion.getImageUrl();

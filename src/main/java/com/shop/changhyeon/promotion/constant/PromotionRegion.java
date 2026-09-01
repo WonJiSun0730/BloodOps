@@ -1,6 +1,7 @@
 package com.shop.changhyeon.promotion.constant;
 
 import java.util.Arrays;
+import java.util.Optional;
 
 public enum PromotionRegion {
     SEOUL("서울"),
@@ -28,12 +29,16 @@ public enum PromotionRegion {
     }
 
     public static PromotionRegion from(String value) {
+        return find(value)
+                .orElseThrow(() -> new IllegalArgumentException("지원하지 않는 지역 구분입니다."));
+    }
+
+    public static Optional<PromotionRegion> find(String value) {
         return Arrays.stream(values())
                 .filter(region ->
                         region.name().equals(value)
                                 || region.displayName.equals(value)
                 )
-                .findFirst()
-                .orElseThrow(() -> new IllegalArgumentException("지원하지 않는 지역 구분입니다."));
+                .findFirst();
     }
 }

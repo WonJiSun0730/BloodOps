@@ -62,13 +62,14 @@ public class PromotionService {
 
     public PromotionResponse create(PromotionRequest request) {
         Promotion promotion = new Promotion();
-        apply(promotion, request);
+        apply(promotion, request, false);
         return PromotionResponse.from(promotionRepository.save(promotion), false);
     }
 
     public PromotionResponse update(Long id, PromotionRequest request) {
         Promotion promotion = find(id);
-        if (entryRepository.countByPromotion_Id(id) > 0) {
+        boolean hasEntries = entryRepository.countByPromotion_Id(id) > 0;
+        if (hasEntries) {
             List<String> currentOptions = promotion.getOptions().stream()
                     .map(PromotionOption::getLabel)
                     .toList();
@@ -80,7 +81,7 @@ public class PromotionService {
                 );
             }
         }
-        apply(promotion, request);
+        apply(promotion, request, hasEntries);
         return PromotionResponse.from(promotion, false);
     }
 
@@ -199,7 +200,11 @@ public class PromotionService {
                 ));
     }
 
-    private void apply(Promotion promotion, PromotionRequest request) {
+    private void apply(
+            Promotion promotion,
+            PromotionRequest request,
+            boolean preserveOptions
+    ) {
         if (request.endDate().isBefore(request.startDate())) {
             throw new IllegalArgumentException(
                     "종료일은 시작일보다 빠를 수 없습니다."
@@ -242,11 +247,13 @@ public class PromotionService {
         promotion.setEndDate(request.endDate());
         promotion.setDonationEligibilityStartDate(eligibilityStartDate);
         promotion.setActive(request.active());
-        promotion.replaceOptions(
-                request.type() == PromotionType.LOTTERY
-                        ? options
-                        : List.of()
-        );
+        if (!preserveOptions) {
+            promotion.replaceOptions(
+                    request.type() == PromotionType.LOTTERY
+                            ? options
+                            : List.of()
+            );
+        }
     }
 
     private List<String> normalizedOptions(PromotionRequest request) {
