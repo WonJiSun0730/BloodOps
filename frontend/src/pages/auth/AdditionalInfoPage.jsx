@@ -6,8 +6,11 @@ import {
 import { useNavigate } from 'react-router-dom'
 
 import {
+  confirmEmailVerificationCode,
   getCurrentUser,
+  getOAuthReturnTo,
   logout,
+  sendEmailVerificationCode,
   updateAdditionalInfo,
 } from '../../api/apiClient'
 
@@ -48,6 +51,94 @@ function AdditionalInfoPage() {
   const [isSubmitting, setIsSubmitting] =
     useState(false)
 
+  const [verificationCode, setVerificationCode] =
+    useState('')
+
+  const [isSendingCode, setIsSendingCode] =
+    useState(false)
+
+  const [isCheckingCode, setIsCheckingCode] =
+    useState(false)
+
+  const [emailVerified, setEmailVerified] =
+    useState(false)
+
+  const [
+    verificationMessage,
+    setVerificationMessage,
+  ] = useState('')
+
+  const [
+    verificationExpiresIn,
+    setVerificationExpiresIn,
+  ] = useState(0)
+
+  const [
+    resendAvailableIn,
+    setResendAvailableIn,
+  ] = useState(0)
+
+  const [
+    verificationSent,
+    setVerificationSent,
+  ] = useState(false)
+
+useEffect(() => {
+  if (verificationExpiresIn <= 0) {
+    return undefined
+  }
+
+  const timer = window.setInterval(() => {
+    setVerificationExpiresIn(
+      (current) =>
+        Math.max(
+          current - 1,
+          0
+        )
+    )
+  }, 1000)
+
+  return () => {
+    window.clearInterval(timer)
+  }
+}, [verificationExpiresIn])
+
+useEffect(() => {
+  if (resendAvailableIn <= 0) {
+    return undefined
+  }
+
+  const timer = window.setInterval(() => {
+    setResendAvailableIn(
+      (current) =>
+        Math.max(
+          current - 1,
+          0
+        )
+    )
+  }, 1000)
+
+  return () => {
+    window.clearInterval(timer)
+  }
+}, [resendAvailableIn])
+
+useEffect(() => {
+  if (
+    verificationSent
+    && !emailVerified
+    && verificationExpiresIn === 0
+  ) {
+    setVerificationMessage(
+      '인증번호가 만료되었습니다. 인증번호를 다시 발송해주세요.'
+    )
+  }
+}, [
+  verificationExpiresIn,
+  verificationSent,
+  emailVerified,
+])
+
 
   /*
    * 현재 로그인 회원이 실제로
@@ -65,10 +156,8 @@ function AdditionalInfoPage() {
           return
         }
 
-        // ★ 여기부터 추가
         const hasRealEmail =
-          Boolean(user.email)
-          && !user.email.endsWith('@kakao.local')
+                  Boolean(user.email)
 
         setForm({
           provider: user.provider ?? '',
@@ -107,9 +196,15 @@ function AdditionalInfoPage() {
          * 메인 화면으로 돌려보냅니다.
          */
         if (!user.additionalInfoRequired) {
-          navigate('/', {
-            replace: true,
-          })
+          const returnData =
+            await getOAuthReturnTo()
+
+          navigate(
+            returnData?.returnTo || '/',
+            {
+              replace: true,
+            }
+          )
 
           return
         }
@@ -134,16 +229,28 @@ function AdditionalInfoPage() {
   }, [navigate])
 
   function updateField(name, value) {
-      setForm((current) => ({
-        ...current,
-        [name]: value,
-      }))
+    setForm((current) => ({
+      ...current,
+      [name]: value,
+    }))
 
-      setErrors((current) => ({
-        ...current,
-        [name]: '',
-      }))
+    setErrors((current) => ({
+      ...current,
+      [name]: '',
+    }))
+
+    if (name === 'email') {
+      setEmailVerified(false)
+
+      if (verificationSent) {
+        setVerificationMessage(
+          '이메일이 변경되었습니다. 새 이메일로 인증번호를 다시 발송해주세요.'
+        )
+      } else {
+        setVerificationMessage('')
+      }
     }
+  }
 
   /*
    * 생년월일은 숫자만 입력받습니다.
@@ -160,6 +267,269 @@ function AdditionalInfoPage() {
         value
       )
     }
+
+  function validateBirthDate(
+    birthDate
+  ) {
+    if (
+      !/^(\d{6}|\d{8})$/.test(
+        birthDate
+      )
+    ) {
+      return (
+        '생년월일은 숫자 6자리 또는 8자리로 입력해주세요.'
+      )
+    }
+
+    let normalizedBirthDate =
+      birthDate
+
+    if (birthDate.length === 6) {
+      const inputYear =
+        Number(
+          birthDate.slice(0, 2)
+        )
+
+      const currentYear =
+        new Date().getFullYear()
+        % 100
+
+      const century =
+        inputYear <= currentYear
+          ? '20'
+          : '19'
+
+      normalizedBirthDate =
+        century + birthDate
+    }
+
+    const year =
+      Number(
+        normalizedBirthDate.slice(
+          0,
+          4
+        )
+      )
+
+    const month =
+      Number(
+        normalizedBirthDate.slice(
+          4,
+          6
+        )
+      )
+
+    const day =
+      Number(
+        normalizedBirthDate.slice(
+          6,
+          8
+        )
+      )
+
+    const birthDateValue =
+      new Date(
+        year,
+        month - 1,
+        day
+      )
+
+    if (
+      birthDateValue.getFullYear()
+        !== year
+      || birthDateValue.getMonth()
+        !== month - 1
+      || birthDateValue.getDate()
+        !== day
+    ) {
+      return (
+        '존재하지 않는 생년월일입니다.'
+      )
+    }
+
+    const today =
+      new Date()
+
+    today.setHours(
+      0,
+      0,
+      0,
+      0
+    )
+
+    birthDateValue.setHours(
+      0,
+      0,
+      0,
+      0
+    )
+
+    if (
+      birthDateValue > today
+    ) {
+      return (
+        '생년월일은 오늘 이후 날짜로 입력할 수 없습니다.'
+      )
+    }
+
+    return ''
+  }
+
+function formatVerificationTime(
+  totalSeconds
+) {
+  const minutes =
+    Math.floor(
+      totalSeconds / 60
+    )
+
+  const seconds =
+    totalSeconds % 60
+
+  return `${String(minutes).padStart(
+    2,
+    '0'
+  )}:${String(seconds).padStart(
+    2,
+    '0'
+  )}`
+}
+
+async function handleSendVerificationCode() {
+  const email =
+    form.email.trim()
+
+  if (!email) {
+    setErrors((current) => ({
+      ...current,
+      email:
+        '이메일을 입력해주세요.',
+    }))
+
+    return
+  }
+
+  if (
+    !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(
+      email
+    )
+  ) {
+    setErrors((current) => ({
+      ...current,
+      email:
+        '올바른 이메일 형식으로 입력해주세요.',
+    }))
+
+    return
+  }
+
+  if (isSendingCode) {
+    return
+  }
+
+  setIsSendingCode(true)
+  setVerificationMessage('')
+
+  try {
+    const response =
+      await sendEmailVerificationCode(
+        email
+      )
+
+    setEmailVerified(false)
+    setVerificationCode('')
+    setVerificationSent(true)
+
+    setVerificationExpiresIn(
+      response?.expiresInSeconds
+      ?? 300
+    )
+
+    setResendAvailableIn(
+      response?.resendAvailableInSeconds
+      ?? 120
+    )
+
+    setVerificationMessage(
+      response?.message
+      || '인증번호를 발송했습니다.'
+    )
+
+    setErrors((current) => ({
+      ...current,
+      email: '',
+      verificationCode: '',
+    }))
+  } catch (error) {
+    setErrors((current) => ({
+      ...current,
+      email:
+        error.message
+        || '인증번호 발송에 실패했습니다.',
+    }))
+  } finally {
+    setIsSendingCode(false)
+  }
+}
+
+
+async function handleConfirmVerificationCode() {
+  const email =
+    form.email.trim()
+
+  if (
+    !/^\d{6}$/.test(
+      verificationCode
+    )
+  ) {
+    setErrors((current) => ({
+      ...current,
+      verificationCode:
+        '인증번호 6자리를 입력해주세요.',
+    }))
+
+    return
+  }
+
+  if (isCheckingCode) {
+    return
+  }
+
+  setIsCheckingCode(true)
+
+  try {
+    const response =
+      await confirmEmailVerificationCode(
+        email,
+        verificationCode
+      )
+
+    setEmailVerified(true)
+    setVerificationExpiresIn(0)
+
+    setVerificationMessage(
+      response?.message
+      || '이메일 인증이 완료되었습니다.'
+    )
+
+    setErrors((current) => ({
+      ...current,
+      email: '',
+      verificationCode: '',
+    }))
+  } catch (error) {
+    setEmailVerified(false)
+
+    setErrors((current) => ({
+      ...current,
+      verificationCode:
+        error.message
+        || '인증번호 확인에 실패했습니다.',
+    }))
+  } finally {
+    setIsCheckingCode(false)
+  }
+}
 
   async function handleLogout() {
     try {
@@ -183,6 +553,33 @@ function AdditionalInfoPage() {
 
     setErrors({})
 
+    if (!emailVerified) {
+      setErrors({
+        email:
+          '이메일 인증을 완료해주세요.',
+      })
+
+      return
+    }
+
+    if (
+      !providedFields.birthDate
+    ) {
+      const birthDateError =
+        validateBirthDate(
+          form.birthDate
+        )
+
+      if (birthDateError) {
+        setErrors({
+          birthDate:
+            birthDateError,
+        })
+
+        return
+      }
+    }
+
     if (
       !providedFields.phone
       && (
@@ -202,6 +599,7 @@ function AdditionalInfoPage() {
 
     try {
       await updateAdditionalInfo({
+        email: form.email.trim(),
         birthDate: form.birthDate,
         phone:
           `010${form.phoneMiddle}${form.phoneLast}`,
@@ -209,13 +607,18 @@ function AdditionalInfoPage() {
         emailAgreed: form.emailAgreed,
       })
 
-      /*
-       * 저장이 성공하면 추가정보 입력이 완료된 상태이므로
-       * 메인 화면으로 이동합니다.
-       */
-      navigate('/', {
-        replace: true,
-      })
+      const returnData =
+        await getOAuthReturnTo()
+
+      const returnTo =
+        returnData?.returnTo || '/'
+
+      navigate(
+        returnTo,
+        {
+          replace: true,
+        }
+      )
     } catch (error) {
       /*
        * apiRequest()가 서버의 errors 객체를
@@ -324,7 +727,7 @@ function AdditionalInfoPage() {
               maxLength={8}
               value={form.birthDate}
               readOnly={providedFields.birthDate}
-              placeholder="950730 또는 19950730"
+              placeholder="450815 또는 19450815"
               onChange={handleBirthDateChange}
             />
 
@@ -423,44 +826,153 @@ function AdditionalInfoPage() {
           </div>
 
 
-          <div className="form-field form-field-wide">
-            <label htmlFor="additionalEmail">
-              이메일
-            </label>
+            <div className="form-field form-field-wide">
+              <label htmlFor="additionalEmail">
+                이메일
+              </label>
 
-            {providedFields.email ? (
-              <>
+              <div className="field-with-button">
                 <input
                   id="additionalEmail"
                   type="email"
                   value={form.email}
-                  readOnly
+                  readOnly={providedFields.email}
+                  placeholder="example@email.com"
                   autoComplete="email"
-                />
-
-                <p className="field-guide">
-                  소셜 계정에서 확인된 정보입니다.
-                </p>
-              </>
-            ) : (
-              <>
-                <input
-                  id="additionalEmail"
-                  type="text"
-                  value={
-                    form.provider === 'KAKAO'
-                      ? '카카오 계정으로 인증됨'
-                      : '소셜 계정에서 이메일을 제공하지 않음'
+                  onChange={(event) =>
+                    updateField(
+                      'email',
+                      event.target.value
+                    )
                   }
-                  readOnly
                 />
 
+                <button
+                  type="button"
+                  disabled={
+                    isSendingCode
+                    || emailVerified
+                    || resendAvailableIn > 0
+                  }
+                  onClick={
+                    handleSendVerificationCode
+                  }
+                >
+                  {isSendingCode
+                    ? '발송 중...'
+                    : emailVerified
+                      ? '인증 완료'
+                      : resendAvailableIn > 0
+                        ? `재발송 ${formatVerificationTime(
+                            resendAvailableIn
+                          )}`
+                        : verificationSent
+                          ? '인증번호 재발송'
+                          : '인증번호 발송'}
+                </button>
+              </div>
+
+              {providedFields.email ? (
                 <p className="field-guide">
-                  이메일 정보는 추후 회원정보에서 등록할 수 있습니다.
+                  소셜 계정에서 확인된 이메일입니다.
+                  서비스 이용을 위해 이메일 인증을 진행해주세요.
                 </p>
-              </>
-            )}
-          </div>
+              ) : (
+                <p className="field-guide">
+                  소셜 계정에서 이메일을 제공하지 않아
+                  직접 입력 후 인증이 필요합니다.
+                </p>
+              )}
+
+              {errors.email && (
+                <p className="field-error">
+                  {errors.email}
+                </p>
+              )}
+
+              {!emailVerified && (
+                <div className="email-verification-row">
+                  <div className="verification-code-input">
+                    <input
+                      type="text"
+                      inputMode="numeric"
+                      maxLength={6}
+                      value={verificationCode}
+                      placeholder="인증번호 6자리"
+                      aria-label="이메일 인증번호"
+                      onChange={(event) => {
+                        const value =
+                          event.target.value
+                            .replace(/\D/g, '')
+                            .slice(0, 6)
+
+                        setVerificationCode(
+                          value
+                        )
+
+                        setErrors((current) => ({
+                          ...current,
+                          verificationCode: '',
+                        }))
+                      }}
+                    />
+
+                    {verificationSent
+                      && !emailVerified && (
+                        <span
+                          className={
+                            verificationExpiresIn > 0
+                              ? 'verification-timer'
+                              : 'verification-timer expired'
+                          }
+                        >
+                          {verificationExpiresIn > 0
+                            ? formatVerificationTime(
+                                verificationExpiresIn
+                              )
+                            : '만료'}
+                        </span>
+                      )}
+                  </div>
+
+                  <button
+                    type="button"
+                    disabled={
+                      isCheckingCode
+                      || verificationCode.length !== 6
+                    }
+                    onClick={
+                      handleConfirmVerificationCode
+                    }
+                  >
+                    {isCheckingCode
+                      ? '확인 중...'
+                      : '인증하기'}
+                  </button>
+                </div>
+              )}
+
+              {errors.verificationCode && (
+                <p className="field-error">
+                  {errors.verificationCode}
+                </p>
+              )}
+
+              {verificationMessage && (
+                <p
+                  className={
+                    emailVerified
+                      ? 'field-success'
+                      : 'field-guide'
+                  }
+                >
+                  {emailVerified
+                    ? '✓ '
+                    : ''}
+                  {verificationMessage}
+                </p>
+              )}
+            </div>
 
         </div>
 

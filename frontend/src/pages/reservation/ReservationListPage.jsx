@@ -6,12 +6,16 @@ import {
 import {
   cancelMyReservation,
   changeMyReservationSlot,
+  getAvailableReservationDates,
   getMyReservations,
   getReservationSlots,
 } from '../../api/apiClient.js'
 
 import ConfirmModal
   from '../../components/modal/ConfirmModal.jsx'
+
+import ReservationCalendar
+  from './ReservationCalendar.jsx'
 
 import './ReservationListPage.css'
 
@@ -72,6 +76,28 @@ const [
 ] = useState(null)
 
 const [
+  selectedChangeDate,
+  setSelectedChangeDate,
+] = useState('')
+
+const [
+  changeAvailableDates,
+  setChangeAvailableDates,
+] = useState([])
+
+const [
+  changeCalendarMonth,
+  setChangeCalendarMonth,
+] = useState(() => {
+  const now = new Date()
+
+  return {
+    year: now.getFullYear(),
+    month: now.getMonth() + 1,
+  }
+})
+
+const [
   changeLoading,
   setChangeLoading,
 ] = useState(false)
@@ -81,6 +107,10 @@ const [
   setChangingId,
 ] = useState(null)
 
+const [
+  mobileCalendarOpen,
+  setMobileCalendarOpen,
+] = useState(false)
 
   useEffect(() => {
     async function loadReservations() {
@@ -181,20 +211,108 @@ const [
       setEditingReservationId(null)
       setChangeSlots([])
       setSelectedChangeSlotId(null)
+      setSelectedChangeDate('')
+      setChangeAvailableDates([])
+      setMobileCalendarOpen(false)
 
       return
     }
 
     try {
+      /*
+       * API 응답을 기다리기 전에 변경 영역부터 엽니다.
+       * 데이터는 펼쳐진 영역 내부에서 로딩합니다.
+       */
+      setEditingReservationId(
+        reservation.id
+      )
+
+      setMobileCalendarOpen(false)
+
       setChangeLoading(true)
       setError('')
       setSuccessMessage('')
       setSelectedChangeSlotId(null)
+      setChangeSlots([])
+      setChangeAvailableDates([])
+
+      setSelectedChangeDate(
+        reservation.reservationDate
+      )
+
+      const initialDate =
+        new Date(
+          `${reservation.reservationDate}T00:00:00`
+        )
+
+      const initialMonth = {
+        year: initialDate.getFullYear(),
+        month: initialDate.getMonth() + 1,
+      }
+
+      setChangeCalendarMonth(
+        initialMonth
+      )
+
+      const [
+        slotData,
+        availableDateData,
+      ] = await Promise.all([
+        getReservationSlots(
+          reservation.centerId,
+          reservation.reservationDate,
+          reservation.donationType
+        ),
+
+        getAvailableReservationDates(
+          reservation.centerId,
+          initialMonth.year,
+          initialMonth.month
+        ),
+      ])
+
+      const availableSlots =
+        slotData.filter(
+          (slot) =>
+            slot.id !== reservation.slotId
+        )
+
+      setChangeSlots(
+        availableSlots
+      )
+
+      setChangeAvailableDates(
+        Array.isArray(availableDateData)
+          ? availableDateData
+          : []
+      )
+
+    } catch (error) {
+      setChangeSlots([])
+
+      setError(
+        error.message
+        || '변경 가능한 시간을 불러오지 못했습니다.'
+      )
+    } finally {
+      setChangeLoading(false)
+    }
+  }
+
+  async function handleChangeDate(
+    reservation,
+    date
+  ) {
+    try {
+      setSelectedChangeDate(date)
+      setSelectedChangeSlotId(null)
+      setChangeLoading(true)
+      setError('')
 
       const data =
         await getReservationSlots(
           reservation.centerId,
-          reservation.reservationDate,
+          date,
           reservation.donationType
         )
 
@@ -207,10 +325,6 @@ const [
       setChangeSlots(
         availableSlots
       )
-
-      setEditingReservationId(
-        reservation.id
-      )
     } catch (error) {
       setChangeSlots([])
 
@@ -220,6 +334,35 @@ const [
       )
     } finally {
       setChangeLoading(false)
+    }
+  }
+
+
+  async function handleChangeMonth(
+    reservation,
+    year,
+    month
+  ) {
+    try {
+      const data =
+        await getAvailableReservationDates(
+          reservation.centerId,
+          year,
+          month
+        )
+
+      setChangeAvailableDates(
+        Array.isArray(data)
+          ? data
+          : []
+      )
+
+      setChangeCalendarMonth({
+        year,
+        month,
+      })
+    } catch {
+      setChangeAvailableDates([])
     }
   }
 
@@ -257,9 +400,11 @@ const [
       setEditingReservationId(null)
       setChangeSlots([])
       setSelectedChangeSlotId(null)
+      setSelectedChangeDate('')
+      setChangeAvailableDates([])
 
       setSuccessMessage(
-        '예약 시간이 변경되었습니다.'
+        '예약 일정이 변경되었습니다.'
       )
     } catch (error) {
       setError(
@@ -273,22 +418,6 @@ const [
 
   return (
     <div className="reservation-list-page">
-
-      <section className="reservation-list-header">
-        <span>
-          MY RESERVATIONS
-        </span>
-
-        <h1>
-          예약 내역
-        </h1>
-
-        <p>
-          신청한 헌혈 예약을 확인할 수 있습니다.
-        </p>
-      </section>
-
-
       <section className="reservation-list-content">
 
         {loading && (
@@ -368,9 +497,7 @@ const [
                       </dt>
 
                       <dd>
-                        {reservation.startTime}
-                        {' ~ '}
-                        {reservation.endTime}
+                        {reservation.startTime?.slice(0, 5)}
                       </dd>
                     </div>
 
@@ -400,7 +527,6 @@ const [
                             reservation
                           )
                         }
-                        disabled={changeLoading}
                         className="reservation-change-button"
                       >
                         {editingReservationId
@@ -434,6 +560,69 @@ const [
                   {editingReservationId
                     === reservation.id && (
                     <div className="reservation-change-area">
+                      <div className="reservation-change-calendar-section">
+                        <div className="reservation-change-heading">
+                          <div className="reservation-change-date-info">
+                            <strong>
+                              변경할 날짜
+                            </strong>
+
+                            <span>
+                              {selectedChangeDate
+                                || '날짜를 선택해주세요.'}
+                            </span>
+                          </div>
+
+                          <button
+                            type="button"
+                            className="reservation-mobile-calendar-toggle"
+                            onClick={() =>
+                              setMobileCalendarOpen(
+                                (current) => !current
+                              )
+                            }
+                          >
+                            {mobileCalendarOpen
+                              ? '달력 닫기'
+                              : '날짜 변경'}
+                          </button>
+                        </div>
+
+                        <div
+                          className={[
+                            'reservation-mini-calendar',
+                            mobileCalendarOpen
+                              ? 'mobile-open'
+                              : '',
+                          ]
+                            .filter(Boolean)
+                            .join(' ')}
+                        >
+                          <ReservationCalendar
+                            key={reservation.id}
+                            value={selectedChangeDate}
+                            availableDates={
+                              changeAvailableDates
+                            }
+                            onChange={(date) =>
+                              handleChangeDate(
+                                reservation,
+                                date
+                              )
+                            }
+                            onVisibleMonthChange={(
+                              year,
+                              month
+                            ) =>
+                              handleChangeMonth(
+                                reservation,
+                                year,
+                                month
+                              )
+                            }
+                          />
+                        </div>
+                      </div>
 
                       {changeLoading ? (
                         <p>
@@ -468,9 +657,7 @@ const [
                                       : 'reservation-change-slot'
                                   }
                                 >
-                                  {slot.startTime}
-                                  {' ~ '}
-                                  {slot.endTime}
+                                  {slot.startTime?.slice(0, 5)}
 
                                   <span>
                                     {slot.remainingCapacity > 0
@@ -500,7 +687,7 @@ const [
                             {changingId
                               === reservation.id
                               ? '변경 처리 중...'
-                              : '선택한 시간으로 변경'}
+                              : '선택한 일정으로 변경'}
                           </button>
                         </>
                       )}

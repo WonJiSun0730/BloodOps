@@ -401,3 +401,78 @@
     width: 100%;
   }
 }
+
+/* 추가정보 이메일 인증 */
+
+.email-verification-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  margin-top: 10px;
+  gap: 10px;
+}
+
+.email-verification-row button {
+  min-height: 46px;
+  padding: 0 18px;
+
+  border: 1px solid var(--color-primary);
+  border-radius: 8px;
+
+  color: var(--color-primary);
+  background-color: transparent;
+
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.email-verification-row button:hover:not(:disabled) {
+  color: #ffffff;
+  background-color: var(--color-primary);
+}
+
+.email-verification-row button:disabled,
+.field-with-button button:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+@media (max-width: 480px) {
+  .email-verification-row,
+  .field-with-button {
+    grid-template-columns: 1fr;
+  }
+
+  .email-verification-row button,
+  .field-with-button button {
+    width: 100%;
+  }
+}
+
+.verification-code-input {
+  position: relative;
+  min-width: 0;
+}
+
+.verification-code-input input {
+  width: 100%;
+  padding-right: 68px;
+}
+
+.verification-timer {
+  position: absolute;
+  top: 50%;
+  right: 14px;
+
+  transform: translateY(-50%);
+
+  color: var(--color-primary);
+  font-size: 0.82rem;
+  font-weight: 700;
+
+  pointer-events: none;
+}
+
+.verification-timer.expired {
+  color: var(--color-text-muted);
+}

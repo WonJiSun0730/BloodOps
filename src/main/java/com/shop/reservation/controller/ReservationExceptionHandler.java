@@ -1,5 +1,6 @@
 package com.shop.reservation.controller;
 
+import com.shop.reservation.exception.ActiveReservationExistsException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -38,6 +39,25 @@ public class ReservationExceptionHandler {
                         Map.of(
                                 "message",
                                 exception.getMessage()
+                        )
+                );
+    }
+
+    @ExceptionHandler(ActiveReservationExistsException.class)
+    public ResponseEntity<Map<String, Object>>
+    handleActiveReservationExistsException(
+            ActiveReservationExistsException exception
+    ) {
+        return ResponseEntity
+                .status(HttpStatus.CONFLICT)
+                .body(
+                        Map.of(
+                                "code",
+                                "ACTIVE_RESERVATION_EXISTS",
+                                "message",
+                                exception.getMessage(),
+                                "existingReservation",
+                                exception.getExistingReservation()
                         )
                 );
     }

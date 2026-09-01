@@ -25,6 +25,19 @@ public interface CenterRepository extends JpaRepository<Center, Long> {
             Pageable pageable
     );
 
+    Page<Center>
+    findByCenterNameContainingIgnoreCaseOrAddressContainingIgnoreCase(
+            String centerName,
+            String address,
+            Pageable pageable
+    );
+
+    List<Center>
+    findByCenterNameContainingIgnoreCaseOrAddressContainingIgnoreCase(
+            String centerName,
+            String address
+    );
+
     List<Center> findByActiveTrue();
 
     Optional<Center> findByCenterNameAndAddress(

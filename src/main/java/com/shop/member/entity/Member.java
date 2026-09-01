@@ -133,20 +133,43 @@ public class Member extends BaseEntity {
         String eightDigitBirthDate = birthDate;
 
         if (birthDate.length() == 6) {
-            int inputYear = Integer.parseInt(birthDate.substring(0, 2));
-            int currentYear = LocalDate.now().getYear() % 100;
+            int inputYear =
+                    Integer.parseInt(
+                            birthDate.substring(0, 2)
+                    );
+
+            int currentYear =
+                    LocalDate.now().getYear() % 100;
 
             /*
              * 입력한 두 자리 연도가 현재 연도 이하라면 2000년대,
              * 현재 연도보다 크다면 1900년대로 판단합니다.
              */
-            String century = inputYear <= currentYear ? "20" : "19";
-            eightDigitBirthDate = century + birthDate;
+            String century =
+                    inputYear <= currentYear
+                            ? "20"
+                            : "19";
+
+            eightDigitBirthDate =
+                    century + birthDate;
         }
 
-        return LocalDate.parse(
-                eightDigitBirthDate,
-                DateTimeFormatter.BASIC_ISO_DATE
-        );
+        LocalDate parsedBirthDate =
+                LocalDate.parse(
+                        eightDigitBirthDate,
+                        DateTimeFormatter.BASIC_ISO_DATE
+                );
+
+        if (
+                parsedBirthDate.isAfter(
+                        LocalDate.now()
+                )
+        ) {
+            throw new IllegalArgumentException(
+                    "생년월일은 오늘 이후 날짜로 입력할 수 없습니다."
+            );
+        }
+
+        return parsedBirthDate;
     }
 }

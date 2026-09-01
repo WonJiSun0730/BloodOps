@@ -1,13 +1,12 @@
 package com.shop.member.controller;
 
 import com.shop.member.entity.Member;
-import com.shop.member.repository.MemberRepository;
+import com.shop.member.service.MemberService;
+import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.web.csrf.CsrfToken;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.time.format.DateTimeFormatter;
 import java.util.LinkedHashMap;
@@ -19,7 +18,7 @@ import java.util.Map;
 @RequestMapping("/api/auth")
 @RequiredArgsConstructor
 public class AuthController {
-    private final MemberRepository memberRepository;
+    private final MemberService memberService;
 
     // React가 로그인 요청 전에 CSRF 토큰을 받아가는 주소
     // 최종 주소: GET /api/auth/csrf
@@ -30,6 +29,50 @@ public class AuthController {
         return Map.of(
                 "token", csrfToken.getToken(),
                 "headerName", csrfToken.getHeaderName()
+        );
+    }
+
+    @PostMapping("/oauth-return-to")
+    public void saveOAuthReturnTo(
+            @RequestParam String returnTo,
+            HttpSession session
+    ) {
+        String safeReturnTo =
+                returnTo != null
+                        && returnTo.startsWith("/")
+                        && !returnTo.startsWith("//")
+                        ? returnTo
+                        : "/";
+
+        session.setAttribute(
+                "OAUTH_RETURN_TO",
+                safeReturnTo
+        );
+    }
+
+    @GetMapping("/oauth-return-to")
+    public Map<String, String> getOAuthReturnTo(
+            HttpSession session
+    ) {
+        Object savedReturnTo =
+                session.getAttribute(
+                        "OAUTH_RETURN_TO"
+                );
+
+        String returnTo =
+                savedReturnTo instanceof String value
+                        && value.startsWith("/")
+                        && !value.startsWith("//")
+                        ? value
+                        : "/";
+
+        session.removeAttribute(
+                "OAUTH_RETURN_TO"
+        );
+
+        return Map.of(
+                "returnTo",
+                returnTo
         );
     }
 
@@ -50,18 +93,17 @@ public class AuthController {
                 authentication.getName();
 
         Member member =
-                memberRepository.findByEmail(identifier);
-
-        if (member == null) {
-            throw new IllegalStateException(
-                    "회원 정보를 찾을 수 없습니다."
-            );
-        }
+                memberService
+                        .findByAuthenticationIdentifier(
+                                identifier
+                        );
 
         boolean additionalInfoRequired =
                 member.getBirthDate() == null
                         || member.getPhone() == null
-                        || member.getPhone().isBlank();
+                        || member.getPhone().isBlank()
+                        || member.getEmail() == null
+                        || member.getEmail().isBlank();
 
         Map<String, Object> response =
                 new LinkedHashMap<>();

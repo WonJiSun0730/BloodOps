@@ -2,7 +2,6 @@ package com.shop.common.config;
 
 import com.shop.member.entity.Member;
 import com.shop.member.oauth.CustomOAuth2UserService;
-import com.shop.member.repository.MemberRepository;
 import com.shop.member.service.MemberService;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,9 +29,6 @@ public class SecurityConfig {
     @Autowired
     CustomOAuth2UserService customOAuth2UserService;
 
-    @Autowired
-    MemberRepository memberRepository;
-
     // 허용여부 설정하는 메소드
     // @Bean 객체 -> 스프링 컨테이너 관리하고 사용하는 싱글톤
     @Bean
@@ -48,6 +44,7 @@ public class SecurityConfig {
                                 // 로그인 관련 공개 API
                                 "/api/auth/csrf",
                                 "/api/auth/login",
+                                "/api/auth/oauth-return-to",
 
                                 // React 회원가입 관련 공개 API
                                 "/api/members/signup",
@@ -56,6 +53,12 @@ public class SecurityConfig {
                                 // 비회원도 전자문진 문항 조회와 제출 가능
                                 "/api/questionnaires/questions",
                                 "/api/questionnaires"
+                        ).permitAll()
+                        // 비회원도 헌혈센터 목록과 상세 정보를 조회할 수 있습니다.
+                        .requestMatchers(
+                                org.springframework.http.HttpMethod.GET,
+                                "/api/centers",
+                                "/api/centers/**"
                         ).permitAll()
                         // 관리자 전용 화면 및 API
                         .requestMatchers(
@@ -129,7 +132,9 @@ public class SecurityConfig {
                                     authentication.getName();
 
                             Member member =
-                                    memberRepository.findByEmail(identifier);
+                                    memberService.findByAuthenticationIdentifier(
+                                            identifier
+                                    );
 
                             boolean additionalInfoRequired =
                                     member != null
@@ -137,6 +142,8 @@ public class SecurityConfig {
                                             member.getBirthDate() == null
                                                     || member.getPhone() == null
                                                     || member.getPhone().isBlank()
+                                                    || member.getEmail() == null
+                                                    || member.getEmail().isBlank()
                                     );
 
                             if (additionalInfoRequired) {
@@ -147,8 +154,26 @@ public class SecurityConfig {
                                 return;
                             }
 
+                            Object savedReturnTo =
+                                    request.getSession()
+                                            .getAttribute(
+                                                    "OAUTH_RETURN_TO"
+                                            );
+
+                            String returnTo =
+                                    savedReturnTo instanceof String value
+                                            && value.startsWith("/")
+                                            && !value.startsWith("//")
+                                            ? value
+                                            : "/";
+
+                            request.getSession()
+                                    .removeAttribute(
+                                            "OAUTH_RETURN_TO"
+                                    );
+
                             response.sendRedirect(
-                                    frontendUrl + "/"
+                                    frontendUrl + returnTo
                             );
                         })
 
@@ -158,6 +183,11 @@ public class SecurityConfig {
                         )
 
                         .failureHandler((request, response, exception) -> {
+
+                            request.getSession()
+                                    .removeAttribute(
+                                            "OAUTH_RETURN_TO"
+                                    );
 
                             String errorCode = "oauth_failed";
 

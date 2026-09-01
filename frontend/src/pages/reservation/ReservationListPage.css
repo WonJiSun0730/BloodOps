@@ -70,6 +70,7 @@
   display: flex;
   flex-direction: column;
   gap: 16px;
+  padding-top: 18px;
 }
 
 .reservation-list {
@@ -297,6 +298,66 @@
   text-align: center;
 }
 
+.reservation-change-calendar-section {
+  margin-bottom: 20px;
+}
+
+.reservation-change-heading {
+  display: flex;
+  margin-bottom: 12px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.reservation-change-heading strong {
+  color: #303740;
+  font-size: 14px;
+}
+
+.reservation-change-heading span {
+  color: #e31b23;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.reservation-mini-calendar {
+  width: min(100%, 430px);
+  margin: 0 auto;
+}
+
+/* 모바일 날짜 변경 버튼은 PC에서 숨김 */
+.reservation-mobile-calendar-toggle {
+  display: none;
+}
+
+.reservation-change-date-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.reservation-mini-calendar
+  .reservation-calendar {
+  padding: 16px;
+}
+
+.reservation-mini-calendar
+  .reservation-calendar-header {
+  margin-bottom: 12px;
+}
+
+.reservation-mini-calendar
+  .reservation-calendar-grid {
+  gap: 4px;
+}
+
+.reservation-mini-calendar
+  .reservation-calendar-day {
+  min-height: 38px;
+  font-size: 12px;
+}
+
 .reservation-change-slots {
   display: grid;
   grid-template-columns:
@@ -335,18 +396,35 @@
 
 .reservation-change-slot:hover:not(:disabled) {
   border-color: #e31b23;
-  color: #d71921;
+  background: #fff5f5;
+  color: #252b32;
   transform: translateY(-1px);
+}
+
+.reservation-change-slot:hover:not(:disabled) > span {
+  color: #e31b23;
 }
 
 .reservation-change-slot.selected {
   border-color: #e31b23;
-  background: #e31b23;
-  color: #fff;
+  background: #fff0f1;
+  color: #252b32;
+  box-shadow: 0 0 0 1px rgb(227 27 35 / 10%);
 }
 
 .reservation-change-slot.selected > span {
-  color: rgb(255 255 255 / 82%);
+  color: #e31b23;
+  font-weight: 700;
+}
+
+.reservation-change-slot.selected:hover:not(:disabled) {
+  border-color: #e31b23;
+  background: #ffe8ea;
+  color: #252b32;
+}
+
+.reservation-change-slot.selected:hover:not(:disabled) > span {
+  color: #d71921;
 }
 
 .reservation-change-slot:disabled {
@@ -412,6 +490,44 @@
 /* 모바일 */
 
 @media (max-width: 768px) {
+  .reservation-change-heading {
+    align-items: center;
+  }
+
+  .reservation-change-date-info {
+    min-width: 0;
+  }
+
+  .reservation-mobile-calendar-toggle {
+    display: inline-flex;
+    min-height: 34px;
+    padding: 0 11px;
+
+    align-items: center;
+    justify-content: center;
+
+    border: 1px solid #d5dae0;
+    border-radius: 8px;
+
+    background: #fff;
+    color: #454d57;
+
+    font: inherit;
+    font-size: 11px;
+    font-weight: 800;
+
+    cursor: pointer;
+  }
+
+  .reservation-mini-calendar {
+    display: none;
+    margin-top: 12px;
+  }
+
+  .reservation-mini-calendar.mobile-open {
+    display: block;
+  }
+
   .reservation-list-page {
     gap: 18px;
   }
@@ -480,7 +596,23 @@
 
   .reservation-change-slots {
     grid-template-columns:
-      repeat(2, minmax(0, 1fr));
+      repeat(3, minmax(0, 1fr));
+    gap: 7px;
+  }
+
+  .reservation-change-slot {
+    min-height: 42px;
+    padding: 6px 5px;
+
+    gap: 0;
+
+    border-radius: 8px;
+
+    font-size: 12px;
+  }
+
+  .reservation-change-slot > span {
+    display: none;
   }
 }
 
@@ -510,11 +642,6 @@
   .reservation-action-area button {
     width: 100%;
     padding: 0 10px;
-  }
-
-  .reservation-change-slot {
-    min-height: 61px;
-    font-size: 12px;
   }
 }
 
@@ -705,19 +832,38 @@
 :root[data-theme="dark"]
   .reservation-change-slot:hover:not(:disabled) {
   border-color: #ef555c;
-  color: #ff9398;
+  background: #35262a;
+  color: #f1f3f5;
+}
+
+:root[data-theme="dark"]
+  .reservation-change-slot:hover:not(:disabled) > span {
+  color: #ff8f95;
 }
 
 :root[data-theme="dark"]
   .reservation-change-slot.selected {
-  border-color: #e31b23;
-  background: #e31b23;
-  color: #fff;
+  border-color: #ef555c;
+  background: #41262a;
+  color: #f7f8fa;
+  box-shadow: 0 0 0 1px rgb(239 85 92 / 10%);
 }
 
 :root[data-theme="dark"]
   .reservation-change-slot.selected > span {
-  color: rgb(255 255 255 / 82%);
+  color: #ff9da2;
+}
+
+:root[data-theme="dark"]
+  .reservation-change-slot.selected:hover:not(:disabled) {
+  border-color: #ff686f;
+  background: #4a292e;
+  color: #fff;
+}
+
+:root[data-theme="dark"]
+  .reservation-change-slot.selected:hover:not(:disabled) > span {
+  color: #ffabb0;
 }
 
 :root[data-theme="dark"]
