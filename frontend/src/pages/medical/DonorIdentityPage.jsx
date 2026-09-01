@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { verifyMedicalDonorIdentity } from '../../api/apiClient.js'
+import { getCurrentUser, verifyMedicalDonorIdentity } from '../../api/apiClient.js'
 import './DonorCheckPage.css'
 
 const onlyDigits = (value, length) => value.replace(/\D/g, '').slice(0, length)
@@ -32,7 +32,11 @@ function DonorIdentityPage() {
         name: form.name.trim(),
         residentRegistrationNumber: `${form.residentFront}-${form.residentBack}`,
       })
-      sessionStorage.setItem('verifiedDonorConfirmationId', String(result.confirmationId))
+      const currentUser = await getCurrentUser()
+      sessionStorage.setItem('verifiedMedicalDonor', JSON.stringify({
+        confirmationId: String(result.confirmationId),
+        owner: currentUser.identifier,
+      }))
       navigate(`/medical/donor_check/${result.confirmationId}`, {
         state: { identityVerified: true, existingDonor: result.existingDonor },
       })

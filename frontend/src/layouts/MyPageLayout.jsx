@@ -64,10 +64,32 @@ const myPageMenuGroups = [
   },
 ]
 
+const medicalMenuGroup = {
+  title: '의료진 업무',
+  items: [
+    { label: '의료진 HOME', to: '/mypage/medical', end: true },
+    { label: '당일 예약자', to: '/medical/today-reservations' },
+    { label: '전자문진 목록', to: '/medical/questionnaires' },
+    { label: '헌혈자 신분 확인', to: '/medical/donor_identity' },
+    { label: '전체 헌혈 기록', to: '/medical/donation_history' },
+    { label: '혈액 재고 관리', to: '/medical/blood_units_management' },
+  ],
+}
+
 
 function getCurrentPage(
   pathname
 ) {
+  const medicalPages = {
+    '/mypage/medical': '의료진 HOME',
+    '/medical/today-reservations': '당일 예약자',
+    '/medical/questionnaires': '전자문진 목록',
+    '/medical/donor_identity': '헌혈자 신분 확인',
+    '/medical/donation_history': '전체 헌혈 기록',
+    '/medical/blood_units_management': '혈액 재고 관리',
+  }
+  if (pathname.startsWith('/medical/donor_check/')) return { group: '의료진 업무', title: '헌혈자 정보 확인' }
+  if (medicalPages[pathname]) return { group: '의료진 업무', title: medicalPages[pathname] }
   if (
     pathname === '/mypage/records'
   ) {
@@ -225,7 +247,7 @@ function MyPageLayout() {
             className="mypage-sidebar-navigation"
             aria-label="마이페이지 메뉴"
           >
-            {myPageMenuGroups.map(
+            {(canAccessMedical ? [...myPageMenuGroups, medicalMenuGroup] : myPageMenuGroups).map(
               (group) => (
                 <section
                   key={group.title}

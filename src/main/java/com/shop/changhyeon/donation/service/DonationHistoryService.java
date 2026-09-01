@@ -19,6 +19,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.List;
 
 @Service
@@ -44,8 +45,9 @@ public class DonationHistoryService {
             throw new IllegalStateException("완료 상태인 예약의 헌혈 기록을 찾을 수 없습니다.");
         }
 
-        LocalDate completedDate = donationDate == null ? LocalDate.now() : donationDate;
-        if (completedDate.isAfter(LocalDate.now())) {
+        LocalDate today = LocalDate.now(ZoneId.of("Asia/Seoul"));
+        LocalDate completedDate = donationDate == null ? today : donationDate;
+        if (completedDate.isAfter(today)) {
             throw new IllegalArgumentException("헌혈일자는 미래 날짜로 등록할 수 없습니다.");
         }
 
@@ -101,7 +103,7 @@ public class DonationHistoryService {
                         email
                 );
 
-        LocalDate today = LocalDate.now();
+        LocalDate today = LocalDate.now(ZoneId.of("Asia/Seoul"));
         LocalDate oneYearAgo = today.minusYears(1);
 
         List<DonationHistory> histories =

@@ -871,6 +871,23 @@ export function getMedicalDonationHistory() {
   )
 }
 
+export function getMedicalQuestionnaires() {
+  return apiRequest('/api/medical/questionnaires')
+}
+
+export function getMedicalTodayReservations() {
+  return apiRequest('/api/medical/reservations/today')
+}
+
+export async function completeMedicalReservation(reservationId) {
+  const csrf = await getCsrfToken()
+  return apiRequest(`/api/medical/donations/reservations/${encodeURIComponent(reservationId)}/complete`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', [csrf.headerName]: csrf.token },
+    body: JSON.stringify({}),
+  })
+}
+
 /*
  * 로그인한 회원 본인의
  * 헌혈 가능일과 최근 1년 헌혈 횟수를 조회합니다.

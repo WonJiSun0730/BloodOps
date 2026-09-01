@@ -107,4 +107,6 @@ public interface ReservationRepository
     List<Reservation> findByMember_EmailOrderByIdDesc(
             String email
     );
+
+    List<Reservation> findBySlot_ReservationDateOrderBySlot_StartTimeAscIdAsc(LocalDate reservationDate);
 }

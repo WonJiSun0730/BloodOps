@@ -3,6 +3,7 @@ import { Link, Navigate, useParams } from 'react-router-dom'
 import {
   getMedicalDonorConfirmation,
   getMedicalDonorQuestionnaire,
+  getCurrentUser,
   updateMedicalDonorConfirmation,
 } from '../../api/apiClient.js'
 import './DonorCheckPage.css'
@@ -36,7 +37,7 @@ const questionnaireLabels = {
 
 function DonorCheckPage() {
   const { confirmationId } = useParams()
-  const identityVerified = sessionStorage.getItem('verifiedDonorConfirmationId') === String(confirmationId)
+  const [identityVerified, setIdentityVerified] = useState(null)
   const canvasRef = useRef(null)
   const drawingRef = useRef(false)
   const [form, setForm] = useState(initialForm)
@@ -49,10 +50,15 @@ function DonorCheckPage() {
     let mounted = true
 
     async function loadConfirmation() {
-      if (!identityVerified) { setLoading(false); return }
       try {
         setLoading(true)
         setError('')
+        const currentUser = await getCurrentUser()
+        const stored = JSON.parse(sessionStorage.getItem('verifiedMedicalDonor') || '{}')
+        const verified = stored.confirmationId === String(confirmationId)
+          && stored.owner === currentUser.identifier
+        setIdentityVerified(verified)
+        if (!verified) { setLoading(false); return }
         const [data, questionnaireData] = await Promise.all([
           getMedicalDonorConfirmation(confirmationId),
           getMedicalDonorQuestionnaire(confirmationId),
@@ -64,7 +70,7 @@ function DonorCheckPage() {
           donorName: data.name ?? '',
           donorBirth: data.birthDate ?? '',
           height: data.height ?? '',
-          weight: data.weight ?? '',
+          weight: data.weight ?? questionnaireData?.weightKg ?? '',
           bloodType: data.bloodType ?? 'A',
           phone: data.phone ?? '',
           email: data.email ?? '',
@@ -83,7 +89,7 @@ function DonorCheckPage() {
 
     loadConfirmation()
     return () => { mounted = false }
-  }, [confirmationId, identityVerified])
+  }, [confirmationId])
 
   useEffect(() => {
     const canvas = canvasRef.current
@@ -193,7 +199,7 @@ function DonorCheckPage() {
     }
   }
 
-  if (!identityVerified) return <Navigate to="/medical/donor_identity" replace />
+  if (identityVerified === false) return <Navigate to="/medical/donor_identity" replace />
 
   if (loading) {
     return <main className="donor-check-state">헌혈자 정보를 불러오는 중입니다...</main>
@@ -217,7 +223,7 @@ function DonorCheckPage() {
           <h2>1. 헌혈자 정보 확인 및 변경</h2>
           <div className="donor-grid two">
             <label>성명<input name="donorName" value={form.donorName} onChange={changeField} required /></label>
-            <label>생년월일<input name="donorBirth" type="date" value={form.donorBirth} onChange={changeField} required /></label>
+            <label>생년월일<input name="donorBirth" type="date" max={new Date(Date.now() + (9 * 60 * 60 * 1000)).toISOString().slice(0, 10)} value={form.donorBirth} onChange={changeField} required /></label>
           </div>
           <div className="donor-grid three">
             <label>신장 (cm)<input name="height" type="number" step="0.1" value={form.height} onChange={changeField} /></label>
@@ -253,7 +259,10 @@ function DonorCheckPage() {
                 ))}
               </tbody>
             </table>
-          </div> : <p className="signature-guide">유효한 전자문진 제출 내역이 없습니다.</p>}
+          </div> : <div className="donor-check-alert" role="status">
+            <strong>사전 전자문진 미작성자입니다.</strong><br />
+            의료진이 현장에서 건강 상태와 비어 있는 헌혈자 정보를 직접 확인해 입력해 주세요.
+          </div>}
         </section>
 
         <section>

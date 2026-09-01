@@ -19,6 +19,7 @@ public class DonorConfirmation {
     private String address;
     @Lob @Column(columnDefinition="LONGTEXT") private String signatureData;
     private LocalDateTime updatedAt;
+    @Column(name="verified_by", length=255) private String verifiedBy;
 
     public void updateDonorConfirmation(String name, String birthDate, Double height, Double weight, String bloodType, String phone, String email, String address, String signatureData) {
         this.name=name; this.birthDate=birthDate; this.height=height; this.weight=weight; this.bloodType=bloodType; this.phone=phone; this.email=email; this.address=address; this.signatureData=signatureData; this.updatedAt=LocalDateTime.now();

@@ -17,6 +17,8 @@ import java.time.DateTimeException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.Period;
+import java.time.ZoneId;
+import java.math.BigDecimal;
 import java.util.*;
 
 @Service
@@ -33,6 +35,7 @@ public class QuestionnaireService {
             "전자문진 결과는 헌혈 가능 여부를 확정하지 않습니다. 방문 시 신분증을 지참하고 의료진의 최종 확인을 받아주세요.";
     private static final SecureRandom RANDOM = new SecureRandom();
     private static final String RECEIPT_CHARS = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+    private static final ZoneId KOREA_ZONE = ZoneId.of("Asia/Seoul");
 
     private final QuestionnaireSubmissionRepository submissionRepository;
     private final MemberRepository memberRepository;
@@ -70,6 +73,8 @@ public class QuestionnaireService {
                         .submittedAt(submittedAt)
                         .expiresAt(submittedAt.plusDays(3))
                         .weightKg(request.weightKg())
+                        .contactPhoneSnapshot(member == null ? null : member.getPhone())
+                        .contactEmailSnapshot(member == null ? null : member.getEmail())
                         .answers(new LinkedHashMap<>(request.answers()))
                         .answerDetails(normalizedDetails)
                         .reviewReasons(new ArrayList<>(reasons))
@@ -108,6 +113,12 @@ public class QuestionnaireService {
                 .findFirstByDonorConfirmation_ConfirmationIdOrderBySubmittedAtDesc(confirmationId)
                 .map(this::toDto)
                 .orElse(null);
+    }
+
+    @Transactional(readOnly = true)
+    public List<QuestionnaireSubmissionDto> getMedicalSubmissionList() {
+        return submissionRepository.findAllByOrderBySubmittedAtDesc()
+                .stream().map(this::toDto).toList();
     }
 
     private void validateAnswers(Map<String, String> answers, Map<String, String> answerDetails) {
@@ -151,22 +162,29 @@ public class QuestionnaireService {
             throw new IllegalArgumentException("생년월일 형식을 확인해주세요.");
         }
 
-        LocalDate today = LocalDate.now();
+        LocalDate today = LocalDate.now(KOREA_ZONE);
         if (birthDate.isAfter(today)) {
             throw new IllegalArgumentException("생년월일은 오늘 이후일 수 없습니다.");
         }
+        validateDonationAge(birthDate, today);
+        return new ResidentIdentity(genderCode % 2 == 1 ? Gender.MALE : Gender.FEMALE);
+    }
+
+    static void validateDonationAge(LocalDate birthDate, LocalDate today) {
         int age = Period.between(birthDate, today).getYears();
         if (age < MIN_DONATION_AGE || age > MAX_DONATION_AGE) {
             throw new IllegalArgumentException(
                     "혈액관리법에 의거 만 16세 미만과 만 70세 이상인 분은 헌혈이 불가합니다."
             );
         }
-        return new ResidentIdentity(genderCode % 2 == 1 ? Gender.MALE : Gender.FEMALE);
     }
 
     private void validateWeight(Double weightKg, Gender gender) {
-        if (weightKg == null || !Double.isFinite(weightKg) || weightKg > 300) {
+        if (weightKg == null || !Double.isFinite(weightKg) || weightKg > 300 || weightKg <= 0) {
             throw new IllegalArgumentException("체중은 올바른 숫자로 입력해주세요.");
+        }
+        if (BigDecimal.valueOf(weightKg).stripTrailingZeros().scale() > 2) {
+            throw new IllegalArgumentException("체중은 소수점 둘째 자리까지만 입력할 수 있습니다.");
         }
         double minimumWeight = gender == Gender.MALE ? MALE_MIN_WEIGHT_KG : FEMALE_MIN_WEIGHT_KG;
         if (weightKg < minimumWeight) {
@@ -220,6 +238,7 @@ public class QuestionnaireService {
                 submission.getId(), submission.getReceiptCode(), submission.getDonorName(),
                 submission.getResidentNumberMasked(), submission.getStatus(),
                 submission.getSubmittedAt(), submission.getExpiresAt(), submission.getWeightKg(),
+                submission.getContactPhoneSnapshot(), submission.getContactEmailSnapshot(),
                 new LinkedHashMap<>(submission.getAnswers()),
                 new LinkedHashMap<>(submission.getAnswerDetails()),
                 List.copyOf(submission.getReviewReasons()), submission.getVerifiedAt() != null, NOTICE
