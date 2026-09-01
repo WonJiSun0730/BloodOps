@@ -28,7 +28,7 @@ const emptyForm = {
   endDate: '',
   donationEligibilityStartDate: '',
   active: true,
-  options: ['', ''],
+  options: [''],
 }
 
 function formFromPromotion(promotion) {
@@ -37,9 +37,9 @@ function formFromPromotion(promotion) {
     category: promotion.category,
     type: promotion.type,
     regionName: promotion.regionName || '',
-    title: promotion.title,
-    summary: promotion.summary,
-    content: promotion.content,
+    title: promotion.title || '',
+    summary: promotion.summary || '',
+    content: promotion.content || '',
     startDate: promotion.startDate,
     endDate: promotion.endDate,
     donationEligibilityStartDate:
@@ -47,8 +47,18 @@ function formFromPromotion(promotion) {
     active: promotion.active,
     options: promotion.options.length
       ? promotion.options.map((option) => option.label)
-      : ['', ''],
+      : [''],
   }
+}
+
+function FieldError({ id, message }) {
+  if (!message) return null
+  return (
+    <small id={id} className="promotion-field-error" role="alert">
+      <span aria-hidden="true">⚠</span>
+      {message}
+    </small>
+  )
 }
 
 export default function PromotionEditor({
@@ -58,8 +68,19 @@ export default function PromotionEditor({
 }) {
   const [form, setForm] = useState(() => formFromPromotion(promotion))
   const [imageFile, setImageFile] = useState(null)
+  const [fieldErrors, setFieldErrors] = useState({})
   const [error, setError] = useState('')
   const [saving, setSaving] = useState(false)
+
+  const updateField = (field, value) => {
+    setForm((current) => ({ ...current, [field]: value }))
+    setFieldErrors((current) => {
+      if (!current[field]) return current
+      const next = { ...current }
+      delete next[field]
+      return next
+    })
+  }
 
   const changeOption = (index, value) => {
     setForm((current) => ({
@@ -68,20 +89,73 @@ export default function PromotionEditor({
         optionIndex === index ? value : option
       ),
     }))
+    setFieldErrors((current) => {
+      if (!current.options) return current
+      const next = { ...current }
+      delete next.options
+      return next
+    })
+  }
+
+  const validate = () => {
+    const errors = {}
+
+    if (!form.title.trim()) errors.title = '제목을 입력해주세요.'
+    if (form.category === 'REGIONAL' && !form.regionName) {
+      errors.regionName = '지역을 선택해주세요.'
+    }
+    if (!form.startDate) errors.startDate = '게시 시작일을 선택해주세요.'
+    if (!form.endDate) errors.endDate = '게시 종료일을 선택해주세요.'
+    if (form.startDate && form.endDate && form.endDate < form.startDate) {
+      errors.endDate = '게시 종료일은 시작일과 같거나 이후여야 합니다.'
+    }
+
+    if (form.type === 'LOTTERY') {
+      if (!form.donationEligibilityStartDate) {
+        errors.donationEligibilityStartDate =
+          '헌혈 실적 인정 시작일을 선택해주세요.'
+      } else if (
+        form.endDate &&
+        form.donationEligibilityStartDate > form.endDate
+      ) {
+        errors.donationEligibilityStartDate =
+          '헌혈 실적 인정 시작일은 게시 종료일과 같거나 이전이어야 합니다.'
+      }
+
+      if (!form.options.some((option) => option.trim())) {
+        errors.options = '추첨 선택 항목을 1개 이상 입력해주세요.'
+      }
+    }
+
+    if (imageFile) {
+      const allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif']
+      if (!allowedTypes.includes(imageFile.type)) {
+        errors.image = 'JPG, PNG, WebP, GIF 이미지 파일만 첨부할 수 있습니다.'
+      } else if (imageFile.size > 5 * 1024 * 1024) {
+        errors.image = '이미지 파일은 5MB 이하로 첨부해주세요.'
+      }
+    }
+
+    setFieldErrors(errors)
+    return Object.keys(errors).length === 0
   }
 
   const submit = async (event) => {
     event.preventDefault()
     setError('')
+    if (!validate()) return
+
     setSaving(true)
     try {
       const csrf = await getCsrfToken()
       const payload = {
         ...form,
+        summary: form.summary.trim() || null,
+        content: form.content.trim() || null,
         regionName: form.category === 'REGIONAL' ? form.regionName : null,
         donationEligibilityStartDate:
           form.type === 'LOTTERY'
-            ? form.donationEligibilityStartDate || form.startDate
+            ? form.donationEligibilityStartDate
             : null,
         options:
           form.type === 'LOTTERY'
@@ -116,14 +190,18 @@ export default function PromotionEditor({
       }
       onSaved(saved)
     } catch (requestError) {
-      setError(requestError.message)
+      const serverFieldErrors = requestError.fieldErrors || {}
+      setFieldErrors(serverFieldErrors)
+      if (Object.keys(serverFieldErrors).length === 0) {
+        setError(requestError.message)
+      }
     } finally {
       setSaving(false)
     }
   }
 
   return (
-    <form className="promotion-editor" onSubmit={submit}>
+    <form className="promotion-editor" onSubmit={submit} noValidate>
       <header>
         <div>
           <span>ADMIN ONLY</span>
@@ -139,9 +217,7 @@ export default function PromotionEditor({
           프로모션 구분
           <select
             value={form.category}
-            onChange={(event) =>
-              setForm({ ...form, category: event.target.value })
-            }
+            onChange={(event) => updateField('category', event.target.value)}
           >
             <option value="NATIONAL">전국 프로모션</option>
             <option value="REGIONAL">지역별 프로모션</option>
@@ -152,9 +228,7 @@ export default function PromotionEditor({
           게시물 유형
           <select
             value={form.type}
-            onChange={(event) =>
-              setForm({ ...form, type: event.target.value })
-            }
+            onChange={(event) => updateField('type', event.target.value)}
           >
             <option value="INFORMATION">안내형</option>
             <option value="LOTTERY">추첨형</option>
@@ -165,86 +239,92 @@ export default function PromotionEditor({
           <label>
             지역
             <select
-              required
               value={form.regionName}
-              onChange={(event) =>
-                setForm({ ...form, regionName: event.target.value })
-              }
+              aria-invalid={Boolean(fieldErrors.regionName)}
+              aria-describedby={fieldErrors.regionName ? 'region-error' : undefined}
+              onChange={(event) => updateField('regionName', event.target.value)}
             >
               <option value="">지역을 선택하세요</option>
               {regions.map(([value, label]) => (
                 <option value={value} key={value}>{label}</option>
               ))}
             </select>
+            <FieldError id="region-error" message={fieldErrors.regionName} />
           </label>
         )}
 
         <label className="wide">
           제목
           <input
-            required
             maxLength="150"
             value={form.title}
-            onChange={(event) =>
-              setForm({ ...form, title: event.target.value })
-            }
+            aria-invalid={Boolean(fieldErrors.title)}
+            aria-describedby={fieldErrors.title ? 'title-error' : undefined}
+            onChange={(event) => updateField('title', event.target.value)}
           />
+          <FieldError id="title-error" message={fieldErrors.title} />
         </label>
 
         <label className="wide">
-          요약
+          요약 (선택)
           <input
-            required
             maxLength="300"
             value={form.summary}
-            onChange={(event) =>
-              setForm({ ...form, summary: event.target.value })
-            }
+            aria-invalid={Boolean(fieldErrors.summary)}
+            aria-describedby={fieldErrors.summary ? 'summary-error' : undefined}
+            onChange={(event) => updateField('summary', event.target.value)}
           />
+          <FieldError id="summary-error" message={fieldErrors.summary} />
         </label>
 
         <label>
           게시 시작일
           <input
-            required
             type="date"
             value={form.startDate}
-            onChange={(event) =>
-              setForm({ ...form, startDate: event.target.value })
-            }
+            aria-invalid={Boolean(fieldErrors.startDate)}
+            aria-describedby={fieldErrors.startDate ? 'start-date-error' : undefined}
+            onChange={(event) => updateField('startDate', event.target.value)}
           />
+          <FieldError id="start-date-error" message={fieldErrors.startDate} />
         </label>
 
         <label>
           게시 종료일
           <input
-            required
             type="date"
             value={form.endDate}
-            onChange={(event) =>
-              setForm({ ...form, endDate: event.target.value })
-            }
+            aria-invalid={Boolean(fieldErrors.endDate)}
+            aria-describedby={fieldErrors.endDate ? 'end-date-error' : undefined}
+            onChange={(event) => updateField('endDate', event.target.value)}
           />
+          <FieldError id="end-date-error" message={fieldErrors.endDate} />
         </label>
 
         {form.type === 'LOTTERY' && (
           <label className="wide">
             헌혈 실적 인정 시작일
             <input
-              required
               type="date"
               max={form.endDate || undefined}
               value={form.donationEligibilityStartDate}
+              aria-invalid={Boolean(fieldErrors.donationEligibilityStartDate)}
+              aria-describedby={
+                fieldErrors.donationEligibilityStartDate
+                  ? 'eligibility-date-error'
+                  : 'eligibility-date-help'
+              }
               onChange={(event) =>
-                setForm({
-                  ...form,
-                  donationEligibilityStartDate: event.target.value,
-                })
+                updateField('donationEligibilityStartDate', event.target.value)
               }
             />
-            <small>
+            <small id="eligibility-date-help">
               이 날짜부터 게시 종료일까지 완료된 헌혈 기록을 인정합니다.
             </small>
+            <FieldError
+              id="eligibility-date-error"
+              message={fieldErrors.donationEligibilityStartDate}
+            />
           </label>
         )}
 
@@ -253,11 +333,19 @@ export default function PromotionEditor({
           <input
             type="file"
             accept="image/jpeg,image/png,image/webp,image/gif"
-            onChange={(event) =>
+            aria-invalid={Boolean(fieldErrors.image)}
+            aria-describedby={fieldErrors.image ? 'image-error' : 'image-help'}
+            onChange={(event) => {
               setImageFile(event.target.files?.[0] || null)
-            }
+              setFieldErrors((current) => {
+                const next = { ...current }
+                delete next.image
+                return next
+              })
+            }}
           />
-          <small>JPG, PNG, WebP, GIF · 최대 5MB</small>
+          <small id="image-help">JPG, PNG, WebP, GIF · 최대 5MB</small>
+          <FieldError id="image-error" message={fieldErrors.image} />
         </label>
 
         {imageFile && (
@@ -273,33 +361,31 @@ export default function PromotionEditor({
         )}
 
         <label className="wide">
-          본문
+          본문 (선택)
           <textarea
-            required
             value={form.content}
-            onChange={(event) =>
-              setForm({ ...form, content: event.target.value })
-            }
+            onChange={(event) => updateField('content', event.target.value)}
           />
         </label>
 
         {form.type === 'LOTTERY' && (
-          <fieldset className="wide promotion-option-editor">
-            <legend>추첨 선택 항목</legend>
+          <fieldset
+            className="wide promotion-option-editor"
+            aria-invalid={Boolean(fieldErrors.options)}
+            aria-describedby={fieldErrors.options ? 'options-error' : undefined}
+          >
+            <legend>추첨 선택 항목 (1개 이상)</legend>
             {form.options.map((option, index) => (
               <div key={index}>
                 <label>
                   항목 {index + 1}
                   <input
-                    required
                     maxLength="120"
                     value={option}
-                    onChange={(event) =>
-                      changeOption(index, event.target.value)
-                    }
+                    onChange={(event) => changeOption(index, event.target.value)}
                   />
                 </label>
-                {form.options.length > 2 && (
+                {form.options.length > 1 && (
                   <button
                     type="button"
                     className="promotion-button secondary"
@@ -317,6 +403,7 @@ export default function PromotionEditor({
                 )}
               </div>
             ))}
+            <FieldError id="options-error" message={fieldErrors.options} />
             <button
               type="button"
               className="promotion-button secondary"
@@ -333,15 +420,13 @@ export default function PromotionEditor({
           <input
             type="checkbox"
             checked={form.active}
-            onChange={(event) =>
-              setForm({ ...form, active: event.target.checked })
-            }
+            onChange={(event) => updateField('active', event.target.checked)}
           />
           사용자에게 게시물 노출
         </label>
       </div>
 
-      {error && <p className="promotion-status error">⚠ {error}</p>}
+      {error && <p className="promotion-status error" role="alert">⚠ {error}</p>}
 
       <div className="promotion-editor-actions">
         <button type="button" className="promotion-button secondary" onClick={onCancel}>

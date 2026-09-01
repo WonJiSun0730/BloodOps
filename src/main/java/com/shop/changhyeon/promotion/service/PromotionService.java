@@ -231,9 +231,9 @@ public class PromotionService {
         }
 
         List<String> options = normalizedOptions(request);
-        if (request.type() == PromotionType.LOTTERY && options.size() < 2) {
+        if (request.type() == PromotionType.LOTTERY && options.isEmpty()) {
             throw new IllegalArgumentException(
-                    "추첨 프로모션은 선택 항목을 2개 이상 입력해야 합니다."
+                    "추첨 프로모션은 선택 항목을 1개 이상 입력해주세요."
             );
         }
 
@@ -241,8 +241,8 @@ public class PromotionService {
         promotion.setType(request.type());
         promotion.setRegionName(regionName);
         promotion.setTitle(request.title().trim());
-        promotion.setSummary(request.summary().trim());
-        promotion.setContent(request.content().trim());
+        promotion.setSummary(normalizeNullableText(request.summary()));
+        promotion.setContent(normalizeNullableText(request.content()));
         promotion.setStartDate(request.startDate());
         promotion.setEndDate(request.endDate());
         promotion.setDonationEligibilityStartDate(eligibilityStartDate);
@@ -254,6 +254,13 @@ public class PromotionService {
                             : List.of()
             );
         }
+    }
+
+    private String normalizeNullableText(String value) {
+        if (value == null || value.isBlank()) {
+            return null;
+        }
+        return value.trim();
     }
 
     private List<String> normalizedOptions(PromotionRequest request) {
