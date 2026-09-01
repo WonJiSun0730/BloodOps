@@ -1,4 +1,5 @@
 import { useNavigate } from 'react-router-dom'
+import { getCurrentUser } from '../../api/apiClient.js'
 import './MedicalMyPage.css'
 
 function QuestionnaireIcon() {
@@ -31,10 +32,10 @@ function DonationHistoryIcon() {
 function MedicalMyPage() {
   const navigate = useNavigate()
 
-  function openQuestionnaire() {
-    const confirmationId = sessionStorage.getItem(
-      'verifiedDonorConfirmationId',
-    )
+  async function openQuestionnaire() {
+    const user = await getCurrentUser()
+    const stored = JSON.parse(sessionStorage.getItem('verifiedMedicalDonor') || '{}')
+    const confirmationId = stored.owner === user.identifier ? stored.confirmationId : null
 
     navigate(
       confirmationId
@@ -71,6 +72,26 @@ function MedicalMyPage() {
             문진 확인하기
             <span aria-hidden="true">→</span>
           </button>
+        </article>
+
+        <article className="medical-service-card">
+          <span className="medical-service-card__icon"><QuestionnaireIcon /></span>
+          <div className="medical-service-card__content">
+            <span className="medical-service-card__tag">당일 접수</span>
+            <h2>당일 헌혈 예약자</h2>
+            <p>오늘 방문 예정자를 확인하고 실제 헌혈이 끝난 예약을 완료 처리합니다.</p>
+          </div>
+          <button type="button" onClick={() => navigate('/medical/today-reservations')}>당일 예약자 보기<span aria-hidden="true">→</span></button>
+        </article>
+
+        <article className="medical-service-card">
+          <span className="medical-service-card__icon"><QuestionnaireIcon /></span>
+          <div className="medical-service-card__content">
+            <span className="medical-service-card__tag">문진 조회</span>
+            <h2>전자문진 작성자 목록</h2>
+            <p>제출된 전자문진 작성자를 최신순으로 조회하고 확인이 필요한 내용을 살펴봅니다.</p>
+          </div>
+          <button type="button" onClick={() => navigate('/medical/questionnaires')}>작성자 목록 보기<span aria-hidden="true">→</span></button>
         </article>
 
         <article className="medical-service-card">

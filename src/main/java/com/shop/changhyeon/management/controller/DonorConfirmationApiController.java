@@ -22,16 +22,17 @@ public class DonorConfirmationApiController {
     ) {
         return service.verifyIdentity(dto, authentication.getName());
     }
-    @GetMapping("/{id}") public DonorConfirmationResponseDto get(@PathVariable Long id) { return DonorConfirmationResponseDto.from(service.getConfirmation(id)); }
+    @GetMapping("/{id}") public DonorConfirmationResponseDto get(@PathVariable Long id, Authentication authentication) { return DonorConfirmationResponseDto.from(service.getConfirmation(id, authentication.getName())); }
     @GetMapping("/{id}/questionnaire")
     public ResponseEntity<QuestionnaireSubmissionDto> getQuestionnaire(
-            @PathVariable Long id
+            @PathVariable Long id, Authentication authentication
     ) {
+        service.getConfirmation(id, authentication.getName());
         QuestionnaireSubmissionDto questionnaire =
                 questionnaireService.getVerifiedQuestionnaire(id);
         return questionnaire == null
                 ? ResponseEntity.noContent().build()
                 : ResponseEntity.ok(questionnaire);
     }
-    @PutMapping("/{id}") public ResponseEntity<Map<String,String>> update(@PathVariable Long id,@RequestBody DonorConfirmationDto dto) { service.updateConfirmation(id,dto); return ResponseEntity.ok(Map.of("status","success","message","헌혈자 정보 및 서명이 성공적으로 저장되었습니다.")); }
+    @PutMapping("/{id}") public ResponseEntity<Map<String,String>> update(@PathVariable Long id,@RequestBody DonorConfirmationDto dto, Authentication authentication) { service.updateConfirmation(id,dto,authentication.getName()); return ResponseEntity.ok(Map.of("status","success","message","헌혈자 정보 및 서명이 성공적으로 저장되었습니다.")); }
 }

@@ -15,6 +15,8 @@ public record QuestionnaireSubmissionDto(
         LocalDateTime submittedAt,
         LocalDateTime expiresAt,
         Double weightKg,
+        String contactPhone,
+        String contactEmail,
         Map<String, String> answers,
         Map<String, String> answerDetails,
         List<String> reviewReasons,
