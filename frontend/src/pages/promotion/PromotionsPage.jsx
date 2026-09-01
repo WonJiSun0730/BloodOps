@@ -126,7 +126,7 @@ export default function PromotionsPage() {
                 <span>{item.startDate} ~ {item.endDate}</span>
               </div>
               <h2>{item.title}</h2>
-              <p>{item.summary}</p>
+              {item.summary && <p>{item.summary}</p>}
               <strong>자세히 보기 →</strong>
             </div>
           </Link>
