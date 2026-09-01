@@ -80,8 +80,22 @@
 .donor-check-page th,
 .donor-check-page td { padding: 11px 13px; border: 1px solid var(--color-border); text-align: left; }
 .donor-check-page th { background: color-mix(in srgb, var(--color-surface) 90%, var(--color-text) 4%); }
-.donor-check-page th:last-child { width: 90px; text-align: center; }
-.donor-check-page .answer { color: #047857; font-weight: 850; text-align: center; }
+.donor-check-page th:last-child { width: min(42%, 320px); }
+.donor-check-page .answer { color: #34d399; }
+.donor-check-page .answer > strong { font-weight: 850; }
+.donor-check-page .answer.is-review { color: var(--color-primary-hover); }
+.questionnaire-answer-detail {
+  margin: 8px 0 0;
+  padding: 10px 12px;
+  border-left: 3px solid var(--color-primary);
+  border-radius: 0 8px 8px 0;
+  color: var(--color-text);
+  background: color-mix(in srgb, var(--color-primary) 8%, var(--color-surface));
+  font-weight: 500;
+  line-height: 1.55;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
 
 .signature-guide { color: var(--color-text-muted); font-size: .82rem; }
 .signature-box { border: 2px dashed var(--color-border); border-radius: 12px; background: #fff; overflow: hidden; }
@@ -114,6 +128,13 @@
   .donor-check-page form { padding: 20px; }
   .donor-grid.two,
   .donor-grid.three { grid-template-columns: 1fr; }
+  .questionnaire-wrap { overflow: visible; }
+  .donor-check-page table,
+  .donor-check-page tbody { display: block; }
+  .donor-check-page thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+  .donor-check-page tr { display: block; margin-bottom: 12px; border: 1px solid var(--color-border); border-radius: 12px; overflow: hidden; }
+  .donor-check-page td { display: block; border: 0; }
+  .donor-check-page td + td { border-top: 1px solid var(--color-border); }
 }
 
 

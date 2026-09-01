@@ -252,11 +252,13 @@ function BloodUnitsManagementPage() {
 }
 
 function FormField({ label, error, required, ...inputProps }) {
-  return <label className={error ? 'field-invalid' : ''}><span>{label}{required && <b aria-hidden="true"> *</b>}</span><input {...inputProps} aria-invalid={Boolean(error)} />{error && <small className="field-error">{error}</small>}</label>
+  const errorId = inputProps.name ? `${inputProps.name}-error` : undefined
+  return <label className={error ? 'field-invalid' : ''}><span>{label}{required && <b aria-hidden="true"> *</b>}</span><input {...inputProps} aria-invalid={Boolean(error)} aria-describedby={error ? errorId : undefined} />{error && <small id={errorId} className="blood-unit-field-error" role="alert">{error}</small>}</label>
 }
 
 function SelectField({ label, options, emptyLabel, error, required, ...selectProps }) {
-  return <label className={error ? 'field-invalid' : ''}><span>{label}{required && <b aria-hidden="true"> *</b>}</span><select {...selectProps} aria-invalid={Boolean(error)}>{emptyLabel && <option value="">{emptyLabel}</option>}{options.map((value) => <option key={value} value={value}>{value}</option>)}</select>{error && <small className="field-error">{error}</small>}</label>
+  const errorId = selectProps.name ? `${selectProps.name}-error` : undefined
+  return <label className={error ? 'field-invalid' : ''}><span>{label}{required && <b aria-hidden="true"> *</b>}</span><select {...selectProps} aria-invalid={Boolean(error)} aria-describedby={error ? errorId : undefined}>{emptyLabel && <option value="">{emptyLabel}</option>}{options.map((value) => <option key={value} value={value}>{value}</option>)}</select>{error && <small id={errorId} className="blood-unit-field-error" role="alert">{error}</small>}</label>
 }
 
 export default BloodUnitsManagementPage
