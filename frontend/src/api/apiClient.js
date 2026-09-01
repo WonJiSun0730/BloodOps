@@ -744,13 +744,21 @@ export async function cancelAdminReservation(
 export function getReservationSlots(
   centerId,
   reservationDate,
-  donationType
+  donationType,
+  reservationId = null
 ) {
   const params = new URLSearchParams({
     centerId: String(centerId),
     reservationDate,
     donationType,
   })
+
+  if (reservationId != null) {
+    params.set(
+      'reservationId',
+      String(reservationId)
+    )
+  }
 
   return apiRequest(
     `/api/reservations/slots?${params.toString()}`
@@ -763,13 +771,21 @@ export function getReservationSlots(
 export function getAvailableReservationDates(
   centerId,
   year,
-  month
+  month,
+  reservationId = null
 ) {
   const params = new URLSearchParams({
     centerId: String(centerId),
     year: String(year),
     month: String(month),
   })
+
+  if (reservationId != null) {
+    params.set(
+      'reservationId',
+      String(reservationId)
+    )
+  }
 
   return apiRequest(
     `/api/reservations/available-dates?${params.toString()}`

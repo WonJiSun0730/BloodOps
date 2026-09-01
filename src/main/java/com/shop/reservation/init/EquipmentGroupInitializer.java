@@ -9,12 +9,14 @@ import com.shop.reservation.repository.EquipmentGroupRepository;
 import com.shop.reservation.repository.ReservationSlotRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
 @Component
+@Order(2)
 @RequiredArgsConstructor
 public class EquipmentGroupInitializer
         implements CommandLineRunner {

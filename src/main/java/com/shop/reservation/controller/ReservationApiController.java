@@ -26,29 +26,38 @@ public class ReservationApiController {
     private final ReservationSlotService
             reservationSlotService;
 
-    /*
-     * 사용자가 예약 가능한 시간 슬롯 조회
-     *
-     * GET /api/reservations/slots
-     *
-     * 예:
-     * /api/reservations/slots
-     * ?centerId=1
-     * &reservationDate=2026-08-28
-     * &donationType=WHOLE_BLOOD
-     */
     @GetMapping("/slots")
     public List<AdminReservationSlotResponseDto>
     getAvailableSlots(
             @RequestParam Long centerId,
             @RequestParam LocalDate reservationDate,
-            @RequestParam DonationType donationType
+            @RequestParam DonationType donationType,
+            @RequestParam(required = false) Long reservationId,
+            Authentication authentication
     ) {
+        if (reservationId != null) {
+            if (
+                    authentication == null
+                            || !authentication.isAuthenticated()
+            ) {
+                throw new IllegalStateException(
+                        "로그인이 필요합니다."
+                );
+            }
+
+            reservationService
+                    .validateOwnReservationForSlotSearch(
+                            reservationId,
+                            authentication.getName()
+                    );
+        }
+
         return reservationSlotService
                 .getSlots(
                         centerId,
                         reservationDate,
-                        donationType
+                        donationType,
+                        reservationId
                 )
                 .stream()
                 .filter(AdminReservationSlotResponseDto::isActive)
@@ -59,13 +68,33 @@ public class ReservationApiController {
     public Set<LocalDate> getAvailableDates(
             @RequestParam Long centerId,
             @RequestParam int year,
-            @RequestParam int month
+            @RequestParam int month,
+            @RequestParam(required = false) Long reservationId,
+            Authentication authentication
     ) {
+        if (reservationId != null) {
+            if (
+                    authentication == null
+                            || !authentication.isAuthenticated()
+            ) {
+                throw new IllegalStateException(
+                        "로그인이 필요합니다."
+                );
+            }
+
+            reservationService
+                    .validateOwnReservationForSlotSearch(
+                            reservationId,
+                            authentication.getName()
+                    );
+        }
+
         return reservationSlotService
                 .getAvailableDates(
                         centerId,
                         year,
-                        month
+                        month,
+                        reservationId
                 );
     }
 

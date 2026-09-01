@@ -538,6 +538,50 @@
       repeat(2, minmax(0, 1fr));
   }
 
+    /* STEP 02 - 모바일에서는 예약 조건을 세로형으로 전환 */
+    .reservation-date-field,
+    .reservation-donation-field {
+      grid-column: 1 / -1;
+      width: 100%;
+      min-width: 0;
+    }
+
+    .reservation-calendar {
+      width: 100%;
+      max-width: none;
+      box-sizing: border-box;
+    }
+
+    .reservation-donation-field {
+      display: flex;
+      flex-direction: column;
+      margin-top: 4px;
+    }
+
+    .reservation-selected-date-card {
+      width: 100%;
+      box-sizing: border-box;
+      margin-bottom: 16px;
+    }
+
+    .reservation-donation-options {
+      width: 100%;
+      grid-template-columns:
+        repeat(2, minmax(0, 1fr));
+    }
+
+    .reservation-donation-option {
+      min-width: 0;
+      min-height: 52px;
+      padding: 0 12px;
+    }
+
+    .reservation-calendar-guide {
+      width: 100%;
+      box-sizing: border-box;
+      margin-top: 18px;
+    }
+
   .reservation-slot-grid {
     grid-template-columns:
       repeat(2, minmax(0, 1fr));
@@ -595,23 +639,22 @@
   }
 
   .reservation-calendar {
-    padding: 12px;
-
+    padding: 14px;
     border-radius: 12px;
   }
 
   .reservation-calendar-grid {
-    gap: 2px;
+    gap: 4px;
   }
 
   .reservation-calendar-day {
-    border-radius: 7px;
-
-    font-size: 0.76rem;
+    border-radius: 8px;
+    font-size: 0.82rem;
   }
 
   .reservation-donation-options {
-    grid-template-columns: 1fr;
+    grid-template-columns:
+        repeat(2, minmax(0, 1fr));
   }
 
   .reservation-donation-option {
@@ -2837,5 +2880,81 @@
 
   .reservation-replace-actions {
     grid-template-columns: 1fr;
+  }
+}
+
+/* ================================
+   STEP 02 모바일 최종 보정
+   반드시 파일 하단 유지
+   ================================ */
+
+@media (max-width: 768px) {
+  .reservation-search-form {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .reservation-date-field,
+  .reservation-donation-field {
+    grid-column: 1 / -1;
+    width: 100%;
+    min-width: 0;
+  }
+
+  .reservation-calendar {
+    width: 100%;
+    max-width: none;
+    box-sizing: border-box;
+  }
+
+  .reservation-donation-field {
+    display: flex;
+    flex-direction: column;
+    align-self: stretch;
+    margin-top: 4px;
+  }
+
+  .reservation-selected-date-card {
+    width: 100%;
+    box-sizing: border-box;
+    margin-bottom: 16px;
+  }
+
+  .reservation-donation-options {
+    width: 100%;
+    grid-template-columns:
+      repeat(2, minmax(0, 1fr));
+  }
+
+  .reservation-donation-option {
+    min-width: 0;
+    min-height: 52px;
+    padding: 0 12px;
+  }
+
+  .reservation-calendar-guide {
+    width: 100%;
+    box-sizing: border-box;
+    margin-top: 18px;
+  }
+}
+
+@media (max-width: 480px) {
+  .reservation-calendar {
+    padding: 14px;
+    border-radius: 12px;
+  }
+
+  .reservation-calendar-grid {
+    gap: 4px;
+  }
+
+  .reservation-calendar-day {
+    border-radius: 8px;
+    font-size: 0.82rem;
+  }
+
+  .reservation-donation-options {
+    grid-template-columns:
+      repeat(2, minmax(0, 1fr));
   }
 }

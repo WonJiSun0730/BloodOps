@@ -35,11 +35,11 @@ public class ReservationSlotService {
     private final ReservationRepository
             reservationRepository;
 
-    private final EquipmentGroupRepository
-            equipmentGroupRepository;
+    private final EquipmentGroupRepository equipmentGroupRepository;
 
     private final CenterRepository centerRepository;
 
+    private final ReservationTimePolicy reservationTimePolicy;
 
     /*
      * ADMIN이 지정한 시간 범위를 일정 간격으로 나누어
@@ -102,6 +102,13 @@ public class ReservationSlotService {
                         )
                         .isAfter(
                                 request.getEndTime()
+                        )
+                        && reservationTimePolicy
+                        .isReservableStartTime(
+                                center,
+                                request.getReservationDate(),
+                                request.getDonationType(),
+                                currentTime
                         )
         ) {
             LocalTime slotEndTime =
@@ -289,6 +296,13 @@ public class ReservationSlotService {
                                 .isAfter(
                                         operatingRange.end()
                                 )
+                                && reservationTimePolicy
+                                .isReservableStartTime(
+                                        center,
+                                        currentDate,
+                                        donationType,
+                                        currentTime
+                                )
                 ) {
 
                     LocalTime slotEndTime =
@@ -374,11 +388,25 @@ public class ReservationSlotService {
                 .build();
     }
 
-    @Transactional(readOnly = true)
     public List<AdminReservationSlotResponseDto> getSlots(
             Long centerId,
             LocalDate reservationDate,
             DonationType donationType
+    ) {
+        return getSlots(
+                centerId,
+                reservationDate,
+                donationType,
+                null
+        );
+    }
+
+    @Transactional(readOnly = true)
+    public List<AdminReservationSlotResponseDto> getSlots(
+            Long centerId,
+            LocalDate reservationDate,
+            DonationType donationType,
+            Long excludeReservationId
     ) {
         if (centerId == null) {
             throw new IllegalArgumentException(
@@ -398,6 +426,16 @@ public class ReservationSlotService {
             );
         }
 
+        Center center =
+                centerRepository
+                        .findById(centerId)
+                        .orElseThrow(() ->
+                                new IllegalArgumentException(
+                                        "헌혈센터를 찾을 수 없습니다."
+                                )
+                        );
+
+
         return reservationSlotRepository
                 .findByCenter_IdAndReservationDateAndDonationTypeOrderByStartTimeAsc(
                         centerId,
@@ -405,15 +443,50 @@ public class ReservationSlotService {
                         donationType
                 )
                 .stream()
-                .map(this::toResponseDto)
+
+                /*
+                 * 실제 헌혈 종료시간이
+                 * 센터 운영 종료시간을 넘는 슬롯은
+                 * 사용자에게 노출하지 않습니다.
+                 */
+                .filter(slot ->
+                        reservationTimePolicy
+                                .isReservableStartTime(
+                                        center,
+                                        reservationDate,
+                                        donationType,
+                                        slot.getStartTime()
+                                )
+                )
+
+                .map(slot ->
+                        toResponseDto(
+                                slot,
+                                excludeReservationId
+                        )
+                )
                 .toList();
+    }
+
+    public Set<LocalDate> getAvailableDates(
+            Long centerId,
+            int year,
+            int month
+    ) {
+        return getAvailableDates(
+                centerId,
+                year,
+                month,
+                null
+        );
     }
 
     @Transactional(readOnly = true)
     public Set<LocalDate> getAvailableDates(
             Long centerId,
             int year,
-            int month
+            int month,
+            Long excludeReservationId
     ) {
         if (centerId == null) {
             throw new IllegalArgumentException(
@@ -492,6 +565,22 @@ public class ReservationSlotService {
         for (ReservationSlot slot : slots) {
 
             /*
+             * 헌혈 종류별 접수 마감시간 이후 슬롯은
+             * 예약 가능한 날짜 판정에서도 제외합니다.
+             */
+            if (
+                    !reservationTimePolicy
+                            .isReservableStartTime(
+                                    slot.getCenter(),
+                                    slot.getReservationDate(),
+                                    slot.getDonationType(),
+                                    slot.getStartTime()
+                            )
+            ) {
+                continue;
+            }
+
+            /*
              * 해당 날짜가 이미 예약 가능하다고 판정됐다면
              * 같은 날짜의 나머지 슬롯은 계산할 필요가 없습니다.
              */
@@ -508,18 +597,13 @@ public class ReservationSlotService {
                     slot.getEquipmentGroup();
 
 
-            /*
-             * 장비그룹 구조 적용 전의 구형 슬롯 대응
-             */
             if (equipmentGroup == null) {
 
                 long reservedCount =
-                        reservationRepository
-                                .countBySlot_IdAndStatus(
-                                        slot.getId(),
-                                        ReservationStatus.RESERVED
-                                );
-
+                        countLegacySlotReservations(
+                                slot,
+                                excludeReservationId
+                        );
 
                 if (
                         slot.getCapacity()
@@ -575,7 +659,7 @@ public class ReservationSlotService {
                                     groupReservations,
                                     targetStart,
                                     targetEnd,
-                                    null
+                                    excludeReservationId
                             );
 
 
@@ -935,24 +1019,6 @@ public class ReservationSlotService {
             );
         }
 
-        /*
-         * 사용자 예약 가능 범위와 동일하게
-         * 관리자 슬롯 생성도 오늘 기준 2개월까지만 허용합니다.
-         */
-        LocalDate maxReservationDate =
-                LocalDate.now().plusMonths(2);
-
-
-        if (
-                request.getEndDate()
-                        .isAfter(maxReservationDate)
-        ) {
-            throw new IllegalArgumentException(
-                    "예약 슬롯은 오늘부터 2개월 이내의 날짜만 생성할 수 있습니다."
-            );
-        }
-
-
         if (
                 request.getDonationTypes() == null
                         || request.getDonationTypes().isEmpty()
@@ -995,8 +1061,57 @@ public class ReservationSlotService {
         }
     }
 
+    private long countLegacySlotReservations(
+            ReservationSlot slot,
+            Long excludeReservationId
+    ) {
+        long reservedCount =
+                reservationRepository
+                        .countBySlot_IdAndStatus(
+                                slot.getId(),
+                                ReservationStatus.RESERVED
+                        );
+
+        if (
+                excludeReservationId == null
+                        || reservedCount <= 0
+        ) {
+            return reservedCount;
+        }
+
+        return reservationRepository
+                .findById(excludeReservationId)
+                .filter(reservation ->
+                        reservation.getStatus()
+                                == ReservationStatus.RESERVED
+                )
+                .filter(reservation ->
+                        reservation.getSlot() != null
+                                && reservation.getSlot()
+                                .getId()
+                                .equals(slot.getId())
+                )
+                .map(reservation ->
+                        Math.max(
+                                reservedCount - 1,
+                                0
+                        )
+                )
+                .orElse(reservedCount);
+    }
+
     private AdminReservationSlotResponseDto toResponseDto(
             ReservationSlot slot
+    ) {
+        return toResponseDto(
+                slot,
+                null
+        );
+    }
+
+    private AdminReservationSlotResponseDto toResponseDto(
+            ReservationSlot slot,
+            Long excludeReservationId
     ) {
         boolean hasReservationHistory =
                 reservationRepository
@@ -1007,19 +1122,13 @@ public class ReservationSlotService {
         EquipmentGroup equipmentGroup =
                 slot.getEquipmentGroup();
 
-        /*
-         * 장비그룹 구조 적용 전에 생성된 기존 슬롯은
-         * equipment_group_id가 없을 수 있으므로
-         * 기존 슬롯 정원 방식으로 임시 응답합니다.
-         */
         if (equipmentGroup == null) {
 
             long reservedCount =
-                    reservationRepository
-                            .countBySlot_IdAndStatus(
-                                    slot.getId(),
-                                    ReservationStatus.RESERVED
-                            );
+                    countLegacySlotReservations(
+                            slot,
+                            excludeReservationId
+                    );
 
             long remainingCapacity =
                     Math.max(
@@ -1063,7 +1172,7 @@ public class ReservationSlotService {
                                 groupReservations,
                                 targetStart,
                                 targetEnd,
-                                null
+                                excludeReservationId
                         );
 
 

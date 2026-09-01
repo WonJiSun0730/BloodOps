@@ -261,13 +261,15 @@ const [
         getReservationSlots(
           reservation.centerId,
           reservation.reservationDate,
-          reservation.donationType
+          reservation.donationType,
+          reservation.id
         ),
 
         getAvailableReservationDates(
           reservation.centerId,
           initialMonth.year,
-          initialMonth.month
+          initialMonth.month,
+          reservation.id
         ),
       ])
 
@@ -313,7 +315,8 @@ const [
         await getReservationSlots(
           reservation.centerId,
           date,
-          reservation.donationType
+          reservation.donationType,
+          reservation.id
         )
 
       const availableSlots =
@@ -348,7 +351,8 @@ const [
         await getAvailableReservationDates(
           reservation.centerId,
           year,
-          month
+          month,
+          reservation.id
         )
 
       setChangeAvailableDates(

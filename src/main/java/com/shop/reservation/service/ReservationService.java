@@ -46,8 +46,9 @@ public class ReservationService {
     private final ResidentNumberHashService
             residentNumberHashService;
 
-    private final DonationHistoryService
-            donationHistoryService;
+    private final DonationHistoryService donationHistoryService;
+
+    private final ReservationTimePolicy reservationTimePolicy;
 
     public AdminReservationResponseDto createReservation(
             ReservationCreateDto request,
@@ -82,6 +83,20 @@ public class ReservationService {
                                         "예약 슬롯을 찾을 수 없습니다."
                                 )
                         );
+
+        if (
+                !reservationTimePolicy
+                        .isReservableStartTime(
+                                slot.getCenter(),
+                                slot.getReservationDate(),
+                                slot.getDonationType(),
+                                slot.getStartTime()
+                        )
+        ) {
+            throw new IllegalStateException(
+                    "선택한 시간은 해당 헌혈 종류의 접수 마감시간 이후입니다."
+            );
+        }
 
         validateDonationEligibility(
                 slot,
@@ -377,6 +392,53 @@ public class ReservationService {
                 .stream()
                 .map(AdminReservationResponseDto::new)
                 .toList();
+    }
+
+    @Transactional(readOnly = true)
+    public void validateOwnReservationForSlotSearch(
+            Long reservationId,
+            String email
+    ) {
+        if (reservationId == null) {
+            return;
+        }
+
+        Member member =
+                memberService
+                        .findByAuthenticationIdentifier(
+                                email
+                        );
+
+        Reservation reservation =
+                reservationRepository
+                        .findById(reservationId)
+                        .orElseThrow(() ->
+                                new IllegalArgumentException(
+                                        "예약을 찾을 수 없습니다."
+                                )
+                        );
+
+        if (
+                !reservation
+                        .getMember()
+                        .getId()
+                        .equals(
+                                member.getId()
+                        )
+        ) {
+            throw new IllegalStateException(
+                    "본인의 예약만 변경할 수 있습니다."
+            );
+        }
+
+        if (
+                reservation.getStatus()
+                        != ReservationStatus.RESERVED
+        ) {
+            throw new IllegalStateException(
+                    "진행 중인 예약만 변경할 수 있습니다."
+            );
+        }
     }
 
     /*

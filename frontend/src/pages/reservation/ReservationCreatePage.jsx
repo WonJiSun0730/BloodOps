@@ -1142,11 +1142,6 @@ async function handleReplaceReservation() {
                 </p>
               </div>
             </div>
-
-            <div className="reservation-calendar-guide-notice">
-              당일 예약은 불가능합니다.
-            </div>
-
           </div>
 
           </div>
@@ -1555,8 +1550,7 @@ async function handleReplaceReservation() {
                   </strong>
 
                   <p>
-                    회원정보에 등록된 항목은
-                    자동으로 입력됩니다.
+                    성명과 휴대전화는 회원정보에 등록된 정보로 자동 입력됩니다.
                   </p>
                 </div>
 
@@ -1579,15 +1573,8 @@ async function handleReplaceReservation() {
                     ref={donorNameRef}
                     type="text"
                     value={donorName}
-                    onChange={(event) => {
-                      setDonorName(
-                        event.target.value
-                      )
-
-                      setSubmitNotice('')
-                    }}
-                    placeholder="성명을 입력해주세요"
-                    maxLength={100}
+                    readOnly
+                    aria-readonly="true"
                   />
                 </label>
 
@@ -1598,15 +1585,11 @@ async function handleReplaceReservation() {
                   </span>
 
                   <input
+                    ref={phoneRef}
                     type="tel"
                     value={phone}
-                    onChange={(event) =>
-                      setPhone(
-                        event.target.value
-                      )
-                    }
-                    placeholder="010-1234-5678"
-                    maxLength={20}
+                    readOnly
+                    aria-readonly="true"
                   />
                 </label>
 

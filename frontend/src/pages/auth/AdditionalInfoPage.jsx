@@ -551,49 +551,46 @@ async function handleConfirmVerificationCode() {
       return
     }
 
-    setErrors({})
+        const nextErrors = {}
 
-    if (!emailVerified) {
-      setErrors({
-        email:
-          '이메일 인증을 완료해주세요.',
-      })
+        if (!emailVerified) {
+          nextErrors.email =
+            '이메일 인증을 완료해주세요.'
+        }
 
-      return
-    }
+        if (
+          !providedFields.birthDate
+        ) {
+          const birthDateError =
+            validateBirthDate(
+              form.birthDate
+            )
 
-    if (
-      !providedFields.birthDate
-    ) {
-      const birthDateError =
-        validateBirthDate(
-          form.birthDate
-        )
+          if (birthDateError) {
+            nextErrors.birthDate =
+              birthDateError
+          }
+        }
 
-      if (birthDateError) {
-        setErrors({
-          birthDate:
-            birthDateError,
-        })
+        if (
+          !providedFields.phone
+          && (
+            !/^\d{4}$/.test(form.phoneMiddle)
+            || !/^\d{4}$/.test(form.phoneLast)
+          )
+        ) {
+          nextErrors.phone =
+            '휴대전화 번호를 정확하게 입력해주세요.'
+        }
 
-        return
-      }
-    }
+        if (
+          Object.keys(nextErrors).length > 0
+        ) {
+          setErrors(nextErrors)
+          return
+        }
 
-    if (
-      !providedFields.phone
-      && (
-        !/^\d{4}$/.test(form.phoneMiddle)
-        || !/^\d{4}$/.test(form.phoneLast)
-      )
-    ) {
-      setErrors({
-        phone:
-          '휴대전화 번호를 정확하게 입력해주세요.',
-      })
-
-      return
-    }
+        setErrors({})
 
     setIsSubmitting(true)
 
