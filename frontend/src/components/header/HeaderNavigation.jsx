@@ -17,7 +17,7 @@ const menuItems = [
     title: '헌혈참여',
     items: [
       { label: '헌혈의 집 찾기', to: '/centers' },
-      { label: '헌혈 예약', to: '/reservation' },
+      { label: '헌혈 예약', to: '/reservations/new' },
       { label: '전자문진', to: '/questionnaire' },
     ],
   },
@@ -25,7 +25,6 @@ const menuItems = [
     title: '헌혈활동',
     items: [
       { label: '헌혈내역 조회', to: '/mypage/records' },
-      { label: '검사결과 조회', to: '/mypage/results' },
       { label: '증명서 발급', to: '/certificate' },
       { label: '혈액 사용 보류신청', to: '/blood-hold' },
     ],

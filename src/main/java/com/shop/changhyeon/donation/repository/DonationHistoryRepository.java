@@ -17,4 +17,9 @@ public interface DonationHistoryRepository extends JpaRepository<DonationHistory
             LocalDate startDate,
             LocalDate endDate
     );
+
+    List<DonationHistory> findByMember_IdAndDonationDateGreaterThanEqualOrderByDonationDateAscIdAsc(
+            Long memberId,
+            LocalDate startDate
+    );
 }

@@ -1,0 +1,25 @@
+.medical-workspace-list { color: var(--color-text); }
+.medical-workspace-list > header { margin-bottom: 24px; }
+.medical-workspace-list > header p { color: var(--color-primary); font-weight: 800; letter-spacing: .08em; }
+.medical-workspace-list > header span { color: var(--color-text-muted); }
+.workspace-panel { padding: 24px; border: 1px solid var(--color-border); border-radius: 16px; background: var(--color-surface); }
+.workspace-card-list { display: grid; gap: 12px; }
+.workspace-data-card { display: grid; grid-template-columns: 1.2fr 1fr 1fr auto; align-items: center; gap: 12px; width: 100%; padding: 16px; color: inherit; text-align: left; border: 1px solid var(--color-border); border-radius: 12px; background: var(--color-surface-hover); }
+button.workspace-data-card { cursor: pointer; }
+.workspace-data-card:hover { border-color: var(--color-primary); }
+.workspace-data-card:focus-visible { outline: 2px solid var(--color-primary); outline-offset: 3px; }
+.workspace-data-card em { color: var(--color-primary-hover); font-style: normal; font-weight: 700; }
+.workspace-data-card > button { min-height: 44px; padding: 0 16px; color: #fff; border: 0; border-radius: 9px; background: var(--color-primary); cursor: pointer; }
+.workspace-data-card > button:hover:not(:disabled) { background: var(--color-primary-hover); }
+.workspace-data-card > button:focus-visible { outline: 2px solid var(--color-primary); outline-offset: 3px; }
+.workspace-data-card > button:disabled { color: var(--color-text-muted); background: var(--color-border); cursor: not-allowed; }
+.workspace-detail { margin-top: 20px; padding: 20px; border-left: 4px solid var(--color-primary); background: var(--color-background); }
+.workspace-detail dl { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+.workspace-detail dl div { padding: 12px; border: 1px solid var(--color-border); border-radius: 8px; }
+.workspace-detail dt { color: var(--color-text-muted); }
+.workspace-detail dd { margin: 4px 0 0; }
+.workspace-state { padding: 24px; color: var(--color-text-muted); text-align: center; }
+.workspace-state.is-error { color: var(--color-text); border: 1px solid var(--color-primary); background: color-mix(in srgb, var(--color-primary) 12%, transparent); }
+@media (max-width: 1024px) { .workspace-data-card { grid-template-columns: 1fr 1fr; } }
+@media (max-width: 768px) { .workspace-panel { padding: 16px; } .workspace-data-card { grid-template-columns: 1fr; min-height: 44px; } .workspace-detail dl { grid-template-columns: 1fr; } }
+@media (max-width: 480px) { .workspace-panel { padding: 12px; } .workspace-data-card { padding: 14px; } }

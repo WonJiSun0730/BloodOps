@@ -16,9 +16,20 @@ export async function apiRequest(url, options = {}) {
     let message = `API 요청 실패: ${response.status}`
     let fieldErrors = {}
     let duplicateTimes = []
+    let errorCode = ''
+    let existingReservation = null
 
     try {
       const errorData = await response.json()
+
+      if (errorData.code) {
+        errorCode = errorData.code
+      }
+
+      if (errorData.existingReservation) {
+        existingReservation =
+          errorData.existingReservation
+      }
 
       if (errorData.message) {
         message = errorData.message
@@ -38,6 +49,10 @@ export async function apiRequest(url, options = {}) {
     const requestError = new Error(message)
     requestError.fieldErrors = fieldErrors
     requestError.duplicateTimes = duplicateTimes
+
+    requestError.code = errorCode
+    requestError.existingReservation =
+      existingReservation
 
     throw requestError
   }
@@ -132,6 +147,60 @@ export async function updateAdditionalInfo(memberData) {
 }
 
 /*
+ * 추가정보 입력 화면에서
+ * 이메일 인증번호를 발송합니다.
+ */
+export async function sendEmailVerificationCode(
+  email
+) {
+  const csrf = await getCsrfToken()
+
+  return apiRequest(
+    '/api/members/email-verification/send',
+    {
+      method: 'POST',
+
+      headers: {
+        'Content-Type': 'application/json',
+        [csrf.headerName]: csrf.token,
+      },
+
+      body: JSON.stringify({
+        email,
+      }),
+    }
+  )
+}
+
+
+/*
+ * 이메일로 받은 6자리 인증번호를 확인합니다.
+ */
+export async function confirmEmailVerificationCode(
+  email,
+  code
+) {
+  const csrf = await getCsrfToken()
+
+  return apiRequest(
+    '/api/members/email-verification/confirm',
+    {
+      method: 'POST',
+
+      headers: {
+        'Content-Type': 'application/json',
+        [csrf.headerName]: csrf.token,
+      },
+
+      body: JSON.stringify({
+        email,
+        code,
+      }),
+    }
+  )
+}
+
+/*
  * 아이디 중복 여부를 확인합니다.
  *
  * 반환 예:
@@ -174,6 +243,43 @@ export async function logout() {
   })
 }
 
+export async function saveOAuthReturnTo(
+  returnTo
+) {
+  const csrf = await getCsrfToken()
+
+  const data =
+    new URLSearchParams()
+
+  data.append(
+    'returnTo',
+    returnTo
+  )
+
+  return apiRequest(
+    '/api/auth/oauth-return-to',
+    {
+      method: 'POST',
+
+      headers: {
+        'Content-Type':
+          'application/x-www-form-urlencoded',
+
+        [csrf.headerName]:
+          csrf.token,
+      },
+
+      body: data,
+    }
+  )
+}
+
+export function getOAuthReturnTo() {
+  return apiRequest(
+    '/api/auth/oauth-return-to'
+  )
+}
+
 // 현재 브라우저가 로그인된 상태인지 확인합니다.
 // 로그인 상태라면 사용자 식별값과 권한 목록을 반환합니다.
 export function getCurrentUser() {
@@ -195,6 +301,56 @@ export function getCenters(keyword = '') {
 
   return apiRequest(
     `/api/centers?keyword=${encodeURIComponent(trimmedKeyword)}`
+  )
+}
+
+/*
+ * 센터 검색 화면의 목록을
+ * 서버에서 10개씩 조회합니다.
+ */
+export function getCenterPage(
+  keyword = '',
+  page = 0
+) {
+  const params =
+    new URLSearchParams({
+      page: String(page),
+    })
+
+  const trimmedKeyword =
+    keyword.trim()
+
+  if (trimmedKeyword) {
+    params.set(
+      'keyword',
+      trimmedKeyword
+    )
+  }
+
+  return apiRequest(
+    `/api/centers/page?${params.toString()}`
+  )
+}
+
+
+/*
+ * 검색 조건에 해당하는
+ * 지도 마커 전체를 조회합니다.
+ */
+export function getCenterMapCenters(
+  keyword = ''
+) {
+  const trimmedKeyword =
+    keyword.trim()
+
+  if (!trimmedKeyword) {
+    return apiRequest(
+      '/api/centers/map'
+    )
+  }
+
+  return apiRequest(
+    `/api/centers/map?keyword=${encodeURIComponent(trimmedKeyword)}`
   )
 }
 
@@ -268,6 +424,23 @@ export async function updateCenter(
       },
 
       body: JSON.stringify(centerData),
+    }
+  )
+}
+
+export async function deleteCenter(
+  centerId
+) {
+  const csrf = await getCsrfToken()
+
+  return apiRequest(
+    `/api/admin/centers/${centerId}`,
+    {
+      method: 'DELETE',
+
+      headers: {
+        [csrf.headerName]: csrf.token,
+      },
     }
   )
 }
@@ -370,6 +543,29 @@ export async function createAdminReservationSlots(
   )
 }
 
+/*
+ * ADMIN이 여러 날짜와 헌혈종류의
+ * 예약 슬롯을 일괄 생성합니다.
+ */
+export async function createAdminReservationSlotsBulk(
+  slotData
+) {
+  const csrf = await getCsrfToken()
+
+  return apiRequest(
+    '/api/admin/reservation-slots/bulk',
+    {
+      method: 'POST',
+
+      headers: {
+        'Content-Type': 'application/json',
+        [csrf.headerName]: csrf.token,
+      },
+
+      body: JSON.stringify(slotData),
+    }
+  )
+}
 
 /*
  * ADMIN이 예약 슬롯의 정원 또는 활성 상태를 변경합니다.
@@ -548,7 +744,8 @@ export async function cancelAdminReservation(
 export function getReservationSlots(
   centerId,
   reservationDate,
-  donationType
+  donationType,
+  reservationId = null
 ) {
   const params = new URLSearchParams({
     centerId: String(centerId),
@@ -556,16 +753,51 @@ export function getReservationSlots(
     donationType,
   })
 
+  if (reservationId != null) {
+    params.set(
+      'reservationId',
+      String(reservationId)
+    )
+  }
+
   return apiRequest(
     `/api/reservations/slots?${params.toString()}`
   )
 }
 
+/*
+ * 선택한 센터의 월별 예약 가능 날짜를 조회합니다.
+ */
+export function getAvailableReservationDates(
+  centerId,
+  year,
+  month,
+  reservationId = null
+) {
+  const params = new URLSearchParams({
+    centerId: String(centerId),
+    year: String(year),
+    month: String(month),
+  })
+
+  if (reservationId != null) {
+    params.set(
+      'reservationId',
+      String(reservationId)
+    )
+  }
+
+  return apiRequest(
+    `/api/reservations/available-dates?${params.toString()}`
+  )
+}
 
 /*
  * 로그인 사용자가 예약을 생성합니다.
  */
-export async function createReservation(slotId) {
+export async function createReservation(
+  reservationData
+) {
   const csrf = await getCsrfToken()
 
   return apiRequest(
@@ -578,9 +810,9 @@ export async function createReservation(slotId) {
         [csrf.headerName]: csrf.token,
       },
 
-      body: JSON.stringify({
-        slotId,
-      }),
+      body: JSON.stringify(
+        reservationData
+      ),
     }
   )
 }
@@ -655,6 +887,32 @@ export function getMedicalDonationHistory() {
   )
 }
 
+export function getMedicalQuestionnaires() {
+  return apiRequest('/api/medical/questionnaires')
+}
+
+export function getMedicalTodayReservations() {
+  return apiRequest('/api/medical/reservations/today')
+}
+
+export async function completeMedicalReservation(reservationId) {
+  const csrf = await getCsrfToken()
+  return apiRequest(`/api/medical/donations/reservations/${encodeURIComponent(reservationId)}/complete`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', [csrf.headerName]: csrf.token },
+    body: JSON.stringify({}),
+  })
+}
+
+/*
+ * 로그인한 회원 본인의
+ * 헌혈 가능일과 최근 1년 헌혈 횟수를 조회합니다.
+ */
+export function getMyDonationEligibility() {
+  return apiRequest(
+    '/api/donations/me/eligibility'
+  )
+}
 /*
  * 로그인한 회원의 예약 내역을 조회합니다.
  */
@@ -811,7 +1069,6 @@ export async function submitQuestionnaire(questionnaireData) {
   })
 }
 
-
 /*
  * 로그인한 회원의 포인트 잔액과 거래 내역을 조회합니다.
  */
@@ -872,6 +1129,12 @@ export async function uploadAdminRewardProductImage(productId, imageFile) {
       },
       body: formData,
     }
+  )
+}
+
+export function getFavoriteCenters() {
+  return apiRequest(
+    '/api/favorite-centers'
   )
 }
 
@@ -949,6 +1212,40 @@ export async function addAdminTestPoints(points) {
       body: JSON.stringify({
         points: Number(points),
       }),
+    }
+  )
+}
+export async function addFavoriteCenter(
+  centerId
+) {
+  const csrf = await getCsrfToken()
+
+  return apiRequest(
+    `/api/favorite-centers/${centerId}`,
+    {
+      method: 'POST',
+
+      headers: {
+        [csrf.headerName]: csrf.token,
+      },
+    }
+  )
+}
+
+
+export async function removeFavoriteCenter(
+  centerId
+) {
+  const csrf = await getCsrfToken()
+
+  return apiRequest(
+    `/api/favorite-centers/${centerId}`,
+    {
+      method: 'DELETE',
+
+      headers: {
+        [csrf.headerName]: csrf.token,
+      },
     }
   )
 }

@@ -73,7 +73,7 @@ function MedicalDonationHistoryPage() {
           <p>DONATION HISTORY</p>
           <h1>전체 헌혈 기록</h1>
           <span>
-            donation_history에 저장된 완료 기록을 최신순으로 확인합니다.
+            완료된 헌혈 내역을 최신순으로 확인할 수 있습니다.
           </span>
         </div>
 

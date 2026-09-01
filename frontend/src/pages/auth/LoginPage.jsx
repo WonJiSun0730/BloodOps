@@ -6,12 +6,14 @@ import {
 
 import {
   Link,
+  useLocation,
   useSearchParams,
 } from 'react-router-dom'
 
 import {
   getCurrentUser,
   login,
+  saveOAuthReturnTo,
 } from '../../api/apiClient.js'
 
 import EyeIcon
@@ -27,6 +29,20 @@ import BackgroundOrbit
   from '../../components/decorations/BackgroundOrbit.jsx'
 
 function LoginPage() {
+  const location = useLocation()
+
+  const requestedLocation =
+    location.state?.from
+
+  const returnTo =
+    requestedLocation?.pathname
+      ? [
+          requestedLocation.pathname,
+          requestedLocation.search || '',
+          requestedLocation.hash || '',
+        ].join('')
+      : '/'
+
   const loginAlertShown =
     useRef(false)
 
@@ -100,7 +116,9 @@ function LoginPage() {
             )
           }
 
-          window.location.replace('/')
+          window.location.replace(
+            returnTo
+          )
           return
         }
       } catch {
@@ -114,7 +132,7 @@ function LoginPage() {
     }
 
     checkSession()
-  }, [])
+  }, [returnTo])
 
   function validateLoginForm() {
     const nextErrors = {
@@ -142,6 +160,26 @@ function LoginPage() {
     )
   }
 
+  async function handleSocialLogin(
+    provider
+  ) {
+    setErrorMessage('')
+
+    try {
+      await saveOAuthReturnTo(
+        returnTo
+      )
+
+      window.location.href =
+        `/oauth2/authorization/${provider}`
+    } catch (error) {
+      setErrorMessage(
+        error.message
+          || '소셜 로그인을 시작할 수 없습니다.'
+      )
+    }
+  }
+
   async function handleSubmit(
     event
   ) {
@@ -161,7 +199,8 @@ function LoginPage() {
         password
       )
 
-      window.location.href = '/'
+      window.location.href =
+        returnTo
     } catch (error) {
       setErrorMessage(
         error.message
@@ -238,6 +277,7 @@ function LoginPage() {
                     loginId: '',
                   })
                 )
+                setErrorMessage('')
               }}
               autoComplete="username"
               aria-invalid={
@@ -287,6 +327,7 @@ function LoginPage() {
                       password: '',
                     })
                   )
+                  setErrorMessage('')
                 }}
                 autoComplete="current-password"
                 aria-invalid={
@@ -326,6 +367,15 @@ function LoginPage() {
           {oauthErrorMessage && (
             <p className="login-error">
               {oauthErrorMessage}
+            </p>
+          )}
+
+          {errorMessage && (
+            <p
+              className="login-error"
+              role="alert"
+            >
+              {errorMessage}
             </p>
           )}
 
@@ -375,6 +425,10 @@ function LoginPage() {
             <a
               className="login-social-button kakao"
               href="/oauth2/authorization/kakao"
+              onClick={(event) => {
+                event.preventDefault()
+                handleSocialLogin('kakao')
+              }}
             >
               <span className="login-social-mark">
                 K
@@ -388,6 +442,10 @@ function LoginPage() {
             <a
               className="login-social-button naver"
               href="/oauth2/authorization/naver"
+              onClick={(event) => {
+                event.preventDefault()
+                handleSocialLogin('naver')
+              }}
             >
               <span className="login-social-mark">
                 N
@@ -401,6 +459,10 @@ function LoginPage() {
             <a
               className="login-social-button google"
               href="/oauth2/authorization/google"
+              onClick={(event) => {
+                event.preventDefault()
+                handleSocialLogin('google')
+              }}
             >
               <span className="login-social-mark">
                 G

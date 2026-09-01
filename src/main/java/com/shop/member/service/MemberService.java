@@ -1,5 +1,6 @@
 package com.shop.member.service;
 
+import com.shop.member.constant.LoginProvider;
 import com.shop.member.constant.Role;
 import com.shop.member.dto.AdminMemberResponseDto;
 import com.shop.member.dto.MemberAdditionalInfoDto;
@@ -72,6 +73,71 @@ public class MemberService implements UserDetailsService { //유저디테일서�
     @Transactional(readOnly = true)
     public boolean isEmailAvailable(String email) {
         return !memberRepository.existsByEmail(email);
+    }
+
+    /*
+     * 현재 인증 세션의 식별값으로 Member를 조회합니다.
+     *
+     * LOCAL 로그인:
+     * 실제 이메일
+     *
+     * 소셜 로그인:
+     * GOOGLE:providerId
+     * NAVER:providerId
+     * KAKAO:providerId
+     */
+    @Transactional(readOnly = true)
+    public Member findByAuthenticationIdentifier(
+            String identifier
+    ) {
+
+        if (
+                identifier != null
+                        && identifier.contains(":")
+        ) {
+            String[] parts =
+                    identifier.split(":", 2);
+
+            try {
+                LoginProvider provider =
+                        LoginProvider.valueOf(
+                                parts[0]
+                        );
+
+                String providerId =
+                        parts[1];
+
+                return memberRepository
+                        .findByProviderAndProviderId(
+                                provider,
+                                providerId
+                        )
+                        .orElseThrow(() ->
+                                new IllegalArgumentException(
+                                        "회원 정보를 찾을 수 없습니다."
+                                )
+                        );
+
+            } catch (IllegalArgumentException ignored) {
+                /*
+                 * provider 형식이 아닌 일반 이메일은
+                 * 아래 기존 이메일 조회 방식으로 처리합니다.
+                 */
+            }
+        }
+
+        Member member =
+                memberRepository.findByEmail(
+                        identifier
+                );
+
+        if (member == null) {
+            throw new IllegalArgumentException(
+                    "회원 정보를 찾을 수 없습니다."
+            );
+        }
+
+        return member;
     }
 
     /*
@@ -153,15 +219,34 @@ public class MemberService implements UserDetailsService { //유저디테일서�
 
     @Transactional
     public void updateAdditionalInfo(
-            String email,
+            String identifier,
             MemberAdditionalInfoDto dto
     ) {
         Member member =
-                memberRepository.findByEmail(email);
+                findByAuthenticationIdentifier(
+                        identifier
+                );
 
-        if (member == null) {
+        /*
+         * 추가정보 화면에서 입력한 이메일이
+         * 다른 회원에게 이미 등록되어 있다면 차단합니다.
+         */
+        if (
+                dto.getEmail() != null
+                        && !dto.getEmail().isBlank()
+                        && memberRepository.existsByEmail(
+                        dto.getEmail()
+                )
+                        && (
+                        member.getEmail() == null
+                                || !dto.getEmail()
+                                .equalsIgnoreCase(
+                                        member.getEmail()
+                                )
+                )
+        ) {
             throw new IllegalArgumentException(
-                    "회원 정보를 찾을 수 없습니다."
+                    "이메일이 이미 다른 회원에게 등록되어 있습니다."
             );
         }
 
@@ -184,6 +269,8 @@ public class MemberService implements UserDetailsService { //유저디테일서�
                             + "아이디 찾기 또는 비밀번호 변경을 이용해주세요."
             );
         }
+
+        member.setEmail(dto.getEmail().trim());
 
         member.updateAdditionalInfo(
                 dto.getBirthDate(),

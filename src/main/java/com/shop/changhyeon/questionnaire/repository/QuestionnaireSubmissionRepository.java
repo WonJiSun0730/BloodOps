@@ -5,6 +5,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.Optional;
 import java.time.LocalDateTime;
+import java.util.List;
 
 public interface QuestionnaireSubmissionRepository
         extends JpaRepository<QuestionnaireSubmission, Long> {
@@ -25,4 +26,6 @@ public interface QuestionnaireSubmissionRepository
     findFirstByDonorConfirmation_ConfirmationIdOrderBySubmittedAtDesc(
             Long confirmationId
     );
+
+    List<QuestionnaireSubmission> findAllByOrderBySubmittedAtDesc();
 }

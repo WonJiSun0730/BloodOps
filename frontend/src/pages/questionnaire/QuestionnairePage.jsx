@@ -10,6 +10,13 @@ import './QuestionnairePage.css'
 
 const STEP_SIZE = 4
 const NAME_PATTERN = /^(?:[가-힣]{2,20}|[A-Za-z]+(?:[ '-][A-Za-z]+)*)$/
+const WEIGHT_PATTERN = /^\d{0,3}(?:\.\d{0,2})?$/
+
+function normalizeWeightInput(value) {
+  const normalized = value.replace(/[^\d.]/g, '')
+  if (!WEIGHT_PATTERN.test(normalized)) return null
+  return normalized
+}
 
 function getResidentIdentity(front, back) {
   if (front.length !== 6 || back.length !== 7) {
@@ -37,7 +44,9 @@ function getResidentIdentity(front, back) {
     return { error: '생년월일 형식을 확인해주세요.' }
   }
 
-  const today = new Date()
+  const todayText = new Date(Date.now() + (9 * 60 * 60 * 1000)).toISOString().slice(0, 10)
+  const [todayYear, todayMonth, todayDay] = todayText.split('-').map(Number)
+  const today = new Date(todayYear, todayMonth - 1, todayDay)
   let age = today.getFullYear() - year
   if (
     today.getMonth() < month - 1
@@ -261,7 +270,12 @@ function QuestionnairePage() {
             <p className="identity-security-note">주민등록번호 원문은 저장하지 않으며 신분 확인용 HMAC 해시와 마스킹 값만 보관합니다.</p>
             <label className="weight-field">
               <span>현재 체중</span>
-              <span className="weight-input"><input aria-invalid={Boolean(weightError)} type="number" min={residentIdentity.gender ? minimumWeight : 20} max="300" step="0.1" value={weightKg} onChange={(event) => setWeightKg(event.target.value)} required /> kg</span>
+              <span className="weight-input"><input aria-invalid={Boolean(weightError)} type="text" inputMode="decimal" maxLength="6" value={weightKg} onChange={(event) => {
+                const normalized = normalizeWeightInput(event.target.value)
+                if (normalized !== null) setWeightKg(normalized)
+              }} onKeyDown={(event) => {
+                if (['-', '+', 'e', 'E'].includes(event.key)) event.preventDefault()
+              }} required /> kg</span>
               <small className={`field-error weight-error ${weightError ? 'is-visible' : ''}`} aria-live="polite">
                 {weightError}
               </small>

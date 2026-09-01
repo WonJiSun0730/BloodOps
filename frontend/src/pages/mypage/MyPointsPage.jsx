@@ -181,7 +181,6 @@ function MyPointsPage() {
           {completedProductType === 'DIGITAL_VOUCHER'
             ? '상품권 코드 확인하기'
             : '교환 내역 확인하기'}
-          <span aria-hidden="true">→</span>
         </Link>
       </section>
     )}

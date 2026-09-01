@@ -34,6 +34,10 @@ public interface ReservationRepository
             Long slotId
     );
 
+    boolean existsBySlot_Center_Id(
+            Long centerId
+    );
+
     @Query("""
         select r
         from Reservation r
@@ -95,7 +99,14 @@ public interface ReservationRepository
             Pageable pageable
     );
 
+    List<Reservation> findByMember_IdAndStatusOrderByIdDesc(
+            Long memberId,
+            ReservationStatus status
+    );
+
     List<Reservation> findByMember_EmailOrderByIdDesc(
             String email
     );
+
+    List<Reservation> findBySlot_ReservationDateOrderBySlot_StartTimeAscIdAsc(LocalDate reservationDate);
 }

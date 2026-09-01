@@ -25,6 +25,9 @@ function toDateKey(date) {
 function ReservationCalendar({
   value,
   onChange,
+  availableDates = [],
+  minAvailableDate = null,
+  onVisibleMonthChange,
 }) {
   const today =
     useMemo(() => {
@@ -54,6 +57,12 @@ function ReservationCalendar({
       1
     )
   )
+
+  const availableDateSet =
+    useMemo(
+      () => new Set(availableDates),
+      [availableDates]
+    )
 
   const todayKey =
     toDateKey(today)
@@ -141,15 +150,20 @@ function ReservationCalendar({
 
 
   function moveMonth(offset) {
-    setVisibleMonth(
+    const nextMonth =
       new Date(
         year,
         month + offset,
         1
       )
+
+    setVisibleMonth(nextMonth)
+
+    onVisibleMonthChange?.(
+      nextMonth.getFullYear(),
+      nextMonth.getMonth() + 1
     )
   }
-
 
   return (
     <div className="reservation-calendar">
@@ -214,9 +228,16 @@ function ReservationCalendar({
             const dateKey =
               toDateKey(date)
 
+            const eligibilityBlocked =
+              Boolean(
+                minAvailableDate
+                && dateKey < minAvailableDate
+              )
+
             const disabled =
-              date < today
+              date <= today
               || date > maxDate
+              || eligibilityBlocked
 
             const selected =
               dateKey === value
@@ -224,6 +245,8 @@ function ReservationCalendar({
             const todayDate =
               dateKey === todayKey
 
+            const available =
+              availableDateSet.has(dateKey)
 
             return (
               <button
@@ -232,6 +255,10 @@ function ReservationCalendar({
                 disabled={disabled}
                 className={
                   `reservation-calendar-day${
+                    available && !disabled
+                      ? ' available'
+                      : ''
+                  }${
                     selected
                       ? ' selected'
                       : ''

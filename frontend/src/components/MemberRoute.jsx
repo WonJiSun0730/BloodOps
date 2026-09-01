@@ -78,6 +78,17 @@ function MemberRoute({
     )
   }
 
+  if (
+    currentUser.additionalInfoRequired
+    && location.pathname !== '/additional-info'
+  ) {
+    return (
+      <Navigate
+        to="/additional-info"
+        replace
+      />
+    )
+  }
 
   return children
 }

@@ -1,6 +1,7 @@
 package com.shop.changhyeon.donation.controller;
 
 import com.shop.changhyeon.donation.dto.DonationCompleteRequestDto;
+import com.shop.changhyeon.donation.dto.DonationEligibilityResponseDto;
 import com.shop.changhyeon.donation.dto.DonationHistoryResponseDto;
 import com.shop.changhyeon.donation.dto.MedicalDonationHistoryResponseDto;
 import com.shop.changhyeon.donation.service.DonationHistoryService;
@@ -40,4 +41,12 @@ public class DonationHistoryApiController {
         return donationHistoryService.getAllDonationHistory();
     }
 
+    @GetMapping("/donations/me/eligibility")
+    public DonationEligibilityResponseDto getMyDonationEligibility(
+            Authentication authentication
+    ) {
+        return donationHistoryService.getMyDonationEligibility(
+                authentication.getName()
+        );
+    }
 }

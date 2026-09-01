@@ -80,6 +80,47 @@ public class AdminReservationSlotApiController {
         }
     }
 
+    /*
+     * ADMIN 예약 슬롯 기간 일괄 생성
+     *
+     * POST /api/admin/reservation-slots/bulk
+     */
+    @PostMapping("/bulk")
+    public ResponseEntity<?> createBulkSlots(
+            @RequestBody
+            AdminReservationSlotBulkCreateDto request
+    ) {
+
+        try {
+
+            AdminReservationSlotBulkResultDto result =
+                    reservationSlotService
+                            .createBulkSlots(
+                                    request
+                            );
+
+
+            return ResponseEntity.ok(
+                    result
+            );
+
+
+        } catch (
+                IllegalArgumentException
+                | IllegalStateException e
+        ) {
+
+            return ResponseEntity
+                    .badRequest()
+                    .body(
+                            Map.of(
+                                    "message",
+                                    e.getMessage()
+                            )
+                    );
+        }
+    }
+
     @GetMapping
     public ResponseEntity<?> getSlots(
             @RequestParam Long centerId,

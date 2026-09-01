@@ -501,7 +501,7 @@ function SignupPage() {
                   inputMode="numeric"
                   maxLength={8}
                   value={form.birthDate}
-                  placeholder="950730 또는 19950730"
+                  placeholder="450815 또는 19450815"
                   onChange={(event) => {
                     const value = event.target.value.replace(/\D/g, '')
                     updateField('birthDate', value)

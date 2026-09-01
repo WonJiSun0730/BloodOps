@@ -36,7 +36,8 @@
 .blood-unit-readonly-details b { color:var(--color-text-muted); font-size:.7rem; }
 .collection-date-fields { display:grid; grid-column:1/-1; grid-template-columns:repeat(2,minmax(0,1fr)); gap:16px; }
 .blood-unit-modal-actions { display:flex; grid-column:1/-1; justify-content:flex-end; gap:10px; padding-top:8px; }
-.field-error { color:#ff6b67; font-size:.72rem; font-weight:700; }.blood-units-page [aria-invalid="true"] { border-color:#e53935; box-shadow:0 0 0 1px #e53935; }
+.blood-unit-field-error { display:block; margin:0; color:#ff6b67; font-size:.72rem; font-weight:700; line-height:1.45; visibility:visible; }
+.blood-units-page [aria-invalid="true"] { border-color:var(--color-primary); box-shadow:0 0 0 1px var(--color-primary); }
 @media (max-width:1024px) { .blood-units-summary,.blood-units-filters { grid-template-columns:repeat(2,minmax(0,1fr)); } }
 @media (max-width:768px) {
   .blood-units-page { padding:32px 0 64px; }.blood-units-header { align-items:flex-start; flex-direction:column; }.blood-units-header .primary { width:100%; }

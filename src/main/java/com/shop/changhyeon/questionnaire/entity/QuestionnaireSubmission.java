@@ -64,6 +64,12 @@ public class QuestionnaireSubmission extends BaseEntity {
     @Column(nullable = false)
     private Double weightKg;
 
+    @Column(name = "contact_phone_snapshot", length = 30)
+    private String contactPhoneSnapshot;
+
+    @Column(name = "contact_email_snapshot", length = 255)
+    private String contactEmailSnapshot;
+
     @ElementCollection
     @CollectionTable(name = "questionnaire_answer", joinColumns = @JoinColumn(name = "submission_id"))
     @MapKeyColumn(name = "question_id", length = 80)

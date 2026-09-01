@@ -71,6 +71,10 @@ import MedicalMyPage
   from './pages/medical/MedicalMyPage.jsx'
 import MedicalDonationHistoryPage
   from './pages/medical/MedicalDonationHistoryPage.jsx'
+import MedicalQuestionnaireListPage
+  from './pages/medical/MedicalQuestionnaireListPage.jsx'
+import MedicalTodayReservationsPage
+  from './pages/medical/MedicalTodayReservationsPage.jsx'
 
 import AdminRoute
   from './components/AdminRoute.jsx'
@@ -129,7 +133,11 @@ function App() {
 
         <Route
           path="/reservations/new"
-          element={<ReservationCreatePage />}
+          element={
+            <MemberRoute>
+              <ReservationCreatePage />
+            </MemberRoute>
+          }
         />
 
         <Route
@@ -205,50 +213,15 @@ function App() {
         />
 
 
-        <Route
-          path="/mypage/medical"
-          element={
-            <MedicalRoute>
-              <MedicalMyPage />
-            </MedicalRoute>
-          }
-        />
-
-        <Route
-          path="/medical/blood_units_management"
-          element={
-            <MedicalRoute>
-              <BloodUnitsManagementPage />
-            </MedicalRoute>
-          }
-        />
-
-        <Route
-          path="/medical/donation_history"
-          element={
-            <MedicalRoute>
-              <MedicalDonationHistoryPage />
-            </MedicalRoute>
-          }
-        />
-
-        <Route
-          path="/medical/donor_identity"
-          element={
-            <MedicalRoute>
-              <DonorIdentityPage />
-            </MedicalRoute>
-          }
-        />
-
-        <Route
-          path="/medical/donor_check/:confirmationId"
-          element={
-            <MedicalRoute>
-              <DonorCheckPage />
-            </MedicalRoute>
-          }
-        />
+        <Route element={<MedicalRoute><MyPageLayout /></MedicalRoute>}>
+          <Route path="/mypage/medical" element={<MedicalMyPage />} />
+          <Route path="/medical/blood_units_management" element={<BloodUnitsManagementPage />} />
+          <Route path="/medical/donation_history" element={<MedicalDonationHistoryPage />} />
+          <Route path="/medical/donor_identity" element={<DonorIdentityPage />} />
+          <Route path="/medical/donor_check/:confirmationId" element={<DonorCheckPage />} />
+          <Route path="/medical/questionnaires" element={<MedicalQuestionnaireListPage />} />
+          <Route path="/medical/today-reservations" element={<MedicalTodayReservationsPage />} />
+        </Route>
 
 
         <Route

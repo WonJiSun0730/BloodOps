@@ -21,7 +21,7 @@ const myPageMenuGroups = [
     title: '마이페이지',
     items: [
       {
-        label: '마이페이지 홈',
+        label: 'HOME',
         to: '/mypage',
         end: true,
       },
@@ -33,12 +33,7 @@ const myPageMenuGroups = [
       {
         label: '헌혈기록',
         to: '/mypage/records',
-      },
-      {
-        label: '검사결과',
-        to: '/mypage/results',
-        disabled: true,
-      },
+      }
     ],
   },
   {
@@ -69,10 +64,32 @@ const myPageMenuGroups = [
   },
 ]
 
+const medicalMenuGroup = {
+  title: '의료진 업무',
+  items: [
+    { label: '의료진 HOME', to: '/mypage/medical', end: true },
+    { label: '당일 예약자', to: '/medical/today-reservations' },
+    { label: '전자문진 목록', to: '/medical/questionnaires' },
+    { label: '헌혈자 신분 확인', to: '/medical/donor_identity' },
+    { label: '전체 헌혈 기록', to: '/medical/donation_history' },
+    { label: '혈액 재고 관리', to: '/medical/blood_units_management' },
+  ],
+}
+
 
 function getCurrentPage(
   pathname
 ) {
+  const medicalPages = {
+    '/mypage/medical': '의료진 HOME',
+    '/medical/today-reservations': '당일 예약자',
+    '/medical/questionnaires': '전자문진 목록',
+    '/medical/donor_identity': '헌혈자 신분 확인',
+    '/medical/donation_history': '전체 헌혈 기록',
+    '/medical/blood_units_management': '혈액 재고 관리',
+  }
+  if (pathname.startsWith('/medical/donor_check/')) return { group: '의료진 업무', title: '헌혈자 정보 확인' }
+  if (medicalPages[pathname]) return { group: '의료진 업무', title: medicalPages[pathname] }
   if (
     pathname === '/mypage/records'
   ) {
@@ -115,7 +132,7 @@ function getCurrentPage(
 
   return {
     group: '',
-    title: '마이페이지',
+    title: 'HOME',
   }
 }
 
@@ -132,6 +149,7 @@ function MyPageLayout() {
     getCurrentPage(
       location.pathname
     )
+  const isMedicalPage = currentPage.group === '의료진 업무'
 
 
   useEffect(() => {
@@ -198,7 +216,7 @@ function MyPageLayout() {
         )}
 
         {currentPage.title
-          !== '마이페이지' && (
+          !== 'HOME' && (
           <>
             <span aria-hidden="true">
               ›
@@ -230,7 +248,7 @@ function MyPageLayout() {
             className="mypage-sidebar-navigation"
             aria-label="마이페이지 메뉴"
           >
-            {myPageMenuGroups.map(
+            {(canAccessMedical ? [...myPageMenuGroups, medicalMenuGroup] : myPageMenuGroups).map(
               (group) => (
                 <section
                   key={group.title}
@@ -279,11 +297,6 @@ function MyPageLayout() {
                               {item.label}
                             </span>
 
-                            <span
-                              aria-hidden="true"
-                            >
-                              →
-                            </span>
                           </NavLink>
                         )
                       }
@@ -294,33 +307,16 @@ function MyPageLayout() {
             )}
             </nav>
 
-            {canAccessMedical && (
-              <NavLink
-                to="/mypage/medical"
-                className="mypage-medical-link"
-              >
-                <span>
-                  의료인
-                </span>
-
-                <span aria-hidden="true">
-                  →
-                </span>
-              </NavLink>
-            )}
           </aside>
 
 
         <section className="mypage-content">
-          <header className="mypage-content-header">
-            <span>
-              MY BLOODOPS
-            </span>
-
-            <h2>
-              {currentPage.title}
-            </h2>
-          </header>
+          {!isMedicalPage && (
+            <header className="mypage-content-header">
+              <span>MY BLOODOPS</span>
+              <h2>{currentPage.title}</h2>
+            </header>
+          )}
 
           <Outlet />
         </section>

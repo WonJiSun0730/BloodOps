@@ -7,6 +7,7 @@ import {
   cancelAdminReservation,
   changeAdminReservationSlot,
   createAdminReservationSlots,
+  createAdminReservationSlotsBulk,
   deleteAdminReservationSlot,
   getAdminEquipmentGroups,
   getAdminReservation,
@@ -50,6 +51,52 @@ const donationTypes = [
   },
 ]
 
+const slotCreateModes = [
+  {
+    value: 'DAY',
+    label: '하루',
+  },
+  {
+    value: 'RANGE',
+    label: '기간',
+  },
+  {
+    value: 'MONTH',
+    label: '월 단위',
+  },
+]
+
+const weekDays = [
+  {
+    value: 'MONDAY',
+    label: '월',
+  },
+  {
+    value: 'TUESDAY',
+    label: '화',
+  },
+  {
+    value: 'WEDNESDAY',
+    label: '수',
+  },
+  {
+    value: 'THURSDAY',
+    label: '목',
+  },
+  {
+    value: 'FRIDAY',
+    label: '금',
+  },
+  {
+    value: 'SATURDAY',
+    label: '토',
+  },
+  {
+    value: 'SUNDAY',
+    label: '일',
+  },
+]
+
 function getTodayDateString() {
   const now = new Date()
 
@@ -60,6 +107,38 @@ function getTodayDateString() {
     String(now.getDate()).padStart(2, '0')
 
   return `${year}-${month}-${day}`
+}
+
+function getMonthDateRange(monthValue) {
+  if (!monthValue) {
+    return {
+      startDate: '',
+      endDate: '',
+    }
+  }
+
+  const [year, month] =
+    monthValue
+      .split('-')
+      .map(Number)
+
+  const startDate =
+    `${year}-${String(month).padStart(2, '0')}-01`
+
+  const lastDay =
+    new Date(
+      year,
+      month,
+      0
+    ).getDate()
+
+  const endDate =
+    `${year}-${String(month).padStart(2, '0')}-${String(lastDay).padStart(2, '0')}`
+
+  return {
+    startDate,
+    endDate,
+  }
 }
 
 function getReservationStatusValue(statusFilter) {
@@ -273,6 +352,44 @@ const [
 
   const [slotCreating, setSlotCreating] =
     useState(false)
+
+  const [slotCreateMode, setSlotCreateMode] =
+    useState('DAY')
+
+  const [slotRangeEndDate, setSlotRangeEndDate] =
+    useState('')
+
+  const [slotMonth, setSlotMonth] =
+    useState('')
+
+  const [
+    selectedBulkDonationTypes,
+    setSelectedBulkDonationTypes,
+  ] = useState([
+    'WHOLE_BLOOD',
+  ])
+
+  const [
+    selectedBulkDays,
+    setSelectedBulkDays,
+  ] = useState([
+    'MONDAY',
+    'TUESDAY',
+    'WEDNESDAY',
+    'THURSDAY',
+    'FRIDAY',
+    'SATURDAY',
+  ])
+
+  const [
+    useCenterOperatingHours,
+    setUseCenterOperatingHours,
+  ] = useState(true)
+
+  const [
+    bulkCreateResult,
+    setBulkCreateResult,
+  ] = useState(null)
 
   const [updatingSlotId, setUpdatingSlotId] =
     useState(null)
@@ -589,6 +706,257 @@ function handleReservationListScroll(event) {
       setSlotLoading(false)
     }
   }
+
+function handleBulkDonationTypeToggle(
+  donationType
+) {
+  setSelectedBulkDonationTypes(
+    (currentTypes) => {
+      if (
+        currentTypes.includes(
+          donationType
+        )
+      ) {
+        return currentTypes.filter(
+          (currentType) =>
+            currentType !== donationType
+        )
+      }
+
+      return [
+        ...currentTypes,
+        donationType,
+      ]
+    }
+  )
+}
+
+
+function handleBulkDayToggle(
+  day
+) {
+  setSelectedBulkDays(
+    (currentDays) => {
+      if (
+        currentDays.includes(day)
+      ) {
+        return currentDays.filter(
+          (currentDay) =>
+            currentDay !== day
+        )
+      }
+
+      return [
+        ...currentDays,
+        day,
+      ]
+    }
+  )
+}
+
+async function handleBulkSlotCreate() {
+  let startDate = ''
+  let endDate = ''
+
+  if (slotCreateMode === 'DAY') {
+    startDate = selectedDate
+    endDate = selectedDate
+  }
+
+  if (slotCreateMode === 'RANGE') {
+    startDate = selectedDate
+    endDate = slotRangeEndDate
+  }
+
+  if (slotCreateMode === 'MONTH') {
+    const monthRange =
+      getMonthDateRange(
+        slotMonth
+      )
+
+    startDate =
+      monthRange.startDate
+
+    endDate =
+      monthRange.endDate
+  }
+
+
+  if (!selectedCenterId) {
+    setSlotError(
+      '헌혈센터를 선택해주세요.'
+    )
+
+    return
+  }
+
+
+  if (!startDate || !endDate) {
+    setSlotError(
+      '예약 슬롯을 생성할 날짜를 선택해주세요.'
+    )
+
+    return
+  }
+
+
+  if (startDate < todayDate) {
+    setSlotError(
+      '지난 날짜에는 예약 슬롯을 생성할 수 없습니다.'
+    )
+
+    return
+  }
+
+
+  if (endDate < startDate) {
+    setSlotError(
+      '종료일은 시작일보다 빠를 수 없습니다.'
+    )
+
+    return
+  }
+
+
+  if (
+    selectedBulkDonationTypes.length === 0
+  ) {
+    setSlotError(
+      '헌혈 종류를 하나 이상 선택해주세요.'
+    )
+
+    return
+  }
+
+
+  if (
+    selectedBulkDays.length === 0
+  ) {
+    setSlotError(
+      '생성할 요일을 하나 이상 선택해주세요.'
+    )
+
+    return
+  }
+
+
+  if (
+    !useCenterOperatingHours
+    && (
+      !slotStartTime
+      || !slotEndTime
+    )
+  ) {
+    setSlotError(
+      '시작 시간과 종료 시간을 입력해주세요.'
+    )
+
+    return
+  }
+
+
+  if (
+    !useCenterOperatingHours
+    && slotStartTime >= slotEndTime
+  ) {
+    setSlotError(
+      '종료 시간은 시작 시간보다 늦어야 합니다.'
+    )
+
+    return
+  }
+
+
+  if (
+    Number(slotInterval) <= 0
+  ) {
+    setSlotError(
+      '슬롯 간격은 1분 이상이어야 합니다.'
+    )
+
+    return
+  }
+
+
+  try {
+    setSlotCreating(true)
+    setSlotError('')
+    setBulkCreateResult(null)
+    setDuplicateSlotTimes([])
+
+
+    const result =
+      await createAdminReservationSlotsBulk({
+        centerId:
+          Number(selectedCenterId),
+
+        startDate,
+
+        endDate,
+
+        donationTypes:
+          selectedBulkDonationTypes,
+
+        daysOfWeek:
+          selectedBulkDays,
+
+        useCenterHours:
+          useCenterOperatingHours,
+
+        customStartTime:
+          useCenterOperatingHours
+            ? null
+            : slotStartTime,
+
+        customEndTime:
+          useCenterOperatingHours
+            ? null
+            : slotEndTime,
+
+        intervalMinutes:
+          Number(slotInterval),
+      })
+
+
+    setBulkCreateResult(result)
+
+
+    /*
+     * 하루 생성이면 바로 아래 슬롯 목록도
+     * 다시 조회해서 결과를 보여줍니다.
+     */
+    if (
+      slotCreateMode === 'DAY'
+      && selectedBulkDonationTypes.length === 1
+    ) {
+      const donationType =
+        selectedBulkDonationTypes[0]
+
+      setSelectedDonationType(
+        donationType
+      )
+
+      const slotData =
+        await getAdminReservationSlots(
+          selectedCenterId,
+          selectedDate,
+          donationType
+        )
+
+      setSlots(slotData)
+      setSlotSearched(true)
+    }
+
+  } catch (error) {
+    setSlotError(
+      error.message
+      || '예약 슬롯 일괄 생성에 실패했습니다.'
+    )
+
+  } finally {
+    setSlotCreating(false)
+  }
+}
 
 async function handleSlotCreate() {
   if (selectedDate && selectedDate < todayDate) {
@@ -1289,52 +1657,372 @@ async function handleReservationCancel() {
         </div>
       )}
 
-      <div className="admin-slot-create">
+      <div className="admin-slot-bulk-create">
 
-        <label>
-          시작 시간
-          <input
-            type="time"
-            value={slotStartTime}
-            onChange={(event) =>
-              setSlotStartTime(event.target.value)
-            }
-          />
-        </label>
+        <div className="admin-slot-create-heading">
+          <div>
+            <strong>
+              예약 슬롯 생성
+            </strong>
 
-        <label>
-          종료 시간
-          <input
-            type="time"
-            value={slotEndTime}
-            onChange={(event) =>
-              setSlotEndTime(event.target.value)
-            }
-          />
-        </label>
+            <p>
+              하루 또는 기간을 지정해
+              예약 가능 시간을 생성합니다.
+            </p>
+          </div>
+        </div>
 
-        <label>
-          간격(분)
-          <input
-            type="number"
-            min="1"
-            value={slotInterval}
-            onChange={(event) =>
-              setSlotInterval(event.target.value)
-            }
-          />
-        </label>
+
+        <div className="admin-slot-create-field">
+
+          <span className="admin-slot-create-label">
+            생성 방식
+          </span>
+
+          <div className="admin-slot-create-options">
+            {slotCreateModes.map((mode) => (
+              <button
+                key={mode.value}
+                type="button"
+                className={
+                  slotCreateMode === mode.value
+                    ? 'selected'
+                    : ''
+                }
+                onClick={() => {
+                  setSlotCreateMode(
+                    mode.value
+                  )
+
+                  setBulkCreateResult(null)
+                  setSlotError('')
+                }}
+              >
+                {mode.label}
+              </button>
+            ))}
+          </div>
+
+        </div>
+
+
+        {slotCreateMode === 'DAY' && (
+          <div className="admin-slot-create-field">
+
+            <label>
+              생성 날짜
+
+              <input
+                type="date"
+                min={todayDate}
+                value={selectedDate}
+                onChange={(event) => {
+                  setSelectedDate(
+                    event.target.value
+                  )
+
+                  setBulkCreateResult(null)
+                }}
+              />
+            </label>
+
+          </div>
+        )}
+
+
+        {slotCreateMode === 'RANGE' && (
+          <div className="admin-slot-create-date-range">
+
+            <label>
+              시작일
+
+              <input
+                type="date"
+                min={todayDate}
+                value={selectedDate}
+                onChange={(event) => {
+                  setSelectedDate(
+                    event.target.value
+                  )
+
+                  setBulkCreateResult(null)
+                }}
+              />
+            </label>
+
+
+            <span>
+              ~
+            </span>
+
+
+            <label>
+              종료일
+
+              <input
+                type="date"
+                min={
+                  selectedDate
+                  || todayDate
+                }
+                value={slotRangeEndDate}
+                onChange={(event) => {
+                  setSlotRangeEndDate(
+                    event.target.value
+                  )
+
+                  setBulkCreateResult(null)
+                }}
+              />
+            </label>
+
+          </div>
+        )}
+
+
+        {slotCreateMode === 'MONTH' && (
+          <div className="admin-slot-create-field">
+
+            <label>
+              생성 월
+
+              <input
+                type="month"
+                value={slotMonth}
+                onChange={(event) => {
+                  setSlotMonth(
+                    event.target.value
+                  )
+
+                  setBulkCreateResult(null)
+                }}
+              />
+            </label>
+
+          </div>
+        )}
+
+
+        <div className="admin-slot-create-field">
+
+          <span className="admin-slot-create-label">
+            생성 요일
+          </span>
+
+          <div className="admin-slot-week-options">
+            {weekDays.map((day) => (
+              <button
+                key={day.value}
+                type="button"
+                className={
+                  selectedBulkDays.includes(
+                    day.value
+                  )
+                    ? 'selected'
+                    : ''
+                }
+                onClick={() =>
+                  handleBulkDayToggle(
+                    day.value
+                  )
+                }
+              >
+                {day.label}
+              </button>
+            ))}
+          </div>
+
+        </div>
+
+
+        <div className="admin-slot-create-field">
+
+          <span className="admin-slot-create-label">
+            헌혈 종류
+          </span>
+
+          <div className="admin-slot-donation-options">
+            {donationTypes.map((type) => (
+              <button
+                key={type.value}
+                type="button"
+                className={
+                  selectedBulkDonationTypes
+                    .includes(type.value)
+                    ? 'selected'
+                    : ''
+                }
+                onClick={() =>
+                  handleBulkDonationTypeToggle(
+                    type.value
+                  )
+                }
+              >
+                {type.label}
+              </button>
+            ))}
+          </div>
+
+        </div>
+
+
+        <div className="admin-slot-create-field">
+
+          <span className="admin-slot-create-label">
+            시간 설정
+          </span>
+
+          <div className="admin-slot-hours-mode">
+
+            <label>
+              <input
+                type="radio"
+                name="slotHoursMode"
+                checked={
+                  useCenterOperatingHours
+                }
+                onChange={() =>
+                  setUseCenterOperatingHours(
+                    true
+                  )
+                }
+              />
+
+              센터 운영시간 사용
+            </label>
+
+
+            <label>
+              <input
+                type="radio"
+                name="slotHoursMode"
+                checked={
+                  !useCenterOperatingHours
+                }
+                onChange={() =>
+                  setUseCenterOperatingHours(
+                    false
+                  )
+                }
+              />
+
+              직접 설정
+            </label>
+
+          </div>
+
+
+          {useCenterOperatingHours ? (
+            <p className="admin-slot-hours-guide">
+              센터 관리에 등록된 요일별 운영시간을
+              자동으로 사용합니다. 휴무일은 생성하지 않습니다.
+            </p>
+          ) : (
+            <div className="admin-slot-create-date-range">
+
+              <label>
+                시작 시간
+
+                <input
+                  type="time"
+                  value={slotStartTime}
+                  onChange={(event) =>
+                    setSlotStartTime(
+                      event.target.value
+                    )
+                  }
+                />
+              </label>
+
+
+              <span>
+                ~
+              </span>
+
+
+              <label>
+                종료 시간
+
+                <input
+                  type="time"
+                  value={slotEndTime}
+                  onChange={(event) =>
+                    setSlotEndTime(
+                      event.target.value
+                    )
+                  }
+                />
+              </label>
+
+            </div>
+          )}
+
+        </div>
+
+
+        <div className="admin-slot-create-field">
+
+          <label>
+            슬롯 간격
+
+            <div className="admin-slot-interval-input">
+              <input
+                type="number"
+                min="1"
+                value={slotInterval}
+                onChange={(event) =>
+                  setSlotInterval(
+                    event.target.value
+                  )
+                }
+              />
+
+              <span>
+                분
+              </span>
+            </div>
+          </label>
+
+        </div>
+
 
         <button
           type="button"
-          className="admin-row-action"
-          onClick={handleSlotCreate}
+          className="admin-slot-bulk-submit"
+          onClick={handleBulkSlotCreate}
           disabled={slotCreating}
         >
           {slotCreating
             ? '생성 중...'
-            : '슬롯 일괄 생성'}
+            : '예약 슬롯 일괄 생성'}
         </button>
+
+
+        {bulkCreateResult && (
+          <div className="admin-slot-create-result">
+
+            <strong>
+              슬롯 생성 완료
+            </strong>
+
+            <span>
+              신규 {bulkCreateResult.createdCount ?? 0}개
+            </span>
+
+            <span>
+              중복 제외 {
+                bulkCreateResult.duplicateSkippedCount ?? 0
+              }개
+            </span>
+
+            <span>
+              휴무일 {
+                bulkCreateResult.closedDateCount ?? 0
+              }일 제외
+            </span>
+
+          </div>
+        )}
 
       </div>
 

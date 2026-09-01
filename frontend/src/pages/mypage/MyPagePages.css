@@ -200,7 +200,16 @@
   font-size: 0.76rem;
 }
 
-.mypage-data-header > span {
+.mypage-record-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
+
+  flex-wrap: wrap;
+}
+
+.mypage-record-toolbar > span {
   padding: 6px 10px;
 
   border-radius: 999px;
@@ -216,6 +225,65 @@
 
   font-size: 0.72rem;
   font-weight: 800;
+
+  white-space: nowrap;
+}
+
+.mypage-period-filter {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+
+  flex-wrap: wrap;
+}
+
+.mypage-period-filter button {
+  min-height: 30px;
+
+  padding: 5px 9px;
+
+  border:
+    1px solid
+    var(--color-border);
+
+  border-radius: 999px;
+
+  color: var(--color-text-muted);
+
+  background: var(--color-background);
+
+  font: inherit;
+  font-size: 0.7rem;
+  font-weight: 750;
+
+  cursor: pointer;
+
+  transition:
+    border-color 0.18s ease,
+    color 0.18s ease,
+    background 0.18s ease;
+
+  appearance: none;
+  -webkit-appearance: none;
+}
+
+.mypage-period-filter button:hover {
+  border-color:
+    color-mix(
+      in srgb,
+      var(--color-primary) 45%,
+      var(--color-border)
+    );
+
+  color: var(--color-primary);
+}
+
+.mypage-period-filter button.active {
+  border-color: var(--color-primary);
+
+  color: #fff;
+
+  background: var(--color-primary);
 }
 
 
@@ -245,15 +313,55 @@
   background: var(--color-background);
 }
 
-.mypage-table-header span {
+.mypage-table-header span,
+.mypage-table-header button {
+  display: flex;
+
   padding: 13px 10px;
 
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+
+  border: 0;
+
   color: var(--color-text-muted);
+  background: transparent;
 
   text-align: center;
 
+  font: inherit;
   font-size: 0.72rem;
   font-weight: 800;
+
+  appearance: none;
+  -webkit-appearance: none;
+  background-color: transparent;
+}
+
+.mypage-table-header button {
+  cursor: pointer;
+
+  transition:
+    color 0.18s ease,
+    background 0.18s ease;
+}
+
+.mypage-table-header button:hover {
+  color: var(--color-primary);
+
+  background:
+    color-mix(
+      in srgb,
+      var(--color-primary) 4%,
+      transparent
+    );
+}
+
+.mypage-table-header button b {
+  color: var(--color-primary);
+
+  font-size: 0.7rem;
 }
 
 .mypage-table-body {
@@ -304,28 +412,78 @@
   text-align: left;
 }
 
-.mypage-result-pending {
+.mypage-favorite-button {
   display: inline-flex;
-  min-height: 28px;
 
-  padding: 0 9px;
+  width: 34px;
+  height: 34px;
 
   align-items: center;
+  justify-content: center;
 
   border:
     1px solid
     var(--color-border);
 
-  border-radius: 999px;
+  border-radius: 50%;
 
   color: var(--color-text-muted);
 
   background: var(--color-background);
 
-  font-size: 0.68rem;
-  font-weight: 750;
+  font: inherit;
+  font-size: 1.15rem;
 
-  white-space: nowrap;
+  cursor: pointer;
+
+  transition:
+    color 0.18s ease,
+    border-color 0.18s ease,
+    background 0.18s ease,
+    transform 0.18s ease;
+}
+
+.mypage-favorite-button:hover {
+  border-color:
+    color-mix(
+      in srgb,
+      var(--color-primary) 55%,
+      var(--color-border)
+    );
+
+  color: var(--color-primary);
+
+  background:
+    color-mix(
+      in srgb,
+      var(--color-primary) 6%,
+      var(--color-background)
+    );
+
+  transform: translateY(-1px);
+}
+
+.mypage-favorite-button.active {
+  border-color:
+    color-mix(
+      in srgb,
+      var(--color-primary) 55%,
+      var(--color-border)
+    );
+
+  color: var(--color-primary);
+
+  background:
+    color-mix(
+      in srgb,
+      var(--color-primary) 8%,
+      var(--color-background)
+    );
+}
+
+.mypage-favorite-button:disabled {
+  cursor: wait;
+  opacity: 0.55;
 }
 
 .mypage-record-error {
@@ -388,6 +546,176 @@
   line-height: 1.6;
 }
 
+.mypage-favorite-section {
+  overflow: hidden;
+  border: 1px solid var(--color-border);
+  border-radius: 18px;
+  background: var(--color-surface);
+}
+
+.mypage-favorite-header {
+  display: flex;
+  padding: 22px;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.mypage-favorite-header > div > span {
+  color: var(--color-primary);
+  font-size: 0.68rem;
+  font-weight: 850;
+  letter-spacing: 0.12em;
+}
+
+.mypage-favorite-header h3 {
+  margin: 5px 0 0;
+  color: var(--color-text);
+  font-size: 1.05rem;
+}
+
+.mypage-favorite-header p {
+  margin: 7px 0 0;
+  color: var(--color-text-muted);
+  font-size: 0.78rem;
+  line-height: 1.6;
+}
+
+.mypage-favorite-count {
+  flex-shrink: 0;
+  padding: 6px 10px;
+  border-radius: 999px;
+  color: var(--color-primary);
+  background:
+    color-mix(
+      in srgb,
+      var(--color-primary) 8%,
+      var(--color-background)
+    );
+  font-size: 0.72rem;
+  font-weight: 800;
+}
+
+.mypage-favorite-list {
+  display: grid;
+  padding: 12px;
+  gap: 8px;
+}
+
+.mypage-favorite-center-card {
+  display: flex;
+  min-width: 0;
+  padding: 14px 16px;
+  align-items: center;
+  gap: 14px;
+  border: 1px solid transparent;
+  border-radius: 12px;
+  color: inherit;
+  text-decoration: none;
+  transition:
+    border-color 0.18s ease,
+    background 0.18s ease,
+    transform 0.18s ease;
+}
+
+.mypage-favorite-center-card:hover {
+  border-color:
+    color-mix(
+      in srgb,
+      var(--color-primary) 30%,
+      var(--color-border)
+    );
+  background:
+    color-mix(
+      in srgb,
+      var(--color-primary) 4%,
+      var(--color-background)
+    );
+  transform: translateY(-1px);
+}
+
+.mypage-favorite-center-icon {
+  display: flex;
+  width: 38px;
+  height: 38px;
+  flex: 0 0 38px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  color: var(--color-primary);
+  background:
+    color-mix(
+      in srgb,
+      var(--color-primary) 9%,
+      var(--color-background)
+    );
+  font-size: 1rem;
+}
+
+.mypage-favorite-center-info {
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.mypage-favorite-center-info strong {
+  overflow: hidden;
+  color: var(--color-text);
+  font-size: 0.88rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.mypage-favorite-center-info span {
+  overflow: hidden;
+  color: var(--color-text-muted);
+  font-size: 0.72rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.mypage-favorite-center-action {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: 7px;
+  color: var(--color-primary);
+  font-size: 0.75rem;
+  font-weight: 800;
+}
+
+.mypage-favorite-empty {
+  padding: 30px 22px;
+  color: var(--color-text-muted);
+  text-align: center;
+  font-size: 0.78rem;
+}
+
+.mypage-favorite-empty strong {
+  display: block;
+  margin-bottom: 7px;
+  color: var(--color-text);
+  font-size: 0.86rem;
+}
+
+.mypage-favorite-empty p {
+  margin: 0 0 14px;
+}
+
+.mypage-favorite-empty-link {
+  display: inline-flex;
+  padding: 8px 12px;
+  border: 1px solid var(--color-border);
+  border-radius: 9px;
+  color: var(--color-primary);
+  text-decoration: none;
+  font-size: 0.74rem;
+  font-weight: 800;
+}
+
 
 /* Tablet */
 
@@ -417,6 +745,18 @@
   .mypage-service-card {
     min-height: 110px;
   }
+
+  .mypage-data-header {
+    align-items: flex-start;
+  }
+
+  .mypage-record-toolbar {
+    justify-content: flex-end;
+  }
+
+  .mypage-period-filter {
+    justify-content: flex-end;
+  }
 }
 
 
@@ -433,8 +773,250 @@
     flex-direction: column;
   }
 
+  .mypage-record-toolbar {
+    width: 100%;
+
+    align-items: flex-start;
+    justify-content: flex-start;
+    flex-direction: column;
+  }
+
+  .mypage-period-filter {
+    width: 100%;
+
+    justify-content: flex-start;
+  }
+
   .mypage-empty-state {
     min-height: 210px;
     padding: 24px 18px;
+  }
+
+  .mypage-favorite-header {
+    flex-direction: column;
+  }
+
+  .mypage-favorite-center-card {
+    align-items: flex-start;
+  }
+
+  .mypage-favorite-center-action {
+    margin-left: auto;
+  }
+
+  .mypage-favorite-center-info span {
+    white-space: normal;
+  }
+}
+
+/* ================================
+   헌혈 가능 현황
+   ================================ */
+
+.donation-eligibility-section {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+
+  margin-bottom: 24px;
+  padding: 22px;
+
+  border: 1px solid var(--color-border);
+  border-radius: 18px;
+
+  background:
+    color-mix(
+      in srgb,
+      var(--color-primary) 3%,
+      var(--color-surface)
+    );
+}
+
+.donation-eligibility-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.donation-eligibility-heading span {
+  display: block;
+
+  margin-bottom: 5px;
+
+  color: var(--color-primary);
+
+  font-size: 0.66rem;
+  font-weight: 850;
+  letter-spacing: 0.11em;
+}
+
+.donation-eligibility-heading h3 {
+  margin: 0;
+
+  color: var(--color-text);
+
+  font-size: 1.05rem;
+  letter-spacing: -0.02em;
+}
+
+.donation-eligibility-heading p {
+  margin: 6px 0 0;
+
+  color: var(--color-text-muted);
+
+  font-size: 0.76rem;
+  line-height: 1.55;
+}
+
+.donation-eligibility-grid {
+  display: grid;
+
+  grid-template-columns:
+    repeat(
+      4,
+      minmax(0, 1fr)
+    );
+
+  gap: 12px;
+}
+
+.donation-eligibility-card {
+  display: flex;
+  min-width: 0;
+
+  padding: 16px;
+
+  border:
+    1px solid
+    color-mix(
+      in srgb,
+      var(--color-primary) 10%,
+      var(--color-border)
+    );
+
+  border-radius: 14px;
+
+  flex-direction: column;
+  gap: 10px;
+
+  background: var(--color-surface);
+
+  transition:
+    border-color 0.18s ease,
+    transform 0.18s ease,
+    box-shadow 0.18s ease;
+}
+
+.donation-eligibility-card:hover {
+  border-color:
+    color-mix(
+      in srgb,
+      var(--color-primary) 30%,
+      var(--color-border)
+    );
+
+  transform: translateY(-2px);
+
+  box-shadow:
+    0 10px 22px
+    color-mix(
+      in srgb,
+      #000 9%,
+      transparent
+    );
+}
+
+.donation-eligibility-type {
+  color: var(--color-text-muted);
+
+  font-size: 0.72rem;
+  font-weight: 800;
+}
+
+.donation-eligibility-card > strong {
+  color: var(--color-text);
+
+  font-size: 1rem;
+  letter-spacing: -0.02em;
+}
+
+.donation-eligibility-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+
+  margin-top: auto;
+
+  color: var(--color-text-muted);
+
+  font-size: 0.68rem;
+}
+
+.donation-eligibility-meta b {
+  color: var(--color-text);
+
+  font-size: 0.72rem;
+}
+
+.donation-eligibility-progress {
+  overflow: hidden;
+
+  height: 5px;
+
+  border-radius: 999px;
+
+  background:
+    color-mix(
+      in srgb,
+      var(--color-text-muted) 14%,
+      transparent
+    );
+}
+
+.donation-eligibility-progress > span {
+  display: block;
+
+  height: 100%;
+
+  border-radius: inherit;
+
+  background: var(--color-primary);
+
+  transition:
+    width 0.25s ease;
+}
+
+.donation-eligibility-note {
+  margin-top: auto;
+
+  color: var(--color-text-muted);
+
+  font-size: 0.68rem;
+  font-weight: 700;
+}
+
+@media (max-width: 1024px) {
+  .donation-eligibility-grid {
+    grid-template-columns:
+      repeat(
+        2,
+        minmax(0, 1fr)
+      );
+  }
+}
+
+@media (max-width: 480px) {
+  .donation-eligibility-section {
+    padding: 16px;
+  }
+
+  .donation-eligibility-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .donation-eligibility-card {
+    padding: 14px;
   }
 }
