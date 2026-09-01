@@ -20,6 +20,10 @@ const initialForm = {
   signatureData: '',
 }
 
+const KOREA_TODAY = new Date(
+  Date.now() + (9 * 60 * 60 * 1000),
+).toISOString().slice(0, 10)
+
 const questionnaireLabels = {
   feeling_well: '오늘 몸 상태가 양호합니까?',
   recent_donation: '최근 헌혈 후 필요한 헌혈 간격이 지났습니까?',
@@ -223,7 +227,7 @@ function DonorCheckPage() {
           <h2>1. 헌혈자 정보 확인 및 변경</h2>
           <div className="donor-grid two">
             <label>성명<input name="donorName" value={form.donorName} onChange={changeField} required /></label>
-            <label>생년월일<input name="donorBirth" type="date" max={new Date(Date.now() + (9 * 60 * 60 * 1000)).toISOString().slice(0, 10)} value={form.donorBirth} onChange={changeField} required /></label>
+            <label>생년월일<input name="donorBirth" type="date" max={KOREA_TODAY} value={form.donorBirth} onChange={changeField} required /></label>
           </div>
           <div className="donor-grid three">
             <label>신장 (cm)<input name="height" type="number" step="0.1" value={form.height} onChange={changeField} /></label>
@@ -252,10 +256,20 @@ function DonorCheckPage() {
               {questionnaire.identityVerified ? ' 신분 확인 완료' : ' 신분 확인 전'}
             </p>
             <table>
-              <thead><tr><th>문진 항목</th><th>응답</th></tr></thead>
+              <thead><tr><th>문진 항목</th><th>응답 및 상세내용</th></tr></thead>
               <tbody>
                 {Object.entries(questionnaire.answers).map(([questionId, answer]) => (
-                  <tr key={questionId}><td>{questionnaireLabels[questionId] ?? questionId}</td><td className="answer">{answer === 'YES' ? '예' : '아니요'}</td></tr>
+                  <tr key={questionId}>
+                    <td>{questionnaireLabels[questionId] ?? questionId}</td>
+                    <td className={`answer ${answer === 'NO' ? 'is-review' : ''}`}>
+                      <strong>{answer === 'YES' ? '예' : '아니요'}</strong>
+                      {answer === 'NO' && questionnaire.answerDetails?.[questionId] && (
+                        <p className="questionnaire-answer-detail">
+                          {questionnaire.answerDetails[questionId]}
+                        </p>
+                      )}
+                    </td>
+                  </tr>
                 ))}
               </tbody>
             </table>
