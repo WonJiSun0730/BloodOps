@@ -130,9 +130,6 @@ function MyPageHomePage() {
                 </p>
               </div>
 
-              <span aria-hidden="true">
-                →
-              </span>
             </Link>
           )
         )}
@@ -229,9 +226,6 @@ function MyPageHomePage() {
 
                   <div className="mypage-favorite-center-action">
                     예약하기
-                    <span aria-hidden="true">
-                      →
-                    </span>
                   </div>
                 </Link>
               )
