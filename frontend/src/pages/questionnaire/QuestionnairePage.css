@@ -145,7 +145,7 @@
 }
 
 
-.field-error {
+.questionnaire-page .field-error {
   display: block;
   color: #ff6b67;
   font-size: .82rem;
@@ -154,7 +154,7 @@
   visibility: hidden;
 }
 
-.field-error.is-visible {
+.questionnaire-page .field-error.is-visible {
   visibility: visible;
 }
 
