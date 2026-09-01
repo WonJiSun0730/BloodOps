@@ -52,7 +52,10 @@ public class SecurityConfig {
                                 "/api/members/check-email",
                                 // 비회원도 전자문진 문항 조회와 제출 가능
                                 "/api/questionnaires/questions",
-                                "/api/questionnaires"
+                                "/api/questionnaires",
+
+                                // 사이트 이용 안내 AI 챗봇
+                                "/api/chatbot/**"
                         ).permitAll()
                         // 비회원도 헌혈센터 목록과 상세 정보를 조회할 수 있습니다.
                         .requestMatchers(

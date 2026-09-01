@@ -1249,3 +1249,28 @@ export async function removeFavoriteCenter(
     }
   )
 }
+
+/*
+ * BloodOps AI 챗봇에 질문을 전송합니다.
+ */
+export async function sendChatbotMessage(
+  message
+) {
+  const csrf = await getCsrfToken()
+
+  return apiRequest(
+    '/api/chatbot/messages',
+    {
+      method: 'POST',
+
+      headers: {
+        'Content-Type': 'application/json',
+        [csrf.headerName]: csrf.token,
+      },
+
+      body: JSON.stringify({
+        message,
+      }),
+    }
+  )
+}

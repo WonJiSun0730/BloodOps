@@ -15,6 +15,9 @@ import Header
 import Footer
   from '../components/footer/Footer.jsx'
 
+import ChatbotWidget
+  from '../components/chatbot/ChatbotWidget.jsx'
+
 import {
   getCurrentUser,
 } from '../api/apiClient.js'
@@ -128,6 +131,7 @@ function MainLayout() {
       </div>
 
       <Footer />
+      <ChatbotWidget />
     </div>
   )
 }
