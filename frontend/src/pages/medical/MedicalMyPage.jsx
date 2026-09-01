@@ -70,7 +70,6 @@ function MedicalMyPage() {
           </div>
           <button type="button" onClick={openQuestionnaire}>
             문진 확인하기
-            <span aria-hidden="true">→</span>
           </button>
         </article>
 
@@ -81,7 +80,7 @@ function MedicalMyPage() {
             <h2>당일 헌혈 예약자</h2>
             <p>오늘 방문 예정자를 확인하고 실제 헌혈이 끝난 예약을 완료 처리합니다.</p>
           </div>
-          <button type="button" onClick={() => navigate('/medical/today-reservations')}>당일 예약자 보기<span aria-hidden="true">→</span></button>
+          <button type="button" onClick={() => navigate('/medical/today-reservations')}>당일 예약자 보기</button>
         </article>
 
         <article className="medical-service-card">
@@ -91,7 +90,7 @@ function MedicalMyPage() {
             <h2>전자문진 작성자 목록</h2>
             <p>제출된 전자문진 작성자를 최신순으로 조회하고 확인이 필요한 내용을 살펴봅니다.</p>
           </div>
-          <button type="button" onClick={() => navigate('/medical/questionnaires')}>작성자 목록 보기<span aria-hidden="true">→</span></button>
+          <button type="button" onClick={() => navigate('/medical/questionnaires')}>작성자 목록 보기</button>
         </article>
 
         <article className="medical-service-card">
@@ -110,7 +109,6 @@ function MedicalMyPage() {
             onClick={() => navigate('/medical/blood_units_management')}
           >
             재고 관리하기
-            <span aria-hidden="true">→</span>
           </button>
         </article>
 
@@ -132,7 +130,6 @@ function MedicalMyPage() {
             onClick={() => navigate('/medical/donation_history')}
           >
             헌혈 기록 보기
-            <span aria-hidden="true">→</span>
           </button>
         </article>
       </section>

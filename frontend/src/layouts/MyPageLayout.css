@@ -129,7 +129,7 @@
   padding: 0 12px;
 
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-start;
   gap: 10px;
 
   border-radius: 8px;
@@ -160,10 +160,6 @@
 .mypage-menu-link.active {
   color: #fff;
   background: var(--color-primary);
-}
-
-.mypage-menu-link > span:last-child {
-  font-size: 0.75rem;
 }
 
 .mypage-menu-link.disabled {
@@ -204,53 +200,6 @@
   > span:last-child {
   font-size: 0.62rem;
   font-weight: 750;
-}
-
-
-/* 의료인 화면 이동 */
-
-.mypage-medical-link {
-  display: flex;
-  min-height: 44px;
-
-  margin-top: 18px;
-  padding: 0 14px;
-
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-
-  border:
-    1px solid
-    var(--color-border);
-
-  border-radius: 10px;
-
-  color: var(--color-text);
-  background: var(--color-surface);
-
-  font-size: 0.8rem;
-  font-weight: 800;
-
-  text-decoration: none;
-
-  transition:
-    border-color 0.18s ease,
-    color 0.18s ease,
-    background-color 0.18s ease;
-}
-
-.mypage-medical-link:hover {
-  border-color: var(--color-primary);
-
-  color: var(--color-primary);
-
-  background:
-    color-mix(
-      in srgb,
-      var(--color-primary) 5%,
-      var(--color-surface)
-    );
 }
 
 
@@ -317,11 +266,7 @@
   .mypage-sidebar-navigation {
     display: grid;
 
-    grid-template-columns:
-      repeat(
-        3,
-        minmax(0, 1fr)
-      );
+    grid-template-columns: 1fr;
 
     gap: 8px;
 
@@ -347,9 +292,6 @@
     padding-inline: 10px;
   }
 
-  .mypage-medical-link {
-    margin-top: 10px;
-  }
 }
 
 

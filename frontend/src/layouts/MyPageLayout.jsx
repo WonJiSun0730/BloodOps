@@ -149,6 +149,7 @@ function MyPageLayout() {
     getCurrentPage(
       location.pathname
     )
+  const isMedicalPage = currentPage.group === '의료진 업무'
 
 
   useEffect(() => {
@@ -296,11 +297,6 @@ function MyPageLayout() {
                               {item.label}
                             </span>
 
-                            <span
-                              aria-hidden="true"
-                            >
-                              →
-                            </span>
                           </NavLink>
                         )
                       }
@@ -311,33 +307,16 @@ function MyPageLayout() {
             )}
             </nav>
 
-            {canAccessMedical && (
-              <NavLink
-                to="/mypage/medical"
-                className="mypage-medical-link"
-              >
-                <span>
-                  의료인
-                </span>
-
-                <span aria-hidden="true">
-                  →
-                </span>
-              </NavLink>
-            )}
           </aside>
 
 
         <section className="mypage-content">
-          <header className="mypage-content-header">
-            <span>
-              MY BLOODOPS
-            </span>
-
-            <h2>
-              {currentPage.title}
-            </h2>
-          </header>
+          {!isMedicalPage && (
+            <header className="mypage-content-header">
+              <span>MY BLOODOPS</span>
+              <h2>{currentPage.title}</h2>
+            </header>
+          )}
 
           <Outlet />
         </section>

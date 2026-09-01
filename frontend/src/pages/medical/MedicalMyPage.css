@@ -1,7 +1,6 @@
 .medical-my-page {
-  width: min(calc(100% - (var(--page-padding) * 2)), 1440px);
-  margin-inline: auto;
-  padding: 48px 0 80px;
+  width: 100%;
+  padding: 0 0 80px;
 }
 
 .medical-my-page__header {
@@ -115,7 +114,7 @@
   border: 0;
   border-radius: 9px;
   align-items: center;
-  justify-content: space-between;
+  justify-content: center;
   color: #fff;
   background: var(--color-primary);
   font-weight: 800;
@@ -139,10 +138,6 @@
 }
 
 @media (max-width: 1024px) {
-  .medical-my-page {
-    padding-top: 40px;
-  }
-
   .medical-service-card {
     min-height: 300px;
   }
@@ -150,7 +145,7 @@
 
 @media (max-width: 768px) {
   .medical-my-page {
-    padding: 32px 0 64px;
+    padding: 0 0 64px;
   }
 
   .medical-my-page__header {
@@ -173,10 +168,6 @@
 }
 
 @media (max-width: 480px) {
-  .medical-my-page {
-    padding-top: 24px;
-  }
-
   .medical-service-card {
     padding: 18px;
     border-radius: 14px;
