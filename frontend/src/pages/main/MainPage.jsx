@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 
 import {
+  getBloodStockStatus,
   getCenterMapCenters,
 } from '../../api/apiClient.js'
 
@@ -26,6 +27,7 @@ import './MainPage.css'
 
 import BackgroundOrbit
   from '../../components/decorations/BackgroundOrbit.jsx'
+import LiquidBloodDrop from './LiquidBloodDrop.jsx'
 
 
 /*
@@ -69,36 +71,21 @@ const heroBanners = [
 ]
 
 
-/*
- * 혈액 보유량 임시 데이터
- *
- * stockDays 부분이 나중에
- * 크롤링/API 응답으로 교체될 부분입니다.
- */
-const bloodStatusData = {
+const emptyBloodStatus = {
   redBloodCell: {
-    label: '적혈구',
-    totalDays: 4.6,
-    updatedAt: '2026.08.19 기준',
-    stockDays: [
-      { type: 'A', days: 3.0 },
-      { type: 'B', days: 7.0 },
-      { type: 'O', days: 4.5 },
-      { type: 'AB', days: 4.6 },
-    ],
+    label: '적혈구제제',
+    metricUnit: '일',
+    total: { value: 0 },
+    bloodTypes: {},
   },
-
-  platelet: {
-    label: '혈소판',
-    totalDays: 3.8,
-    updatedAt: '2026.08.19 기준',
-    stockDays: [
-      { type: 'A', days: 3.5 },
-      { type: 'B', days: 4.2 },
-      { type: 'O', days: 3.1 },
-      { type: 'AB', days: 4.4 },
-    ],
+  apheresisPlatelet: {
+    label: '성분채혈혈소판',
+    metricUnit: '%',
+    total: { value: 0 },
+    bloodTypes: {},
   },
+  updatedAt: null,
+  crisis: null,
 }
 
 const mainServices = [
@@ -339,6 +326,15 @@ function MainPage() {
   const [bloodType, setBloodType] =
     useState('redBloodCell')
 
+  const [bloodStatus, setBloodStatus] =
+    useState(emptyBloodStatus)
+
+  const [bloodStatusLoading, setBloodStatusLoading] =
+    useState(true)
+
+  const [bloodStatusError, setBloodStatusError] =
+    useState('')
+
   const [activeNewsTab, setActiveNewsTab] =
     useState('새소식')
 
@@ -383,11 +379,56 @@ function MainPage() {
   }, [])
 
 
+  useEffect(() => {
+    let active = true
+
+    async function loadBloodStatus() {
+      try {
+        const data = await getBloodStockStatus()
+
+        if (active) {
+          setBloodStatus(data)
+          setBloodStatusError('')
+        }
+      } catch {
+        if (active) {
+          setBloodStatusError(
+            '혈액 보유현황을 불러오지 못했습니다.'
+          )
+        }
+      } finally {
+        if (active) {
+          setBloodStatusLoading(false)
+        }
+      }
+    }
+
+    loadBloodStatus()
+
+    return () => {
+      active = false
+    }
+  }, [])
+
   const currentBanner =
     heroBanners[activeBanner]
 
   const currentBloodStatus =
-    bloodStatusData[bloodType]
+    bloodStatus[bloodType]
+
+  const bloodTypeMetrics =
+    Object.entries(
+      currentBloodStatus.bloodTypes || {}
+    ).map(([type, metric]) => ({
+      type,
+      ...metric,
+    }))
+
+  const updatedAt = bloodStatus.updatedAt
+    ? `${new Intl.DateTimeFormat('ko-KR', {
+        dateStyle: 'medium',
+      }).format(new Date(bloodStatus.updatedAt))} 기준`
+    : '조회 중'
 
 
   function showPreviousBanner() {
@@ -576,7 +617,7 @@ function MainPage() {
             </div>
 
             <span className="blood-status-date">
-              {currentBloodStatus.updatedAt}
+              {updatedAt}
             </span>
           </div>
 
@@ -610,18 +651,18 @@ function MainPage() {
               type="button"
               role="tab"
               className={
-                bloodType === 'platelet'
+                bloodType === 'apheresisPlatelet'
                   ? 'active'
                   : ''
               }
               aria-selected={
-                bloodType === 'platelet'
+                bloodType === 'apheresisPlatelet'
               }
               onClick={() =>
-                setBloodType('platelet')
+                setBloodType('apheresisPlatelet')
               }
             >
-              혈소판
+              성분채혈혈소판
             </button>
           </div>
 
@@ -635,41 +676,85 @@ function MainPage() {
               </span>
 
               <strong>
-                {currentBloodStatus.totalDays}
+                {bloodStatusLoading
+                  ? '-'
+                  : currentBloodStatus.total.value}
               </strong>
 
               <span>
-                일
+                {currentBloodStatus.metricUnit}
               </span>
             </div>
 
-            <p>
-              안정적인 혈액 수급을 위해
-              여러분의 참여가 필요합니다.
-            </p>
+            {bloodType === 'redBloodCell'
+              && bloodStatus.crisis ? (
+              <p
+                className={
+                  `blood-crisis-message blood-crisis-message--${bloodStatus.crisis.level}`
+                }
+              >
+                혈액 수급 위기 단계 기준<br />
+                [{bloodStatus.crisis.criterion}]{' '}
+                <strong>
+                  {bloodStatus.crisis.level}
+                </strong>{' '}
+                단계 입니다!<br />
+                (적정 혈액 보유량 5일분 이상)
+              </p>
+            ) : (
+              <p>
+                현재 혈액보유량 ÷ 1일 소요량으로
+                계산한 보유율입니다.
+              </p>
+            )}
+
+            {bloodStatusError && (
+              <p className="blood-status-error" role="alert">
+                {bloodStatusError}
+              </p>
+            )}
           </div>
 
 
           {/* 혈액형별 보유량 */}
 
           <div className="blood-type-grid">
-            {currentBloodStatus.stockDays.map(
+            {bloodTypeMetrics.map(
               (blood) => (
                 <div
-                  className="blood-type-item"
+                  className={
+                    `blood-type-item ${
+                      bloodType === 'redBloodCell'
+                        ? 'blood-type-item--visualized'
+                        : 'blood-type-item--plain'
+                    }`
+                  }
                   key={blood.type}
+                  aria-label={
+                    `${blood.type}형 ${blood.value}${currentBloodStatus.metricUnit}`
+                  }
                 >
-                  <span className="blood-type-name">
-                    {blood.type}
-                  </span>
+                  {bloodType === 'redBloodCell' ? (
+                    <LiquidBloodDrop
+                      bloodType={blood.type}
+                      value={blood.value}
+                    />
+                  ) : (
+                    <span
+                      className="blood-type-name-plain"
+                      aria-hidden="true"
+                    >
+                      {blood.type}
+                    </span>
+                  )}
 
-                  <div>
+                  <div className="blood-type-value">
                     <strong>
-                      {blood.days}
+                      {blood.value}
                     </strong>
 
                     <span>
-                      DAY
+                      {currentBloodStatus.metricUnit}
                     </span>
                   </div>
                 </div>

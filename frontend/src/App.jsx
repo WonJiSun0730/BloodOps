@@ -11,6 +11,8 @@ import MyPageLayout
 
 import MainPage
   from './pages/main/MainPage.jsx'
+import BloodStatusPage
+  from './pages/blood-status/BloodStatusPage.jsx'
 
 import LoginPage
   from './pages/auth/LoginPage.jsx'
@@ -95,6 +97,11 @@ function App() {
         <Route
           path="/"
           element={<MainPage />}
+        />
+
+        <Route
+          path="/blood-status"
+          element={<BloodStatusPage />}
         />
 
         <Route
