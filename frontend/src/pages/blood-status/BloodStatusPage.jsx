@@ -7,13 +7,39 @@ import './BloodStatusPage.css'
 
 const bloodTypes = ['A', 'B', 'O', 'AB']
 
+const crisisLevels = [
+  {
+    level: '관심',
+    english: 'Blue',
+    criterion: '적혈구제제 5일분 미만',
+    note: '징후감시 활동',
+  },
+  {
+    level: '주의',
+    english: 'Yellow',
+    criterion: '적혈구제제 3일분 미만',
+    note: '협조체제 가동',
+  },
+  {
+    level: '경계',
+    english: 'Orange',
+    criterion: '적혈구제제 2일분 미만',
+    note: '대비계획 점검',
+  },
+  {
+    level: '심각',
+    english: 'Red',
+    criterion: '적혈구제제 1일분 미만',
+    note: '즉각 대응태세 돌입',
+  },
+]
+
 function formatNumber(value) {
   return new Intl.NumberFormat('ko-KR').format(value)
 }
 
 function ProductTable({
   title,
-  description,
   product,
 }) {
   if (!product) {
@@ -37,15 +63,10 @@ function ProductTable({
           </span>
           <h2>{title}</h2>
         </div>
-        <p>{description}</p>
       </header>
 
       <div className="blood-status-table-wrap">
         <table className="blood-status-table">
-          <caption className="sr-only">
-            {title} 1일 소요량, 현재 혈액보유량,
-            보유상태
-          </caption>
           <thead>
             <tr>
               <th scope="col">구분</th>
@@ -124,7 +145,6 @@ function BloodStatusPage() {
   const updatedAt = status?.updatedAt
     ? new Intl.DateTimeFormat('ko-KR', {
         dateStyle: 'long',
-        timeStyle: 'short',
       }).format(new Date(status.updatedAt))
     : ''
 
@@ -176,21 +196,63 @@ function BloodStatusPage() {
             </p>
           </section>
 
+          <section
+            className="blood-crisis-criteria"
+            aria-labelledby="blood-crisis-criteria-title"
+          >
+            <header>
+              <span className="blood-status-page-eyebrow">
+                CRISIS LEVEL
+              </span>
+              <h2 id="blood-crisis-criteria-title">
+                혈액수급위기단계
+              </h2>
+            </header>
+
+            <table className="blood-crisis-table">
+              <thead>
+                <tr>
+                  <th scope="col">구분</th>
+                  <th scope="col">판단 기준</th>
+                  <th scope="col">비고</th>
+                </tr>
+              </thead>
+              <tbody>
+                {crisisLevels.map((item) => (
+                  <tr key={item.level}>
+                    <th
+                      scope="row"
+                      className={
+                        `crisis-level crisis-level--${item.level}`
+                      }
+                    >
+                      {item.level}
+                      <span>({item.english})</span>
+                    </th>
+                    <td data-label="판단 기준">
+                      {item.criterion}
+                    </td>
+                    <td data-label="비고">
+                      {item.note}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </section>
+
           <ProductTable
             title="적혈구제제 보유 현황"
-            description="현재 혈액보유량 ÷ 1일 소요량을 소수점 첫째 자리까지 표시합니다."
             product={status.redBloodCell}
           />
 
           <ProductTable
             title="농축혈소판 보유 현황"
-            description="현재 혈액보유량 ÷ 1일 소요량을 10% 단위 보유율로 표시합니다."
             product={status.concentratedPlatelet}
           />
 
           <ProductTable
             title="성분채혈혈소판 보유 현황"
-            description="현재 혈액보유량 ÷ 1일 소요량을 10% 단위 보유율로 표시합니다."
             product={status.apheresisPlatelet}
           />
 
