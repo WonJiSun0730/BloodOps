@@ -423,15 +423,10 @@ function MainPage() {
       ...metric,
     }))
 
-  function getBloodFillPercent(value) {
-    const fullScale =
-      currentBloodStatus.metricUnit === '일'
-        ? 10
-        : 200
-
+  function getRedBloodCellFillPercent(value) {
     return Math.min(
       100,
-      Math.max(0, (value / fullScale) * 100)
+      Math.max(0, (value / 10) * 100)
     )
   }
 
@@ -733,25 +728,40 @@ function MainPage() {
             {bloodTypeMetrics.map(
               (blood) => (
                 <div
-                  className="blood-type-item"
+                  className={
+                    `blood-type-item ${
+                      bloodType === 'redBloodCell'
+                        ? 'blood-type-item--visualized'
+                        : 'blood-type-item--plain'
+                    }`
+                  }
                   key={blood.type}
                   aria-label={
                     `${blood.type}형 ${blood.value}${currentBloodStatus.metricUnit}`
                   }
                 >
-                  <div
-                    className="blood-drop"
-                    style={{
-                      '--blood-fill':
-                        `${getBloodFillPercent(blood.value)}%`,
-                    }}
-                    aria-hidden="true"
-                  >
-                    <div className="blood-drop-liquid" />
-                    <span className="blood-type-name">
+                  {bloodType === 'redBloodCell' ? (
+                    <div
+                      className="blood-drop"
+                      style={{
+                        '--blood-fill':
+                          `${getRedBloodCellFillPercent(blood.value)}%`,
+                      }}
+                      aria-hidden="true"
+                    >
+                      <div className="blood-drop-liquid" />
+                      <span className="blood-type-name">
+                        {blood.type}
+                      </span>
+                    </div>
+                  ) : (
+                    <span
+                      className="blood-type-name-plain"
+                      aria-hidden="true"
+                    >
                       {blood.type}
                     </span>
-                  </div>
+                  )}
 
                   <div className="blood-type-value">
                     <strong>

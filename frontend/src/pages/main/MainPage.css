@@ -595,6 +595,24 @@
   transform: translateY(-3px);
 }
 
+.blood-type-item--plain {
+  min-height: 92px;
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  justify-content: center;
+  background-color: var(--color-surface);
+}
+
+.blood-type-name-plain {
+  color: var(--color-primary);
+  font-size: 1rem;
+  font-weight: 900;
+}
+
+.blood-type-item--plain .blood-type-value {
+  margin-top: 6px;
+}
+
 .blood-drop {
   --blood-fill: 0%;
   position: relative;
