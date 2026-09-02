@@ -1,0 +1,420 @@
+.blood-hold-check-page {
+  width: 100%;
+  min-height: 100%;
+  padding: 32px 28px 56px;
+}
+
+.blood-hold-check-container {
+  width: min(100%, 920px);
+  margin: 0 auto;
+}
+
+.blood-hold-check-header {
+  margin-bottom: 28px;
+}
+
+.blood-hold-check-eyebrow {
+  margin: 0 0 8px;
+  color: #e53935;
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.blood-hold-check-header h1 {
+  margin: 0;
+  font-size: clamp(1.8rem, 3vw, 2.35rem);
+  line-height: 1.2;
+}
+
+.blood-hold-check-header > p:last-child {
+  margin: 12px 0 0;
+  color: var(--text-secondary, #666);
+  line-height: 1.65;
+}
+
+.blood-hold-check-info {
+  margin-bottom: 24px;
+  padding: 24px 26px;
+  border: 1px solid
+    var(--border-color, #e5e5e5);
+  border-radius: 16px;
+  background:
+    var(--card-bg, #fff);
+}
+
+.blood-hold-check-info h2 {
+  margin: 0 0 10px;
+  font-size: 1.15rem;
+}
+
+.blood-hold-check-info p {
+  margin: 0;
+  color: var(--text-secondary, #666);
+  line-height: 1.7;
+}
+
+.blood-hold-check-form {
+  padding: 28px;
+  border: 1px solid
+    var(--border-color, #e5e5e5);
+  border-radius: 18px;
+  background:
+    var(--card-bg, #fff);
+}
+
+.blood-hold-check-section-heading {
+  margin-bottom: 18px;
+}
+
+.blood-hold-check-section-heading h2 {
+  margin: 0;
+  font-size: 1.25rem;
+}
+
+.blood-hold-check-section-heading p {
+  margin: 7px 0 0;
+  color: var(--text-secondary, #777);
+  font-size: 0.92rem;
+}
+
+.blood-hold-reason-list {
+  display: grid;
+  gap: 10px;
+}
+
+.blood-hold-reason-item {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-height: 58px;
+  padding: 15px 18px;
+  border: 1px solid
+    var(--border-color, #dedede);
+  border-radius: 12px;
+  background:
+    var(--surface-bg, #fafafa);
+  cursor: pointer;
+  transition:
+    border-color 0.18s ease,
+    background-color 0.18s ease,
+    transform 0.18s ease;
+}
+
+.blood-hold-reason-item:hover {
+  border-color:
+    rgba(229, 57, 53, 0.55);
+}
+
+.blood-hold-reason-item.is-selected {
+  border-color: #e53935;
+  background:
+    rgba(229, 57, 53, 0.07);
+}
+
+.blood-hold-reason-item input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.blood-hold-reason-checkbox {
+  position: relative;
+  flex: 0 0 auto;
+  width: 22px;
+  height: 22px;
+  border: 2px solid
+    var(--border-color, #c9c9c9);
+  border-radius: 6px;
+  background:
+    var(--card-bg, #fff);
+  transition:
+    border-color 0.18s ease,
+    background-color 0.18s ease;
+}
+
+.blood-hold-reason-item.is-selected
+.blood-hold-reason-checkbox {
+  border-color: #e53935;
+  background: #e53935;
+}
+
+.blood-hold-reason-item.is-selected
+.blood-hold-reason-checkbox::after {
+  content: "";
+  position: absolute;
+  top: 3px;
+  left: 6px;
+  width: 6px;
+  height: 10px;
+  border: solid #fff;
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+}
+
+.blood-hold-reason-item > span:last-child {
+  line-height: 1.45;
+  font-weight: 600;
+}
+
+.blood-hold-disease-section {
+  margin-top: 22px;
+  padding: 22px;
+  border-radius: 14px;
+  background:
+    rgba(229, 57, 53, 0.055);
+}
+
+.blood-hold-disease-section h3 {
+  margin: 0;
+  font-size: 1.05rem;
+}
+
+.blood-hold-disease-section > div:first-child p {
+  margin: 7px 0 0;
+  color: var(--text-secondary, #666);
+  font-size: 0.9rem;
+  line-height: 1.55;
+}
+
+.blood-hold-disease-input-row {
+  display: flex;
+  gap: 10px;
+  margin-top: 17px;
+}
+
+.blood-hold-disease-input-row input {
+  flex: 1;
+  min-width: 0;
+  height: 46px;
+  padding: 0 14px;
+  border: 1px solid
+    var(--border-color, #d7d7d7);
+  border-radius: 9px;
+  background:
+    var(--input-bg, #fff);
+  color: inherit;
+  font: inherit;
+  outline: none;
+}
+
+.blood-hold-disease-input-row input:focus {
+  border-color: #e53935;
+  box-shadow:
+    0 0 0 3px
+    rgba(229, 57, 53, 0.12);
+}
+
+.blood-hold-disease-input-row button {
+  flex: 0 0 auto;
+  min-width: 138px;
+  height: 46px;
+  padding: 0 18px;
+  border: 0;
+  border-radius: 9px;
+  background: #e53935;
+  color: #fff;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.blood-hold-disease-input-row button:hover:not(:disabled) {
+  filter: brightness(0.94);
+}
+
+.blood-hold-disease-input-row button:disabled {
+  opacity: 0.48;
+  cursor: not-allowed;
+}
+
+.blood-hold-disease-result {
+  margin-top: 16px;
+  padding: 16px 18px;
+  border-radius: 10px;
+}
+
+.blood-hold-disease-result.is-allowed {
+  border: 1px solid
+    rgba(46, 125, 50, 0.3);
+  background:
+    rgba(46, 125, 50, 0.08);
+}
+
+.blood-hold-disease-result.is-caution {
+  border: 1px solid
+    rgba(229, 57, 53, 0.32);
+  background:
+    rgba(229, 57, 53, 0.09);
+}
+
+.blood-hold-disease-result strong {
+  display: block;
+  margin-bottom: 6px;
+}
+
+.blood-hold-disease-result p {
+  margin: 0;
+  line-height: 1.55;
+}
+
+.blood-hold-disease-result p + p {
+  margin-top: 7px;
+}
+
+.blood-hold-check-notice {
+  margin-top: 24px;
+  padding: 18px 20px;
+  border-left: 4px solid #e53935;
+  border-radius: 4px 10px 10px 4px;
+  background:
+    rgba(229, 57, 53, 0.055);
+}
+
+.blood-hold-check-notice strong {
+  display: block;
+  line-height: 1.55;
+}
+
+.blood-hold-check-notice p {
+  margin: 8px 0 0;
+  color: var(--text-secondary, #666);
+  font-size: 0.9rem;
+  line-height: 1.55;
+}
+
+.blood-hold-check-error {
+  margin: 16px 0 0;
+  color: #e53935;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.blood-hold-check-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 26px;
+}
+
+.blood-hold-check-next-button {
+  min-width: 210px;
+  min-height: 48px;
+  padding: 0 22px;
+  border: 0;
+  border-radius: 10px;
+  background: #e53935;
+  color: #fff;
+  font: inherit;
+  font-weight: 800;
+  cursor: pointer;
+  transition:
+    filter 0.18s ease,
+    transform 0.18s ease;
+}
+
+.blood-hold-check-next-button:hover:not(:disabled) {
+  filter: brightness(0.94);
+  transform: translateY(-1px);
+}
+
+.blood-hold-check-next-button:disabled {
+  opacity: 0.42;
+  cursor: not-allowed;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+
+/* Tablet */
+@media (max-width: 1024px) {
+  .blood-hold-check-page {
+    padding:
+      28px 22px 48px;
+  }
+}
+
+
+/* Mobile */
+@media (max-width: 768px) {
+  .blood-hold-check-page {
+    padding:
+      22px 16px 40px;
+  }
+
+  .blood-hold-check-form {
+    padding: 20px;
+  }
+
+  .blood-hold-check-info {
+    padding: 20px;
+  }
+
+  .blood-hold-reason-item {
+    padding: 14px;
+  }
+
+  .blood-hold-disease-section {
+    padding: 18px;
+  }
+
+  .blood-hold-disease-input-row {
+    flex-direction: column;
+  }
+
+  .blood-hold-disease-input-row button {
+    width: 100%;
+  }
+
+  .blood-hold-check-actions {
+    justify-content: stretch;
+  }
+
+  .blood-hold-check-next-button {
+    width: 100%;
+  }
+}
+
+
+/* Small Mobile */
+@media (max-width: 480px) {
+  .blood-hold-check-page {
+    padding:
+      18px 12px 32px;
+  }
+
+  .blood-hold-check-form,
+  .blood-hold-check-info {
+    padding: 16px;
+    border-radius: 14px;
+  }
+
+  .blood-hold-check-header {
+    margin-bottom: 20px;
+  }
+
+  .blood-hold-reason-item {
+    align-items: flex-start;
+  }
+
+  .blood-hold-reason-checkbox {
+    margin-top: 1px;
+  }
+
+  .blood-hold-disease-section {
+    padding: 15px;
+  }
+}

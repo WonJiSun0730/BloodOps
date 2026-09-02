@@ -1276,3 +1276,45 @@ export async function sendChatbotMessage(
     }
   )
 }
+
+/*
+ * 로그인한 회원의 최근 헌혈 기록을 기준으로
+ * 혈액사용 보류 연락처와 방문 안내 정보를 조회합니다.
+ */
+export function getMyBloodHoldGuide() {
+  return apiRequest(
+    '/api/blood-hold/me'
+  )
+}
+
+export async function getBloodHoldRoute({
+  startLatitude,
+  startLongitude,
+  goalLatitude,
+  goalLongitude,
+}) {
+  const csrf =
+    await getCsrfToken()
+
+  return apiRequest(
+    '/api/blood-hold/route',
+    {
+      method: 'POST',
+
+      headers: {
+        'Content-Type':
+          'application/json',
+
+        [csrf.headerName]:
+          csrf.token,
+      },
+
+      body: JSON.stringify({
+        startLatitude,
+        startLongitude,
+        goalLatitude,
+        goalLongitude,
+      }),
+    }
+  )
+}

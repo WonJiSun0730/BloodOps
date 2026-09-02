@@ -1,0 +1,917 @@
+.blood-hold-page {
+  gap: 18px;
+}
+
+
+.blood-hold-intro {
+  padding: 22px 24px;
+
+  border-left:
+    3px solid
+    var(--color-primary);
+
+  background:
+    color-mix(
+      in srgb,
+      var(--color-primary) 4%,
+      var(--color-surface)
+    );
+}
+
+.blood-hold-intro > span {
+  color:
+    var(--color-primary);
+
+  font-size: 0.68rem;
+  font-weight: 850;
+
+  letter-spacing: 0.12em;
+}
+
+.blood-hold-intro h2 {
+  margin:
+    8px 0;
+
+  color:
+    var(--color-text);
+
+  font-size: 1.35rem;
+
+  letter-spacing: -0.03em;
+}
+
+.blood-hold-intro p {
+  margin: 0;
+
+  color:
+    var(--color-text-muted);
+
+  font-size: 0.82rem;
+  line-height: 1.65;
+}
+
+
+.blood-hold-latest {
+  display: grid;
+
+  grid-template-columns:
+    repeat(
+      3,
+      minmax(0, 1fr)
+    );
+
+  gap: 10px;
+}
+
+.blood-hold-latest > div {
+  display: flex;
+
+  min-width: 0;
+
+  padding:
+    16px 18px;
+
+  flex-direction: column;
+
+  gap: 6px;
+
+  border:
+    1px solid
+    var(--color-border);
+
+  border-radius: 12px;
+
+  background:
+    var(--color-surface);
+}
+
+.blood-hold-latest span {
+  color:
+    var(--color-text-muted);
+
+  font-size: 0.7rem;
+}
+
+.blood-hold-latest strong {
+  color:
+    var(--color-text);
+
+  font-size: 0.88rem;
+
+  overflow-wrap: anywhere;
+}
+
+
+.blood-hold-contact-card {
+  padding: 22px;
+
+  border:
+    1px solid
+    var(--color-border);
+
+  border-radius: 16px;
+
+  background:
+    var(--color-surface);
+}
+
+.blood-hold-contact-card.primary {
+  border-color:
+    color-mix(
+      in srgb,
+      var(--color-primary) 45%,
+      var(--color-border)
+    );
+
+  background:
+    linear-gradient(
+      135deg,
+      color-mix(
+        in srgb,
+        var(--color-primary) 7%,
+        var(--color-surface)
+      ),
+      var(--color-surface)
+    );
+}
+
+.blood-hold-contact-heading {
+  display: flex;
+
+  align-items: flex-start;
+  justify-content: space-between;
+
+  gap: 16px;
+}
+
+.blood-hold-contact-heading
+  > div
+  > span {
+  display: block;
+
+  margin-bottom: 5px;
+
+  color:
+    var(--color-primary);
+
+  font-size: 0.66rem;
+  font-weight: 850;
+
+  letter-spacing: 0.1em;
+}
+
+.blood-hold-contact-heading h3 {
+  margin: 0;
+
+  color:
+    var(--color-text);
+
+  font-size: 1.08rem;
+}
+
+.blood-hold-contact-heading
+  > strong {
+  flex-shrink: 0;
+
+  padding:
+    6px 10px;
+
+  border-radius: 999px;
+
+  color:
+    var(--color-primary);
+
+  background:
+    color-mix(
+      in srgb,
+      var(--color-primary) 8%,
+      var(--color-background)
+    );
+
+  font-size: 0.7rem;
+}
+
+
+.blood-hold-contact-info {
+  margin:
+    18px 0 0;
+
+  border-top:
+    1px solid
+    var(--color-border);
+}
+
+.blood-hold-contact-info
+  > div {
+  display: grid;
+
+  padding:
+    12px 0;
+
+  grid-template-columns:
+    90px
+    minmax(0, 1fr);
+
+  gap: 16px;
+
+  border-bottom:
+    1px solid
+    var(--color-border);
+}
+
+.blood-hold-contact-info dt {
+  color:
+    var(--color-text-muted);
+
+  font-size: 0.75rem;
+}
+
+.blood-hold-contact-info dd {
+  margin: 0;
+
+  color:
+    var(--color-text);
+
+  font-size: 0.8rem;
+  font-weight: 750;
+
+  overflow-wrap: anywhere;
+}
+
+
+.blood-hold-contact-actions {
+  display: grid;
+
+  margin-top: 18px;
+
+  grid-template-columns:
+    minmax(0, 1.25fr)
+    repeat(
+      2,
+      minmax(0, 1fr)
+    );
+
+  gap: 10px;
+}
+
+.blood-hold-action-button.transit {
+  border:
+    1px solid
+    color-mix(
+      in srgb,
+      #03c75a 45%,
+      var(--color-border)
+    );
+
+  color:
+    var(--color-text);
+
+  background:
+    var(--color-background);
+}
+
+
+.blood-hold-action-button.transit:hover {
+  border-color:
+    #03c75a;
+
+  color:
+    #03a94f;
+}
+
+.blood-hold-action-button {
+  display: inline-flex;
+
+  min-height: 46px;
+
+  padding:
+    0 16px;
+
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 9px;
+
+  font: inherit;
+  font-size: 0.78rem;
+  font-weight: 850;
+
+  text-decoration: none;
+
+  cursor: pointer;
+}
+
+.blood-hold-action-button.primary {
+  border:
+    1px solid
+    var(--color-primary);
+
+  color: #ffffff;
+
+  background:
+    var(--color-primary);
+}
+
+.blood-hold-action-button.primary:hover {
+  background:
+    var(--color-primary-hover);
+}
+
+.blood-hold-action-button.secondary {
+  border:
+    1px solid
+    var(--color-border);
+
+  color:
+    var(--color-text);
+
+  background:
+    var(--color-background);
+}
+
+.blood-hold-action-button.secondary:hover {
+  border-color:
+    var(--color-primary);
+
+  color:
+    var(--color-primary);
+}
+
+.blood-hold-action-button:disabled {
+  cursor: wait;
+  opacity: 0.55;
+}
+
+
+.blood-hold-warning {
+  display: flex;
+
+  padding:
+    18px 20px;
+
+  align-items: flex-start;
+
+  gap: 15px;
+
+  border:
+    1px solid
+    color-mix(
+      in srgb,
+      var(--color-primary) 42%,
+      var(--color-border)
+    );
+
+  border-radius: 14px;
+
+  background:
+    color-mix(
+      in srgb,
+      var(--color-primary) 8%,
+      var(--color-surface)
+    );
+}
+
+.blood-hold-warning-icon {
+  display: grid;
+
+  width: 38px;
+  height: 38px;
+
+  flex:
+    0 0 38px;
+
+  place-items: center;
+
+  border-radius: 50%;
+
+  color: #ffffff;
+
+  background:
+    var(--color-primary);
+
+  font-weight: 900;
+}
+
+.blood-hold-warning span {
+  color:
+    var(--color-primary);
+
+  font-size: 0.68rem;
+  font-weight: 850;
+}
+
+.blood-hold-warning h3 {
+  margin:
+    4px 0 6px;
+
+  color:
+    var(--color-text);
+
+  font-size: 0.95rem;
+}
+
+.blood-hold-warning p {
+  margin: 0;
+
+  color:
+    var(--color-text-muted);
+
+  font-size: 0.78rem;
+  line-height: 1.6;
+}
+
+
+.blood-hold-map-section {
+  overflow: hidden;
+
+  border:
+    1px solid
+    var(--color-border);
+
+  border-radius: 16px;
+
+  background:
+    var(--color-surface);
+}
+
+.blood-hold-map-section
+  > header {
+  display: flex;
+
+  padding:
+    20px 22px;
+
+  align-items: center;
+  justify-content: space-between;
+
+  gap: 18px;
+
+  border-bottom:
+    1px solid
+    var(--color-border);
+}
+
+.blood-hold-map-section
+  > header
+  span {
+  color:
+    var(--color-primary);
+
+  font-size: 0.66rem;
+  font-weight: 850;
+
+  letter-spacing: 0.11em;
+}
+
+.blood-hold-map-section
+  > header
+  h3 {
+  margin:
+    5px 0 0;
+
+  color:
+    var(--color-text);
+
+  font-size: 1rem;
+}
+
+.blood-hold-map-section
+  > header
+  p {
+  margin:
+    6px 0 0;
+
+  color:
+    var(--color-text-muted);
+
+  font-size: 0.75rem;
+}
+
+.blood-hold-map-section
+  > header
+  > strong {
+  flex-shrink: 0;
+
+  color:
+    var(--color-primary);
+
+  font-size: 0.85rem;
+}
+
+
+.blood-hold-route-map {
+  width: 100%;
+  height: 360px;
+
+  background:
+    var(--color-background);
+}
+
+.blood-hold-map-error {
+  display: grid;
+
+  min-height: 240px;
+
+  place-items: center;
+
+  padding: 24px;
+
+  color:
+    var(--color-primary);
+
+  background:
+    var(--color-background);
+
+  font-size: 0.8rem;
+}
+
+
+.blood-hold-map-marker {
+  display: flex;
+
+  position: relative;
+
+  align-items: center;
+
+  gap: 6px;
+
+  white-space: nowrap;
+}
+
+.blood-hold-map-marker
+  > span {
+  display: block;
+
+  width: 18px;
+  height: 18px;
+
+  border:
+    3px solid
+    #ffffff;
+
+  border-radius: 50%;
+
+  box-shadow:
+    0 2px 7px
+    rgb(0 0 0 / 28%);
+}
+
+.blood-hold-map-marker.user
+  > span {
+  background:
+    #3276ff;
+}
+
+.blood-hold-map-marker.target
+  > span {
+  background:
+    var(--color-primary);
+}
+
+.blood-hold-map-marker
+  > strong {
+  padding:
+    4px 7px;
+
+  border:
+    1px solid
+    rgb(0 0 0 / 10%);
+
+  border-radius: 6px;
+
+  color: #222222;
+
+  background:
+    rgb(255 255 255 / 94%);
+
+  box-shadow:
+    0 2px 7px
+    rgb(0 0 0 / 12%);
+
+  font-size: 11px;
+}
+
+
+.blood-hold-distance-notice {
+  margin: 0;
+
+  padding:
+    10px 16px;
+
+  border-top:
+    1px solid
+    var(--color-border);
+
+  color:
+    var(--color-text-muted);
+
+  background:
+    var(--color-background);
+
+  font-size: 0.68rem;
+  line-height: 1.5;
+}
+
+
+@media (max-width: 768px) {
+  .blood-hold-latest {
+    grid-template-columns:
+      1fr;
+  }
+
+  .blood-hold-route-map {
+    height: 320px;
+  }
+}
+
+
+@media (max-width: 480px) {
+  .blood-hold-intro,
+  .blood-hold-contact-card {
+    padding:
+      20px;
+  }
+
+  .blood-hold-contact-heading {
+    flex-direction: column;
+
+    gap: 10px;
+  }
+
+  .blood-hold-contact-actions {
+    grid-template-columns:
+      1fr;
+  }
+
+  .blood-hold-contact-info
+    > div {
+    grid-template-columns:
+      72px
+      minmax(0, 1fr);
+
+    gap: 10px;
+  }
+
+  .blood-hold-map-section
+    > header {
+    align-items: flex-start;
+
+    flex-direction: column;
+  }
+
+  .blood-hold-route-map {
+    height: 280px;
+  }
+}
+
+/* =========================
+   Contact inline panel
+   ========================= */
+
+.blood-hold-contact-block {
+  display: grid;
+
+  gap: 0;
+}
+
+
+.blood-hold-expand-panel {
+  display: grid;
+
+  grid-template-rows: 0fr;
+
+  opacity: 0;
+
+  transform:
+    translateY(-8px);
+
+  transition:
+    grid-template-rows 320ms ease,
+    opacity 220ms ease,
+    transform 320ms ease;
+}
+
+
+.blood-hold-expand-panel.open {
+  grid-template-rows: 1fr;
+
+  opacity: 1;
+
+  transform:
+    translateY(0);
+}
+
+
+.blood-hold-expand-panel-inner {
+  min-height: 0;
+
+  overflow: hidden;
+}
+
+
+.blood-hold-expand-panel.open
+  .blood-hold-expand-panel-inner {
+  padding-top: 12px;
+}
+
+
+/* 방문 제한 안내 */
+
+.blood-hold-inline-warning {
+  display: flex;
+
+  padding:
+    20px 22px;
+
+  align-items: flex-start;
+
+  gap: 16px;
+
+  border:
+    1px solid
+    color-mix(
+      in srgb,
+      var(--color-primary) 38%,
+      var(--color-border)
+    );
+
+  border-radius: 14px;
+
+  background:
+    color-mix(
+      in srgb,
+      var(--color-primary) 7%,
+      var(--color-surface)
+    );
+
+  box-shadow:
+    0 8px 24px
+    rgb(0 0 0 / 5%);
+}
+
+
+.blood-hold-inline-warning-icon {
+  display: grid;
+
+  width: 38px;
+  height: 38px;
+
+  flex:
+    0 0 38px;
+
+  place-items: center;
+
+  border-radius: 50%;
+
+  color: #ffffff;
+
+  background:
+    var(--color-primary);
+
+  font-weight: 900;
+}
+
+
+.blood-hold-inline-warning-content {
+  min-width: 0;
+
+  flex: 1;
+}
+
+
+.blood-hold-inline-warning-content h3 {
+  margin:
+    0 0 7px;
+
+  color:
+    var(--color-text);
+
+  font-size: 0.95rem;
+}
+
+
+.blood-hold-inline-warning-content > p {
+  margin: 0;
+
+  color:
+    var(--color-text-muted);
+
+  font-size: 0.78rem;
+  line-height: 1.65;
+}
+
+
+.blood-hold-inline-warning-reason {
+  margin-top:
+    12px !important;
+
+  padding:
+    10px 12px;
+
+  border-radius: 9px;
+
+  color:
+    var(--color-text) !important;
+
+  background:
+    color-mix(
+      in srgb,
+      var(--color-primary) 5%,
+      var(--color-background)
+    );
+
+  font-weight: 650;
+}
+
+
+.blood-hold-inline-warning-actions {
+  display: flex;
+
+  margin-top: 16px;
+
+  gap: 10px;
+}
+
+
+.blood-hold-inline-warning-actions
+  .blood-hold-action-button {
+  min-width: 150px;
+}
+
+
+/* 열려 있는 액션 버튼 */
+
+.blood-hold-action-button.secondary.active {
+  border-color:
+    var(--color-primary);
+
+  color:
+    var(--color-primary);
+
+  background:
+    color-mix(
+      in srgb,
+      var(--color-primary) 6%,
+      var(--color-background)
+    );
+}
+
+
+/* 오류 패널 */
+
+.blood-hold-inline-error {
+  display: flex;
+
+  margin-top: 12px;
+
+  align-items: center;
+  justify-content: space-between;
+
+  gap: 16px;
+}
+
+
+.blood-hold-inline-error button {
+  flex-shrink: 0;
+
+  border: 0;
+
+  color:
+    var(--color-primary);
+
+  background: transparent;
+
+  font: inherit;
+  font-size: 0.75rem;
+  font-weight: 800;
+
+  cursor: pointer;
+}
+
+
+/* 접근성: 애니메이션 최소화 설정 */
+
+@media (prefers-reduced-motion: reduce) {
+  .blood-hold-expand-panel {
+    transition: none;
+  }
+}
+
+
+@media (max-width: 480px) {
+  .blood-hold-inline-warning {
+    padding:
+      18px;
+
+    gap: 12px;
+  }
+
+  .blood-hold-inline-warning-actions {
+    flex-direction: column;
+  }
+
+  .blood-hold-inline-warning-actions
+    .blood-hold-action-button {
+    width: 100%;
+  }
+}

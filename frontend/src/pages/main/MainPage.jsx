@@ -165,7 +165,7 @@ const mainServices = [
     title: '혈액사용 보류신청',
     description:
       '필요한 경우 혈액 사용 보류를 신청할 수 있습니다.',
-    to: '/blood-hold',
+    to: '/mypage/blood-hold/check',
     icon: BloodHoldIcon,
   },
   {

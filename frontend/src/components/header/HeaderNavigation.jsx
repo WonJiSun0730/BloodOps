@@ -26,7 +26,7 @@ const menuItems = [
     items: [
       { label: '헌혈내역 조회', to: '/mypage/records' },
       { label: '증명서 발급', to: '/certificate' },
-      { label: '혈액 사용 보류신청', to: '/blood-hold' },
+      { label: '혈액 사용 보류신청', to: '/mypage/blood-hold/check' },
     ],
   },
   {

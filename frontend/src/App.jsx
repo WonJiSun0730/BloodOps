@@ -39,6 +39,10 @@ import MyPointsPage
   from './pages/mypage/MyPointsPage.jsx'
 import MyRewardOrdersPage
   from './pages/mypage/MyRewardOrdersPage.jsx'
+import BloodHoldCheckPage
+  from './pages/bloodhold/BloodHoldCheckPage.jsx'
+import BloodHoldGuidePage
+  from './pages/bloodhold/BloodHoldGuidePage.jsx'
 
 import QuestionnairePage
   from './pages/questionnaire/QuestionnairePage.jsx'
@@ -181,6 +185,20 @@ function App() {
             path="/mypage/results"
             element={
               <TestResultsPage />
+            }
+          />
+
+          <Route
+            path="/mypage/blood-hold/check"
+            element={
+              <BloodHoldCheckPage />
+            }
+          />
+
+          <Route
+            path="/mypage/blood-hold"
+            element={
+              <BloodHoldGuidePage />
             }
           />
 
