@@ -16,3 +16,120 @@
 .purpose-option strong{color:var(--color-text,#f5f5f5)}
 .purpose-option small{color:var(--color-text-muted,#aeb3ba);line-height:1.5}
 @media(max-width:768px){.purpose-options{grid-template-columns:1fr}.primary{width:100%}}
+
+/* 증명서 폼 상호작용 보정 */
+.certificate-tabs {
+  padding: 4px;
+  border: 1px solid var(--color-border, #34383e);
+  border-radius: 12px;
+  background: var(--color-surface, #1f2226);
+}
+
+.certificate-tabs button {
+  position: relative;
+  flex: 1;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--color-text-muted, #aeb3ba);
+}
+
+.certificate-tabs button.active {
+  background: var(--color-surface-hover, #25282d);
+  color: var(--color-text, #f5f5f5);
+}
+
+.certificate-tabs button.active::after {
+  position: absolute;
+  right: 18px;
+  bottom: 5px;
+  left: 18px;
+  height: 3px;
+  border-radius: 999px;
+  background: var(--color-primary, #e53935);
+  content: "";
+}
+
+.certificate-tabs button:hover {
+  background: var(--color-surface-hover, #25282d);
+}
+
+.certificate-panel .purpose-option {
+  display: flex;
+  gap: 0;
+}
+
+.certificate-panel .purpose-option input[type="radio"] {
+  flex: 0 0 20px;
+  width: 20px;
+  min-height: 20px;
+  height: 20px;
+  margin: 2px 12px 0 0;
+  padding: 0;
+  border: 1px solid var(--color-text-muted, #aeb3ba);
+  border-radius: 50%;
+  outline: none;
+  background: transparent;
+  box-shadow: none;
+  appearance: none;
+}
+
+.certificate-panel .purpose-option input[type="radio"]:checked {
+  border: 5px solid var(--color-primary, #e53935);
+  background: #ffffff;
+}
+
+.certificate-panel .purpose-option:has(input[type="radio"]:focus-visible) {
+  outline: 2px solid var(--color-text, #f5f5f5);
+  outline-offset: 3px;
+}
+
+.certificate-panel .period input[type="date"] {
+  border-color: var(--color-border, #34383e);
+  background: var(--color-surface-hover, #25282d);
+  color: var(--color-text, #f5f5f5);
+  color-scheme: dark;
+}
+
+.certificate-panel .period input[type="date"]:hover {
+  border-color: var(--color-text-muted, #737980);
+}
+
+.primary {
+  justify-self: end;
+  min-width: 180px;
+  border: 1px solid var(--color-primary, #e53935);
+  background: var(--color-primary, #e53935);
+  transition:
+    background-color 160ms ease,
+    border-color 160ms ease,
+    transform 160ms ease,
+    opacity 160ms ease;
+}
+
+.primary:hover:not(:disabled) {
+  border-color: var(--color-primary-hover, #f04440);
+  background: var(--color-primary-hover, #f04440);
+  transform: translateY(-1px);
+}
+
+.primary:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.primary:disabled {
+  cursor: wait;
+  opacity: 0.55;
+}
+
+@media (max-width: 768px) {
+  .certificate-tabs {
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  .primary {
+    width: 100%;
+    justify-self: stretch;
+  }
+}
