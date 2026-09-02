@@ -64,6 +64,8 @@
 
 .blood-crisis-card h2 strong {
   color: var(--crisis-color);
+  font-size: inherit;
+  line-height: inherit;
 }
 
 .blood-crisis-card--관심 {
