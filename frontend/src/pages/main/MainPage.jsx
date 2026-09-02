@@ -423,6 +423,18 @@ function MainPage() {
       ...metric,
     }))
 
+  function getBloodFillPercent(value) {
+    const fullScale =
+      currentBloodStatus.metricUnit === '일'
+        ? 10
+        : 200
+
+    return Math.min(
+      100,
+      Math.max(0, (value / fullScale) * 100)
+    )
+  }
+
   const updatedAt = bloodStatus.updatedAt
     ? `${new Intl.DateTimeFormat('ko-KR', {
         dateStyle: 'medium',
@@ -723,12 +735,25 @@ function MainPage() {
                 <div
                   className="blood-type-item"
                   key={blood.type}
+                  aria-label={
+                    `${blood.type}형 ${blood.value}${currentBloodStatus.metricUnit}`
+                  }
                 >
-                  <span className="blood-type-name">
-                    {blood.type}
-                  </span>
+                  <div
+                    className="blood-drop"
+                    style={{
+                      '--blood-fill':
+                        `${getBloodFillPercent(blood.value)}%`,
+                    }}
+                    aria-hidden="true"
+                  >
+                    <div className="blood-drop-liquid" />
+                    <span className="blood-type-name">
+                      {blood.type}
+                    </span>
+                  </div>
 
-                  <div>
+                  <div className="blood-type-value">
                     <strong>
                       {blood.value}
                     </strong>
