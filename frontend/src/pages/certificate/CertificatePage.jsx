@@ -31,10 +31,14 @@ export default function CertificatePage(){
  const today=useMemo(()=>new Date().toISOString().slice(0,10),[])
  const [tab,setTab]=useState('issue'),[message,setMessage]=useState(''),[loading,setLoading]=useState(false)
  const [form,setForm]=useState({certificateType:TYPE,purpose:'조회용',periodStart:'2000-01-01',periodEnd:today})
- const [number,setNumber]=useState(''),[issued,setIssued]=useState(null),[verified,setVerified]=useState(null)
+ const [numberParts,setNumberParts]=useState({prefix:'',issuedDate:'',serial:''})
+ const [numberErrors,setNumberErrors]=useState({prefix:'',issuedDate:'',serial:''})
+ const [issued,setIssued]=useState(null),[verified,setVerified]=useState(null)
  const send=async(url,body)=>{const csrf=await getCsrfToken();return apiRequest(url,{method:'POST',headers:{'Content-Type':'application/json',[csrf.headerName]:csrf.token},body:JSON.stringify(body)})}
  const issue=async e=>{e.preventDefault();setMessage('');setIssued(null);try{const currentUser=await getCurrentUser();if(!currentUser?.identifier){navigate('/login',{state:{from:location}});return}}catch{navigate('/login',{state:{from:location}});return}setLoading(true);try{const r=await send('/api/certificates',form);setIssued(r);setMessage(r.purpose==='제출용'?'제출용 헌혈확인증명서가 발급되었습니다.':'조회용 헌혈확인증명서가 생성되었습니다.')}catch(x){setMessage(x.message)}finally{setLoading(false)}}
- const verify=async e=>{e.preventDefault();setLoading(true);setMessage('');setVerified(null);try{const r=await send('/api/certificates/verify',{certificateType:TYPE,issueNumber:number});setVerified(r);setMessage('정상 발급된 증명서입니다.')}catch(x){setMessage(x.message)}finally{setLoading(false)}}
+ const updateNumberPart=(name,value)=>{const cleaned=name==='prefix'?value.replace(/[^a-zA-Z]/g,'').toUpperCase().slice(0,2):value.replace(/\D/g,'').slice(0,name==='issuedDate'?8:6);setNumberParts(previous=>({...previous,[name]:cleaned}));setNumberErrors(previous=>({...previous,[name]:''}));setMessage('')}
+ const validateNumber=()=>{const errors={prefix:'',issuedDate:'',serial:''};if(numberParts.prefix!=='BO')errors.prefix='BO를 입력해주세요.';if(numberParts.issuedDate.length!==8){errors.issuedDate='발급일자 8자리를 입력해주세요.'}else{const year=Number(numberParts.issuedDate.slice(0,4)),month=Number(numberParts.issuedDate.slice(4,6)),day=Number(numberParts.issuedDate.slice(6,8)),value=new Date(year,month-1,day);if(value.getFullYear()!==year||value.getMonth()!==month-1||value.getDate()!==day)errors.issuedDate='유효한 발급일자를 입력해주세요.'}if(numberParts.serial.length!==6)errors.serial='일련번호 6자리를 입력해주세요.';setNumberErrors(errors);return !errors.prefix&&!errors.issuedDate&&!errors.serial}
+ const verify=async e=>{e.preventDefault();setMessage('');setVerified(null);if(!validateNumber())return;setLoading(true);const issueNumber=[numberParts.prefix,numberParts.issuedDate,numberParts.serial].join('-');try{const r=await send('/api/certificates/verify',{certificateType:TYPE,issueNumber});setVerified(r);setMessage('정상 발급된 증명서입니다.')}catch(x){setMessage(x.message)}finally{setLoading(false)}}
  return <main className="certificate-page">
   <header className="certificate-hero"><span>CERTIFICATE SERVICE</span><h1>증명서 발급</h1><p>헌혈확인증명서를 온라인으로 발급하고 진위여부를 확인할 수 있습니다.</p></header>
   <div className="certificate-tabs" role="tablist" aria-label="증명서 서비스"><button type="button" role="tab" aria-selected={tab==='issue'} className={tab==='issue'?'active':''} onClick={()=>{setTab('issue');setMessage('')}}>증명서 발급</button><button type="button" role="tab" aria-selected={tab==='verify'} className={tab==='verify'?'active':''} onClick={()=>{setTab('verify');setMessage('')}}>진위여부 확인</button></div>
@@ -47,7 +51,13 @@ export default function CertificatePage(){
   </form>:<form onSubmit={verify}>
    <h2>증명서 진위여부 확인</h2><p>제출용 증명서에 표시된 발급번호를 입력해주세요.</p>
    <label>증명서 종류<select disabled><option>헌혈확인증명서</option></select></label>
-   <label>발급번호<input required placeholder="BO-YYYYMMDD-000000" value={number} onChange={e=>setNumber(e.target.value.toUpperCase())}/></label>
+   <fieldset className="issue-number-fieldset"><legend>발급번호</legend><div className="issue-number-fields">
+    <label><span>구분</span><input className={numberErrors.prefix?'input-error':''} value={numberParts.prefix} maxLength="2" autoComplete="off" aria-label="발급번호 구분" aria-invalid={Boolean(numberErrors.prefix)} placeholder="BO" onChange={e=>updateNumberPart('prefix',e.target.value)}/>{numberErrors.prefix&&<small className="issue-number-field-error">{numberErrors.prefix}</small>}</label>
+    <span className="issue-number-separator" aria-hidden="true">-</span>
+    <label><span>발급일자</span><input className={numberErrors.issuedDate?'input-error':''} value={numberParts.issuedDate} maxLength="8" inputMode="numeric" autoComplete="off" aria-label="발급번호 발급일자" aria-invalid={Boolean(numberErrors.issuedDate)} placeholder="YYYYMMDD" onChange={e=>updateNumberPart('issuedDate',e.target.value)}/>{numberErrors.issuedDate&&<small className="issue-number-field-error">{numberErrors.issuedDate}</small>}</label>
+    <span className="issue-number-separator" aria-hidden="true">-</span>
+    <label><span>일련번호</span><input className={numberErrors.serial?'input-error':''} value={numberParts.serial} maxLength="6" inputMode="numeric" autoComplete="off" aria-label="발급번호 일련번호" aria-invalid={Boolean(numberErrors.serial)} placeholder="000000" onChange={e=>updateNumberPart('serial',e.target.value)}/>{numberErrors.serial&&<small className="issue-number-field-error">{numberErrors.serial}</small>}</label>
+   </div></fieldset>
    <button type="submit" className="primary" disabled={loading}>{loading?'조회 중...':'진위여부 확인'}</button>
    {verified&&<div className="verified"><strong>정상 발급</strong><span>{verified.holderName} · 헌혈 {verified.donationCount}회 · {date(verified.issuedAt)}</span></div>}
   </form>}

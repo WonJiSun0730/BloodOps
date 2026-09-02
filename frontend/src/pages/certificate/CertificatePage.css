@@ -158,3 +158,103 @@
 .certificate-panel .period input[type="date"]:focus-visible::-webkit-calendar-picker-indicator {
   border-color: var(--color-primary-hover, #f04440);
 }
+
+/* 발급번호 3분할 입력 및 필드별 오류 안내 */
+.issue-number-fieldset {
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.issue-number-fieldset legend {
+  margin-bottom: 8px;
+  font-weight: 700;
+}
+
+.issue-number-fields {
+  display: grid;
+  grid-template-columns: minmax(76px, 0.7fr) auto minmax(150px, 1.5fr) auto minmax(120px, 1fr);
+  align-items: start;
+  gap: 10px;
+}
+
+.issue-number-fields label {
+  min-width: 0;
+}
+
+.issue-number-fields label > span {
+  color: var(--color-text-muted, #aeb3ba);
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.issue-number-fields input {
+  width: 100%;
+  box-sizing: border-box;
+  text-align: center;
+  letter-spacing: 0.06em;
+}
+
+.issue-number-separator {
+  margin-top: 33px;
+  color: var(--color-text-muted, #aeb3ba);
+  font-size: 1.15rem;
+  font-weight: 800;
+}
+
+.certificate-panel .issue-number-fields input.input-error {
+  border-color: var(--color-primary, #e53935);
+}
+
+.issue-number-field-error {
+  display: flex;
+  min-height: 20px;
+  color: #ffaaa7;
+  font-size: 0.76rem;
+  font-weight: 600;
+  line-height: 1.45;
+  align-items: flex-start;
+  gap: 6px;
+}
+
+.issue-number-field-error::before {
+  display: inline-grid;
+  flex: 0 0 16px;
+  width: 16px;
+  height: 16px;
+  border: 1px solid currentColor;
+  border-radius: 50%;
+  content: "!";
+  font-size: 0.68rem;
+  font-weight: 800;
+  line-height: 1;
+  place-items: center;
+}
+
+@media (max-width: 768px) {
+  .issue-number-fields {
+    grid-template-columns: minmax(64px, 0.65fr) auto minmax(132px, 1.4fr) auto minmax(104px, 1fr);
+    gap: 7px;
+  }
+}
+
+@media (max-width: 480px) {
+  .issue-number-fields {
+    grid-template-columns: 62px auto minmax(112px, 1fr) auto 92px;
+    gap: 5px;
+  }
+
+  .issue-number-fields input {
+    padding-inline: 8px;
+    font-size: 0.84rem;
+  }
+
+  .issue-number-separator {
+    margin-top: 32px;
+  }
+
+  .issue-number-field-error {
+    font-size: 0.68rem;
+  }
+}
