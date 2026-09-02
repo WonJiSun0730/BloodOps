@@ -656,7 +656,7 @@ function MainPage() {
                   : ''
               }
               aria-selected={
-                bloodType === 'platelet'
+                bloodType === 'apheresisPlatelet'
               }
               onClick={() =>
                 setBloodType('apheresisPlatelet')
