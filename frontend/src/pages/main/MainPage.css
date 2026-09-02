@@ -2892,7 +2892,9 @@
 
 .blood-crisis-message strong {
   color: var(--crisis-color);
+  font-size: inherit;
   font-weight: 850;
+  line-height: inherit;
 }
 
 .blood-crisis-message--관심 {
