@@ -424,10 +424,9 @@ function MainPage() {
     }))
 
   const updatedAt = bloodStatus.updatedAt
-    ? new Intl.DateTimeFormat('ko-KR', {
+    ? `${new Intl.DateTimeFormat('ko-KR', {
         dateStyle: 'medium',
-        timeStyle: 'short',
-      }).format(new Date(bloodStatus.updatedAt))
+      }).format(new Date(bloodStatus.updatedAt))} 기준`
     : '조회 중'
 
 
@@ -688,7 +687,11 @@ function MainPage() {
 
             {bloodType === 'redBloodCell'
               && bloodStatus.crisis ? (
-              <p className="blood-crisis-message">
+              <p
+                className={
+                  `blood-crisis-message blood-crisis-message--${bloodStatus.crisis.level}`
+                }
+              >
                 혈액 수급 위기 단계 기준<br />
                 [{bloodStatus.crisis.criterion}]{' '}
                 <strong>
