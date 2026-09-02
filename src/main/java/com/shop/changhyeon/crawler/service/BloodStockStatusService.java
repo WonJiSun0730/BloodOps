@@ -43,16 +43,20 @@ public class BloodStockStatusService {
 
     BloodStockStatusResponse parseStatus(Document document) {
         ProductRows redBloodCell = findProductRows(document, "적혈구제제");
+        ProductRows concentratedPlatelet = findProductRows(document, "농축혈소판");
         ProductRows apheresisPlatelet = findProductRows(document, "성분채혈혈소판");
 
         BloodStockStatusResponse.ProductStatus redStatus =
                 toProductStatus("적혈구제제", "일", redBloodCell, false);
+        BloodStockStatusResponse.ProductStatus concentratedPlateletStatus =
+                toProductStatus("농축혈소판", "%", concentratedPlatelet, true);
         BloodStockStatusResponse.ProductStatus plateletStatus =
                 toProductStatus("성분채혈혈소판", "%", apheresisPlatelet, true);
 
         return new BloodStockStatusResponse(
                 LocalDateTime.now(),
                 redStatus,
+                concentratedPlateletStatus,
                 plateletStatus,
                 crisisStatus(redStatus.total().value())
         );
