@@ -1,5 +1,6 @@
 import {
   useEffect,
+  useRef,
   useState,
 } from 'react'
 
@@ -73,6 +74,8 @@ function ChatbotWidget() {
     setIsSending,
   ] = useState(false)
 
+  const messagesEndRef = useRef(null)
+
   useEffect(() => {
     try {
       sessionStorage.setItem(
@@ -84,6 +87,21 @@ function ChatbotWidget() {
       // 현재 화면에서만 대화를 유지합니다.
     }
   }, [messages])
+
+  useEffect(() => {
+    if (!isOpen) {
+      return
+    }
+
+    messagesEndRef.current?.scrollIntoView({
+      behavior: 'smooth',
+      block: 'end',
+    })
+  }, [
+    messages,
+    isSending,
+    isOpen,
+  ])
 
   async function handleSubmit(event) {
     event.preventDefault()
@@ -257,6 +275,10 @@ function ChatbotWidget() {
                 </div>
               </div>
             )}
+            <div
+              ref={messagesEndRef}
+              aria-hidden="true"
+            />
           </div>
 
           <form
