@@ -12,13 +12,19 @@ import com.shop.changhyeon.crawler.service.BloodInfoService;
 import com.shop.changhyeon.donation.dto.DonationHistoryResponseDto;
 import com.shop.changhyeon.donation.service.DonationHistoryService;
 import com.shop.chatbot.dto.ChatbotAction;
+import com.shop.chatbot.dto.ChatbotHistoryMessage;
 import com.shop.chatbot.dto.ChatbotResponse;
+import com.shop.reservation.constant.DonationType;
 import com.shop.reservation.constant.ReservationStatus;
 import com.shop.reservation.dto.AdminReservationResponseDto;
+import com.shop.reservation.dto.AdminReservationSlotResponseDto;
 import com.shop.reservation.service.ReservationService;
+import com.shop.reservation.service.ReservationSlotService;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Locale;
 
@@ -29,6 +35,7 @@ public class ChatbotService {
     private final String model;
     private final CenterService centerService;
     private final ReservationService reservationService;
+    private final ReservationSlotService reservationSlotService;
     private final DonationHistoryService donationHistoryService;
     private final BloodInfoService bloodInfoService;
 
@@ -45,6 +52,7 @@ public class ChatbotService {
             @Value("${gemini.model}") String model,
             CenterService centerService,
             ReservationService reservationService,
+            ReservationSlotService reservationSlotService,
             DonationHistoryService donationHistoryService,
             BloodInfoService bloodInfoService
     ) {
@@ -52,12 +60,14 @@ public class ChatbotService {
         this.model = model;
         this.centerService = centerService;
         this.reservationService = reservationService;
+        this.reservationSlotService = reservationSlotService;
         this.donationHistoryService = donationHistoryService;
         this.bloodInfoService = bloodInfoService;
     }
 
     public ChatbotResponse chat(
             String message,
+            List<ChatbotHistoryMessage> history,
             String authenticationIdentifier
     ) {
 
@@ -86,7 +96,8 @@ public class ChatbotService {
          */
         IntentClassification classification =
                 classifyIntentWithGemini(
-                        message
+                        message,
+                        history
                 );
 
         if (!classification.aiAvailable()) {
@@ -270,6 +281,21 @@ public class ChatbotService {
         ) {
 
             String centerKeyword = extractCenterKeyword(message);
+
+            /*
+             * 규칙 기반 검색어 추출 결과가 자연스러운 지역명/센터명으로
+             * 보기 어려우면 여기서 억지로 DB를 조회하지 않습니다.
+             *
+             * null을 반환하면 chat()의 2차 Gemini 의도 분류로 넘어가
+             * 자연어 문맥에서 실제 검색어를 다시 추출합니다.
+             */
+            if (
+                    !isReliableCenterKeyword(
+                            centerKeyword
+                    )
+            ) {
+                return null;
+            }
 
             /*
              * 지역이나 센터명이 포함되지 않은
@@ -493,7 +519,6 @@ public class ChatbotService {
             );
         }
 
-
         /*
          * 챗봇 창이 너무 길어지는 것을 막기 위해
          * 검색 결과는 최대 3곳까지만 표시합니다.
@@ -594,6 +619,282 @@ public class ChatbotService {
                         "BloodOps 헌혈센터 DB"
                 )
         );
+    }
+
+    private ChatbotResponse createEarliestAvailableCenterResponse(
+            String keyword
+    ) {
+
+        List<CenterResponseDto> centers =
+                centerService.getCenters(
+                                keyword
+                        )
+                        .stream()
+                        .filter(
+                                CenterResponseDto::isActive
+                        )
+                        /*
+                         * 챗봇에서 직전에 보여준 검색 결과와 동일하게
+                         * 최대 3곳만 비교합니다.
+                         */
+                        .limit(3)
+                        .toList();
+
+
+        if (centers.isEmpty()) {
+
+            return new ChatbotResponse(
+                    "'" + keyword
+                            + "'으로 비교할 수 있는 운영 중 헌혈센터가 없습니다.",
+                    "CENTER_EARLIEST_AVAILABLE_EMPTY",
+                    List.of(
+                            new ChatbotAction(
+                                    "LINK",
+                                    "헌혈의집 찾기",
+                                    "/centers"
+                            )
+                    ),
+                    List.of(
+                            "BloodOps 헌혈센터 DB"
+                    )
+            );
+        }
+
+
+        EarliestAvailableSlot earliest = null;
+
+
+        for (CenterResponseDto center : centers) {
+
+            EarliestAvailableSlot candidate =
+                    findEarliestAvailableSlot(
+                            center
+                    );
+
+            if (candidate == null) {
+                continue;
+            }
+
+
+            if (
+                    earliest == null
+                            || candidate.dateTime()
+                            .isBefore(
+                                    earliest.dateTime()
+                            )
+            ) {
+
+                earliest =
+                        candidate;
+            }
+        }
+
+
+        if (earliest == null) {
+
+            return new ChatbotResponse(
+                    """
+                    검색된 센터들에서는 현재 예약 가능한 슬롯을 찾지 못했습니다.
+    
+                    예약 일정은 변경될 수 있으니 예약 화면에서 다시 확인해주세요.
+                    """.trim(),
+                    "CENTER_EARLIEST_AVAILABLE_EMPTY",
+                    List.of(
+                            new ChatbotAction(
+                                    "LINK",
+                                    "예약 화면 보기",
+                                    "/reservations/new"
+                            )
+                    ),
+                    List.of(
+                            "BloodOps 예약 슬롯 DB"
+                    )
+            );
+        }
+
+
+        String donationTypeName =
+                switch (
+                        earliest.slot()
+                                .getDonationType()
+                        ) {
+
+                    case WHOLE_BLOOD ->
+                            "전혈";
+
+                    case PLATELET ->
+                            "혈소판";
+
+                    case PLASMA ->
+                            "혈장";
+
+                    case PLATELET_PLASMA ->
+                            "혈소판혈장";
+                };
+
+
+        String answer =
+                """
+                현재 조회된 센터들 중 가장 빠른 예약 가능 시간은 다음과 같습니다.
+    
+                센터: %s
+                날짜: %s
+                시간: %s
+                헌혈 종류: %s
+    
+                예약 가능 여부는 실시간으로 변경될 수 있습니다.
+                """.formatted(
+                        earliest.center()
+                                .getCenterName(),
+                        earliest.slot()
+                                .getReservationDate(),
+                        earliest.slot()
+                                .getStartTime(),
+                        donationTypeName
+                ).trim();
+
+
+        return new ChatbotResponse(
+                answer,
+                "CENTER_EARLIEST_AVAILABLE_RESULT",
+                List.of(
+                        new ChatbotAction(
+                                "LINK",
+                                earliest.center()
+                                        .getCenterName()
+                                        + " 예약하기",
+                                "/reservations/new?centerId="
+                                        + earliest.center()
+                                        .getId()
+                        )
+                ),
+                List.of(
+                        "BloodOps 헌혈센터 DB",
+                        "BloodOps 예약 슬롯 DB"
+                )
+        );
+    }
+
+    private record EarliestAvailableSlot(
+            CenterResponseDto center,
+            AdminReservationSlotResponseDto slot
+    ) {
+
+        private LocalDateTime dateTime() {
+
+            return LocalDateTime.of(
+                    slot.getReservationDate(),
+                    slot.getStartTime()
+            );
+        }
+    }
+
+    private EarliestAvailableSlot findEarliestAvailableSlot(
+            CenterResponseDto center
+    ) {
+
+        LocalDate today =
+                LocalDate.now();
+
+        LocalDate limit =
+                today.plusMonths(2);
+
+
+        LocalDate cursor =
+                today.plusDays(1)
+                        .withDayOfMonth(1);
+
+
+        while (
+                !cursor.isAfter(
+                        limit
+                                .withDayOfMonth(1)
+                )
+        ) {
+
+            var availableDates =
+                    reservationSlotService
+                            .getAvailableDates(
+                                    center.getId(),
+                                    cursor.getYear(),
+                                    cursor.getMonthValue()
+                            );
+
+
+            for (LocalDate availableDate : availableDates) {
+
+                if (
+                        availableDate.isAfter(
+                                limit
+                        )
+                ) {
+                    continue;
+                }
+
+
+                AdminReservationSlotResponseDto earliestSlot =
+                        null;
+
+
+                for (
+                        DonationType donationType
+                        : DonationType.values()
+                ) {
+
+                    List<AdminReservationSlotResponseDto> slots =
+                            reservationSlotService
+                                    .getSlots(
+                                            center.getId(),
+                                            availableDate,
+                                            donationType
+                                    );
+
+
+                    for (
+                            AdminReservationSlotResponseDto slot
+                            : slots
+                    ) {
+
+                        if (
+                                !slot.isActive()
+                                        || slot.getRemainingCapacity() <= 0
+                        ) {
+                            continue;
+                        }
+
+
+                        if (
+                                earliestSlot == null
+                                        || slot.getStartTime()
+                                        .isBefore(
+                                                earliestSlot
+                                                        .getStartTime()
+                                        )
+                        ) {
+
+                            earliestSlot =
+                                    slot;
+                        }
+                    }
+                }
+
+
+                if (earliestSlot != null) {
+
+                    return new EarliestAvailableSlot(
+                            center,
+                            earliestSlot
+                    );
+                }
+            }
+
+
+            cursor =
+                    cursor.plusMonths(1);
+        }
+
+
+        return null;
     }
 
     private ChatbotResponse createMyReservationResponse(
@@ -963,7 +1264,20 @@ public class ChatbotService {
     ) {
 
         String keyword =
-                message.trim();
+                message
+                        .trim()
+                        /*
+                         * 검색어와 무관한 문장부호 제거
+                         *
+                         * 예:
+                         * "서울 센터 찾아줘."
+                         * → "서울 센터 찾아줘"
+                         */
+                        .replaceAll(
+                                "[.!?,~。！？]+",
+                                " "
+                        );
+
 
         String[] removableWords = {
                 "헌혈의집",
@@ -990,8 +1304,11 @@ public class ChatbotService {
                 "알려 주세요"
         };
 
-        for (String removableWord
-                : removableWords) {
+
+        for (
+                String removableWord
+                : removableWords
+        ) {
 
             keyword =
                     keyword.replace(
@@ -1000,16 +1317,126 @@ public class ChatbotService {
                     );
         }
 
+
         /*
-         * 제거 과정에서 생긴 연속 공백을
-         * 하나로 정리합니다.
+         * 지역명을 감싸는 일반적인 구어체 표현을 제거합니다.
+         *
+         * 예:
+         * "서울에 있는" → "서울"
+         * "서울 근처"   → "서울"
+         * "서울 쪽"     → "서울"
          */
+        keyword =
+                keyword.replaceAll(
+                        "\\s*(에\\s*있는|에있는|쪽에\\s*있는|쪽에있는|근처|주변|쪽)\\s*$",
+                        ""
+                );
+
+
+        /*
+         * 조사만 마지막에 남은 경우 제거합니다.
+         *
+         * 예:
+         * "서울에서" → "서울"
+         *
+         * '서울에'처럼 명칭 자체에 포함될 가능성을 줄이기 위해
+         * 문장 마지막에 붙은 조사만 처리합니다.
+         */
+        keyword =
+                keyword.replaceAll(
+                        "(에서|으로|로)$",
+                        ""
+                );
+
+
         return keyword
                 .replaceAll(
                         "\\s+",
                         " "
                 )
                 .trim();
+    }
+
+    private boolean isReliableCenterKeyword(
+            String keyword
+    ) {
+
+        /*
+         * 검색어가 없는 경우는
+         * 기존 "헌혈의집 찾아줘" 일반 안내가 처리합니다.
+         */
+        if (
+                keyword == null
+                        || keyword.isBlank()
+        ) {
+            return true;
+        }
+
+
+        /*
+         * 규칙 기반 fast path에서는
+         * 짧은 지역명/센터명 검색만 직접 DB에 전달합니다.
+         *
+         * 긴 문장이나 동사가 남아 있다면 자연어일 가능성이 높으므로
+         * Gemini가 핵심 검색어를 다시 추출하도록 합니다.
+         */
+        if (keyword.length() > 20) {
+            return false;
+        }
+
+
+        String normalized =
+                keyword.toLowerCase(
+                        Locale.ROOT
+                );
+
+
+        /*
+         * extractCenterKeyword() 처리 후에도 이런 표현이 남아 있다면
+         * 검색어가 아니라 자연어 문장의 일부일 가능성이 높습니다.
+         */
+        if (
+                containsAny(
+                        normalized,
+                        "가는데",
+                        "가려고",
+                        "가고",
+                        "싶어",
+                        "싶은",
+                        "있을까",
+                        "있나",
+                        "있냐",
+                        "있어?",
+                        "어디로",
+                        "어디서",
+                        "할 수",
+                        "할수",
+                        "피 뽑",
+                        "피뽑",
+                        "헌혈하"
+                )
+        ) {
+            return false;
+        }
+
+
+        /*
+         * DB 검색어에는 일반적인 문장 종결 표현이
+         * 남아 있지 않아야 합니다.
+         */
+        if (
+                normalized.endsWith("해")
+                        || normalized.endsWith("돼")
+                        || normalized.endsWith("되")
+                        || normalized.endsWith("까")
+                        || normalized.endsWith("냐")
+                        || normalized.endsWith("지")
+        ) {
+            return false;
+        }
+
+
+        return true;
     }
 
     private boolean containsAny(
@@ -1026,8 +1453,68 @@ public class ChatbotService {
         return false;
     }
 
+    private String buildConversationContext(
+            List<ChatbotHistoryMessage> history,
+            String currentMessage
+    ) {
+
+        StringBuilder context =
+                new StringBuilder();
+
+        context.append(
+                """
+                아래는 BloodOps 챗봇의 최근 대화입니다.
+                이전 대화는 현재 질문의 문맥을 이해하는 용도로만 사용하세요.
+                이전 챗봇 답변에 포함된 센터명, 지역명, 예약 정보 등을 참고할 수 있습니다.
+                현재 질문의 의도는 반드시 마지막 사용자 질문을 기준으로 판단하세요.
+    
+                """
+        );
+
+
+        if (
+                history != null
+                        && !history.isEmpty()
+        ) {
+
+            history.stream()
+                    .skip(
+                            Math.max(
+                                    0,
+                                    history.size() - 6
+                            )
+                    )
+                    .forEach(
+                            historyMessage -> {
+
+                                String role =
+                                        "assistant".equals(
+                                                historyMessage.role()
+                                        )
+                                                ? "챗봇"
+                                                : "사용자";
+
+                                context.append(role)
+                                        .append(": ")
+                                        .append(
+                                                historyMessage.message()
+                                        )
+                                        .append("\n");
+                            }
+                    );
+        }
+
+
+        context.append("\n현재 사용자 질문: ")
+                .append(currentMessage);
+
+
+        return context.toString();
+    }
+
     private IntentClassification classifyIntentWithGemini(
-            String message
+            String message,
+            List<ChatbotHistoryMessage> history
     ) {
 
         if (
@@ -1043,6 +1530,11 @@ public class ChatbotService {
             );
         }
 
+        String conversationContext =
+                buildConversationContext(
+                        history,
+                        message
+                );
 
         try (
                 Client client =
@@ -1061,7 +1553,8 @@ public class ChatbotService {
                                                             """
                                                             당신은 BloodOps 사이트의 자연어 의도 분류기입니다.
     
-                                                            사용자의 질문에 직접 답변하지 마세요.
+                                                            GENERAL_DONATION으로 분류한 경우에만 ANSWER에 실제 답변을 작성하세요.
+                                                            그 외의 의도에서는 직접 답변하지 마세요.
                                                             사용자의 맞춤법 오류, 오타, 축약어, 구어체, 속어를 고려해
                                                             질문의 의도만 분류하세요.
     
@@ -1076,6 +1569,7 @@ public class ChatbotService {
                                                             RESERVATION_CURRENT
                                                             RESERVATION_CREATE
                                                             CENTER_SEARCH
+                                                            CENTER_EARLIEST_AVAILABLE
                                                             DONATION_HISTORY
                                                             QUESTIONNAIRE
                                                             TEST_RESULT
@@ -1105,27 +1599,33 @@ public class ChatbotService {
                                                             - 확인되지 않은 BloodOps 기능이나 개인정보를 만들어내지 마세요.
     
                                                             예시:
-    
                                                             "부평 헌혈의집 찾아줘"
-                                                            → CENTER_SEARCH|부평
-    
+                                                            → CENTER_SEARCH|부평|NONE
+                                    
                                                             "강남 쪽에서 헌혈하고 싶은데 어디로 가?"
-                                                            → CENTER_SEARCH|강남
-    
+                                                            → CENTER_SEARCH|강남|NONE
+                                    
                                                             "헌혈하는데 어디루가야돼"
-                                                            → CENTER_SEARCH|NONE
-    
+                                                            → CENTER_SEARCH|NONE|NONE
+                                    
                                                             "어디 가서 헌혈해?"
-                                                            → CENTER_SEARCH|NONE
-    
+                                                            → CENTER_SEARCH|NONE|NONE
+                                                            
+                                                            이전 대화:
+                                                            사용자: "서울 센터 찾아줘"
+                                                            챗봇: 서울의 헌혈센터 검색 결과를 안내함
+                                                            사용자: "그중 가장 먼저 예약 가능한 곳은 어디야?"
+                                                            
+                                                            → CENTER_EARLIEST_AVAILABLE|서울|NONE
+                                    
                                                             "내 예약 머엿지"
-                                                            → RESERVATION_CURRENT|NONE
-    
+                                                            → RESERVATION_CURRENT|NONE|NONE
+                                    
                                                             "피부조캐?"
-                                                            → BLOOD_STOCK_SHORTAGE|NONE
-    
+                                                            → BLOOD_STOCK_SHORTAGE|NONE|NONE
+                                    
                                                             "헌혈하고 술 마셔도 돼?"
-                                                            → GENERAL_DONATION|NONE
+                                                            → GENERAL_DONATION|NONE|헌혈 후에는 음주를 피하고 충분한 수분 섭취와 휴식을 취하는 것이 좋습니다.
     
     
                                                             분류 기준:
@@ -1158,10 +1658,32 @@ public class ChatbotService {
     
                                                             GENERAL_DONATION
                                                             - 헌혈 종류, 헌혈 전후 주의사항 등 일반적인 헌혈 정보
-    
+                                                            
+                                                            CENTER_EARLIEST_AVAILABLE
+                                                            - 직전에 검색하거나 언급한 센터들 중 가장 빠르게 예약 가능한 센터를 묻는 질문
+                                                            - "그중 어디가 제일 빨라?", "가장 먼저 예약 가능한 곳", "제일 빠른 곳" 같은 표현
+                                                            - 최근 대화에 지역이나 센터 검색 결과가 있으면 그 문맥을 참고하세요.
+                                                            - KEYWORD에는 직전 센터 검색에 사용된 지역명 또는 센터 검색어를 반환하세요.
+                                                            
                                                             OTHER
                                                             - 헌혈 또는 BloodOps와 관계없는 질문
-    
+                                                            
+                                                            대화 문맥 처리:
+                                                            
+                                                            - 현재 질문에 "그중", "거기", "그곳", "첫 번째", "두 번째",
+                                                              "아까", "그 센터" 같은 표현이 있다면 최근 대화를 참고하세요.
+                                                            
+                                                            - 이전 챗봇 답변에 등장한 지역명이나 센터명을 이용해
+                                                              현재 질문의 생략된 대상을 해석할 수 있습니다.
+                                                            
+                                                            - 이전 대화는 문맥 해석에만 사용하세요.
+                                                            
+                                                            - 이전 챗봇 답변에 있는 정보를 새로운 사실처럼 확장하거나
+                                                              존재하지 않는 예약, 센터, 개인정보를 만들어내지 마세요.
+                                                            
+                                                            - 실제 BloodOps 데이터 조회가 필요한 질문은
+                                                              GENERAL_DONATION으로 직접 답변하지 말고
+                                                              해당 BloodOps INTENT로 분류하세요.
     
                                                             중요:
     
@@ -1190,7 +1712,7 @@ public class ChatbotService {
             GenerateContentResponse response =
                     client.models.generateContent(
                             model,
-                            message,
+                            conversationContext,
                             config
                     );
 
@@ -1367,6 +1889,41 @@ public class ChatbotService {
                             )
                     );
 
+            case "CENTER_EARLIEST_AVAILABLE" -> {
+
+                String centerKeyword =
+                        classification.keyword();
+
+                if (
+                        centerKeyword == null
+                                || centerKeyword.isBlank()
+                ) {
+
+                    yield new ChatbotResponse(
+                            """
+                            어떤 헌혈센터들을 비교할지 확인하기 어렵습니다.
+            
+                            먼저 지역이나 센터를 검색한 뒤
+                            "그중 가장 먼저 예약 가능한 곳"이라고 물어봐주세요.
+                            """.trim(),
+                            "CENTER_EARLIEST_AVAILABLE_CONTEXT_REQUIRED",
+                            List.of(
+                                    new ChatbotAction(
+                                            "LINK",
+                                            "헌혈의집 찾기",
+                                            "/centers"
+                                    )
+                            ),
+                            List.of(
+                                    "BloodOps 헌혈센터 정보"
+                            )
+                    );
+                }
+
+                yield createEarliestAvailableCenterResponse(
+                        centerKeyword
+                );
+            }
 
             case "CENTER_SEARCH" -> {
 

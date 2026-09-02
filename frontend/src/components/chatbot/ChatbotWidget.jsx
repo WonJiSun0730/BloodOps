@@ -21,6 +21,7 @@ const DEFAULT_MESSAGES = [
     text:
       '안녕하세요! BloodOps AI 안내 챗봇입니다. 헌혈 예약이나 사이트 이용방법을 물어보세요.',
     actions: [],
+    sources: [],
   },
 ]
 
@@ -131,10 +132,28 @@ function ChatbotWidget() {
     setInput('')
     setIsSending(true)
 
+    const history =
+      messages
+        .filter(
+          (item) =>
+            item.role === 'user'
+            || item.role === 'assistant'
+        )
+        .filter(
+          (item) =>
+            !item.isError
+        )
+        .slice(-6)
+        .map((item) => ({
+          role: item.role,
+          message: item.text,
+        }))
+
     try {
       const response =
         await sendChatbotMessage(
-          message
+          message,
+          history
         )
 
       setMessages((current) => [
@@ -190,6 +209,28 @@ function ChatbotWidget() {
     navigate(action.url)
   }
 
+  function handleResetConversation() {
+    if (isSending) {
+      return
+    }
+
+    try {
+      sessionStorage.removeItem(
+        CHATBOT_STORAGE_KEY
+      )
+    } catch {
+      // sessionStorage를 사용할 수 없어도
+      // 현재 화면의 대화는 초기화합니다.
+    }
+
+    setMessages(
+      DEFAULT_MESSAGES.map((message) => ({
+        ...message,
+      }))
+    )
+
+    setInput('')
+  }
 
   return (
     <div className="chatbot-widget">
@@ -209,16 +250,29 @@ function ChatbotWidget() {
               </span>
             </div>
 
-            <button
-              type="button"
-              className="chatbot-close"
-              onClick={() =>
-                setIsOpen(false)
-              }
-              aria-label="챗봇 닫기"
-            >
-              ×
-            </button>
+            <div className="chatbot-header-actions">
+              <button
+                type="button"
+                className="chatbot-reset"
+                onClick={handleResetConversation}
+                disabled={isSending}
+                aria-label="대화 초기화"
+                title="대화 초기화"
+              >
+                ↻
+              </button>
+
+              <button
+                type="button"
+                className="chatbot-close"
+                onClick={() =>
+                  setIsOpen(false)
+                }
+                aria-label="챗봇 닫기"
+              >
+                ×
+              </button>
+            </div>
           </header>
 
           <div className="chatbot-messages">
@@ -244,6 +298,27 @@ function ChatbotWidget() {
                 >
                   {message.text}
                 </div>
+
+                {message.role === 'assistant'
+                  && message.sources?.length > 0
+                  && (
+                    <div className="chatbot-sources">
+                      <span className="chatbot-sources-label">
+                        출처
+                      </span>
+
+                      {message.sources.map(
+                        (source, index) => (
+                          <span
+                            key={`${source}-${index}`}
+                            className="chatbot-source"
+                          >
+                            {source}
+                          </span>
+                        )
+                      )}
+                    </div>
+                  )}
 
                 {message.actions?.length > 0 && (
                   <div className="chatbot-actions">

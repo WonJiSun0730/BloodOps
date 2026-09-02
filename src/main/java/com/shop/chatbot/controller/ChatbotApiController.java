@@ -41,6 +41,7 @@ public class ChatbotApiController {
         ChatbotResponse response =
                 chatbotService.chat(
                         request.message(),
+                        request.history(),
                         authenticationIdentifier
                 );
 
