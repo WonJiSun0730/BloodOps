@@ -13,7 +13,7 @@ function Document({data}){
   <h2>헌혈확인증명서(개인)</h2>
   <p className="page-number">NO. 1/1</p>
   <table className="certificate-info"><tbody>
-   <tr>{data.purpose==='제출용'&&<><th>발급번호</th><td>{data.issueNumber}</td></>}<th>헌혈횟수</th><td>{data.donationCount}</td><th>사용용도</th><td>{data.purpose}</td></tr>
+   <tr>{data.purpose==='제출용'?<><th>발급번호</th><td>{data.issueNumber}</td><th>헌혈횟수</th><td>{data.donationCount}</td><th>사용용도</th><td>{data.purpose}</td></>:<><th>헌혈횟수</th><td colSpan="2">{data.donationCount}</td><th>사용용도</th><td colSpan="2">{data.purpose}</td></>}</tr>
    <tr><th>성명</th><td>{data.holderName}</td><th>생년월일</th><td>{date(data.birthDate)}</td><th>증명서</th><td>온라인 발급</td></tr>
   </tbody></table>
   <table className="donation-table"><thead><tr><th>번호</th><th>증서번호</th><th>헌혈종류</th><th>헌혈일자</th><th>헌혈장소</th></tr></thead>
@@ -30,7 +30,7 @@ export default function CertificatePage(){
  const [form,setForm]=useState({certificateType:TYPE,purpose:'조회용',periodStart:'2000-01-01',periodEnd:today})
  const [number,setNumber]=useState(''),[issued,setIssued]=useState(null),[verified,setVerified]=useState(null)
  const send=async(url,body)=>{const csrf=await getCsrfToken();return apiRequest(url,{method:'POST',headers:{'Content-Type':'application/json',[csrf.headerName]:csrf.token},body:JSON.stringify(body)})}
- const issue=async e=>{e.preventDefault();setLoading(true);setMessage('');try{const r=await send('/api/certificates',form);setIssued(r);setMessage(r.purpose==='제출용'?'제출용 헌혈확인증명서가 발급되었습니다. 발급번호를 확인해주세요.':'조회용 헌혈확인증명서가 생성되었습니다.')}catch(x){setMessage(x.message)}finally{setLoading(false)}}
+ const issue=async e=>{e.preventDefault();setLoading(true);setMessage('');setIssued(null);try{const r=await send('/api/certificates',form);setIssued(r);setMessage(r.purpose==='제출용'?'제출용 헌혈확인증명서가 발급되었습니다. 발급번호를 확인해주세요.':'조회용 헌혈확인증명서가 생성되었습니다.')}catch(x){setMessage(x.message)}finally{setLoading(false)}}
  const verify=async e=>{e.preventDefault();setLoading(true);setMessage('');setVerified(null);try{const r=await send('/api/certificates/verify',{certificateType:TYPE,issueNumber:number});setVerified(r);setMessage('정상 발급된 증명서입니다.')}catch(x){setMessage(x.message)}finally{setLoading(false)}}
  return <main className="certificate-page">
   <header className="certificate-hero"><span>CERTIFICATE SERVICE</span><h1>증명서 발급</h1><p>헌혈확인증명서를 온라인으로 발급하고 진위여부를 확인할 수 있습니다.</p></header>
