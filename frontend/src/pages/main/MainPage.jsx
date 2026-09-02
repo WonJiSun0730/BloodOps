@@ -27,6 +27,7 @@ import './MainPage.css'
 
 import BackgroundOrbit
   from '../../components/decorations/BackgroundOrbit.jsx'
+import LiquidBloodDrop from './LiquidBloodDrop.jsx'
 
 
 /*
@@ -423,13 +424,6 @@ function MainPage() {
       ...metric,
     }))
 
-  function getRedBloodCellFillPercent(value) {
-    return Math.min(
-      100,
-      Math.max(0, (value / 10) * 100)
-    )
-  }
-
   const updatedAt = bloodStatus.updatedAt
     ? `${new Intl.DateTimeFormat('ko-KR', {
         dateStyle: 'medium',
@@ -741,53 +735,10 @@ function MainPage() {
                   }
                 >
                   {bloodType === 'redBloodCell' ? (
-                    <svg
-                      className="blood-drop"
-                      viewBox="0 0 100 120"
-                      aria-hidden="true"
-                    >
-                      <defs>
-                        <clipPath id={`blood-drop-${blood.type}`}>
-                          <path d="M50 3C42 20 17 45 17 72a33 33 0 0 0 66 0C83 45 58 20 50 3Z" />
-                        </clipPath>
-                      </defs>
-
-                      <path
-                        className="blood-drop-shell"
-                        d="M50 3C42 20 17 45 17 72a33 33 0 0 0 66 0C83 45 58 20 50 3Z"
-                      />
-
-                      <g
-                        className="blood-drop-liquid"
-                        clipPath={`url(#blood-drop-${blood.type})`}
-                        style={{
-                          transform:
-                            `translateY(${108 - getRedBloodCellFillPercent(blood.value)}px)`,
-                        }}
-                      >
-                        <path
-                          className="blood-wave blood-wave--back"
-                          d="M-100 5Q-75-3-50 5T0 5T50 5T100 5T150 5T200 5V125H-100Z"
-                        />
-                        <path
-                          className="blood-wave blood-wave--front"
-                          d="M-100 8Q-75 0-50 8T0 8T50 8T100 8T150 8T200 8V125H-100Z"
-                        />
-                      </g>
-
-                      <path
-                        className="blood-drop-outline"
-                        d="M50 3C42 20 17 45 17 72a33 33 0 0 0 66 0C83 45 58 20 50 3Z"
-                      />
-                      <text
-                        className="blood-type-name"
-                        x="50"
-                        y="73"
-                        textAnchor="middle"
-                      >
-                        {blood.type}
-                      </text>
-                    </svg>
+                    <LiquidBloodDrop
+                      bloodType={blood.type}
+                      value={blood.value}
+                    />
                   ) : (
                     <span
                       className="blood-type-name-plain"
