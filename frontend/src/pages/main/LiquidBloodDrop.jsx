@@ -70,7 +70,7 @@ function LiquidBloodDrop({ bloodType, value }) {
           label: {
             show: true,
             formatter: bloodType,
-            color: '#f5f5f5',
+            color: '#2b2f33',
             insideColor: '#f5f5f5',
             fontSize: 18,
             fontWeight: 900,
