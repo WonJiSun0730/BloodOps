@@ -6,6 +6,7 @@ import java.util.Map;
 public record BloodStockStatusResponse(
         LocalDateTime updatedAt,
         ProductStatus redBloodCell,
+        ProductStatus concentratedPlatelet,
         ProductStatus apheresisPlatelet,
         CrisisStatus crisis
 ) {
