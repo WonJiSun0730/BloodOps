@@ -33,11 +33,17 @@ function LiquidBloodDrop({ bloodType, value }) {
       const styles = getComputedStyle(
         document.documentElement
       )
+      const isDarkTheme =
+        document.documentElement.dataset.theme === 'dark'
+      const mainText =
+        styles.getPropertyValue('--color-text').trim()
+        || '#f5f5f5'
+      const mutedText =
+        styles.getPropertyValue('--color-text-muted').trim()
+        || '#aeb3ba'
 
       return {
-        text:
-          styles.getPropertyValue('--color-text').trim()
-          || '#f5f5f5',
+        outsideText: isDarkTheme ? mutedText : mainText,
         background:
           styles.getPropertyValue('--color-background').trim()
           || '#17191c',
@@ -90,7 +96,7 @@ function LiquidBloodDrop({ bloodType, value }) {
           label: {
             show: true,
             formatter: bloodType,
-            color: themeColors.text,
+            color: themeColors.outsideText,
             insideColor: '#f5f5f5',
             fontSize: 18,
             fontWeight: 900,
@@ -121,7 +127,7 @@ function LiquidBloodDrop({ bloodType, value }) {
               },
             },
             label: {
-              color: nextThemeColors.text,
+              color: nextThemeColors.outsideText,
               insideColor: '#f5f5f5',
             },
           },
