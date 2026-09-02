@@ -183,6 +183,12 @@ function BloodStatusPage() {
           />
 
           <ProductTable
+            title="농축혈소판 보유 현황"
+            description="현재 혈액보유량 ÷ 1일 소요량을 10% 단위 보유율로 표시합니다."
+            product={status.concentratedPlatelet}
+          />
+
+          <ProductTable
             title="성분채혈혈소판 보유 현황"
             description="현재 혈액보유량 ÷ 1일 소요량을 10% 단위 보유율로 표시합니다."
             product={status.apheresisPlatelet}
