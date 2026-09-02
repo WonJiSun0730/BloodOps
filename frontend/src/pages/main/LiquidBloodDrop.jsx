@@ -29,6 +29,26 @@ function LiquidBloodDrop({ bloodType, value }) {
       Math.max(0, Number(value) / 10)
     )
 
+    function getThemeColors() {
+      const styles = getComputedStyle(
+        document.documentElement
+      )
+
+      return {
+        text:
+          styles.getPropertyValue('--color-text').trim()
+          || '#f5f5f5',
+        background:
+          styles.getPropertyValue('--color-background').trim()
+          || '#17191c',
+        border:
+          styles.getPropertyValue('--color-border').trim()
+          || '#34383e',
+      }
+    }
+
+    const themeColors = getThemeColors()
+
     chart.setOption({
       animation: !reducedMotion,
       series: [
@@ -56,13 +76,13 @@ function LiquidBloodDrop({ bloodType, value }) {
           animationDuration: reducedMotion ? 0 : 900,
           animationDurationUpdate: reducedMotion ? 0 : 700,
           backgroundStyle: {
-            color: 'rgba(115, 121, 128, 0.08)',
+            color: themeColors.background,
           },
           outline: {
             show: true,
             borderDistance: 2,
             itemStyle: {
-              borderColor: 'rgba(115, 121, 128, 0.42)',
+              borderColor: themeColors.border,
               borderWidth: 2,
               shadowBlur: 0,
             },
@@ -70,7 +90,7 @@ function LiquidBloodDrop({ bloodType, value }) {
           label: {
             show: true,
             formatter: bloodType,
-            color: '#2b2f33',
+            color: themeColors.text,
             insideColor: '#f5f5f5',
             fontSize: 18,
             fontWeight: 900,
@@ -86,8 +106,36 @@ function LiquidBloodDrop({ bloodType, value }) {
     })
     resizeObserver.observe(chartElement)
 
+    const themeObserver = new MutationObserver(() => {
+      const nextThemeColors = getThemeColors()
+
+      chart.setOption({
+        series: [
+          {
+            backgroundStyle: {
+              color: nextThemeColors.background,
+            },
+            outline: {
+              itemStyle: {
+                borderColor: nextThemeColors.border,
+              },
+            },
+            label: {
+              color: nextThemeColors.text,
+              insideColor: '#f5f5f5',
+            },
+          },
+        ],
+      })
+    })
+    themeObserver.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ['data-theme'],
+    })
+
     return () => {
       resizeObserver.disconnect()
+      themeObserver.disconnect()
       chart.dispose()
     }
   }, [bloodType, value])
