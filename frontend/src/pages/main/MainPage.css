@@ -2886,9 +2886,33 @@
   }
 }
 
+.blood-crisis-message {
+  --crisis-color: var(--color-primary);
+}
+
 .blood-crisis-message strong {
-  color: var(--color-primary);
+  color: var(--crisis-color);
   font-weight: 850;
+}
+
+.blood-crisis-message--관심 {
+  --crisis-color: #2f80ed;
+}
+
+.blood-crisis-message--주의 {
+  --crisis-color: #d6a600;
+}
+
+.blood-crisis-message--경계 {
+  --crisis-color: #f2994a;
+}
+
+.blood-crisis-message--심각 {
+  --crisis-color: #e53935;
+}
+
+.blood-crisis-message--적정 {
+  --crisis-color: #27ae60;
 }
 
 .blood-status-error {
