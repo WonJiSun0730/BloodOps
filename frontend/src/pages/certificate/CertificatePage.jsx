@@ -41,7 +41,7 @@ export default function CertificatePage(){
  const verify=async e=>{e.preventDefault();setMessage('');setVerified(null);if(!validateNumber())return;setLoading(true);const issueNumber=[numberParts.prefix,numberParts.issuedDate,numberParts.serial].join('-');try{const r=await send('/api/certificates/verify',{certificateType:TYPE,issueNumber});setVerified(r);setMessage('정상 발급된 증명서입니다.')}catch(x){setMessage(x.message)}finally{setLoading(false)}}
  return <main className="certificate-page">
   <header className="certificate-hero"><span>CERTIFICATE SERVICE</span><h1>증명서 발급</h1><p>헌혈확인증명서를 온라인으로 발급하고 진위여부를 확인할 수 있습니다.</p></header>
-  <div className="certificate-tabs" role="tablist" aria-label="증명서 서비스"><button type="button" role="tab" aria-selected={tab==='issue'} className={tab==='issue'?'active':''} onClick={()=>{setTab('issue');setMessage('')}}>증명서 발급</button><button type="button" role="tab" aria-selected={tab==='verify'} className={tab==='verify'?'active':''} onClick={()=>{setTab('verify');setMessage('')}}>진위여부 확인</button></div>
+  <div className="certificate-tabs" role="tablist" aria-label="증명서 서비스"><button type="button" role="tab" aria-selected={tab==='issue'} className={tab==='issue'?'active':''} onClick={()=>{setTab('issue');setMessage('');setVerified(null)}}>증명서 발급</button><button type="button" role="tab" aria-selected={tab==='verify'} className={tab==='verify'?'active':''} onClick={()=>{setTab('verify');setMessage('');setIssued(null)}}>진위여부 확인</button></div>
   <section className="certificate-panel">{tab==='issue'?<form onSubmit={issue}>
    <h2>헌혈확인증명서 신청</h2><p>온라인 발급만 제공합니다. 헌혈지원확인증명서와 우편·팩스 발급은 제외됩니다.</p>
    <label>증명서 종류<select disabled><option>헌혈확인증명서</option></select></label>
