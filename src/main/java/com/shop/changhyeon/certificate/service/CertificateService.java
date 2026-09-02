@@ -36,6 +36,16 @@ public class CertificateService {
    .map(h->new DonationItem(h.getId(),h.getDonationType().name(),h.getDonationDate(),h.getDonationPlaceName())).toList();
   String purpose=request.purpose().trim();
   if(!purpose.equals("조회용")&&!purpose.equals("제출용")) throw new IllegalArgumentException("사용 용도는 조회용 또는 제출용만 선택할 수 있습니다.");
+  Certificate existingCertificate=certificateRepository
+   .findFirstByMember_IdAndCertificateTypeAndPurposeAndPeriodStartAndPeriodEndOrderByIssuedAtDescIdDesc(
+    member.getId(),
+    TYPE,
+    purpose,
+    request.periodStart(),
+    request.periodEnd()
+   )
+   .orElse(null);
+  if(existingCertificate!=null) return response(existingCertificate,items);
   // 기존 DB의 issue_number NOT NULL 제약과 호환되도록 내부 번호는 항상 저장합니다.
   // 조회용 번호는 응답과 증명서 화면에서 노출하지 않습니다.
   String issueNumber=number(today);
