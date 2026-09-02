@@ -13,7 +13,7 @@ import java.time.*;
 @Getter @NoArgsConstructor(access=AccessLevel.PROTECTED)
 public class Certificate {
  @Id @GeneratedValue(strategy=GenerationType.IDENTITY) private Long id;
- @Column(name="issue_number",nullable=false,unique=true,updatable=false,length=32) private String issueNumber;
+ @Column(name="issue_number",unique=true,updatable=false,length=32) private String issueNumber;
  @ManyToOne(fetch=FetchType.LAZY,optional=false) @JoinColumn(name="member_id",nullable=false,updatable=false) private Member member;
  @Column(name="certificate_type",nullable=false,updatable=false,length=40) private String certificateType;
  @Column(nullable=false,updatable=false,length=100) private String purpose;

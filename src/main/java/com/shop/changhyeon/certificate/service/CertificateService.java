@@ -34,13 +34,17 @@ public class CertificateService {
   List<DonationItem> items=all.stream()
    .filter(h->!h.getDonationDate().isBefore(request.periodStart())&&!h.getDonationDate().isAfter(request.periodEnd()))
    .map(h->new DonationItem(h.getId(),h.getDonationType().name(),h.getDonationDate(),h.getDonationPlaceName())).toList();
-  Certificate saved=certificateRepository.saveAndFlush(new Certificate(number(today),member,request.purpose().trim(),request.periodStart(),request.periodEnd(),items.size()));
+  String purpose=request.purpose().trim();
+  if(!purpose.equals("조회용")&&!purpose.equals("제출용")) throw new IllegalArgumentException("사용 용도는 조회용 또는 제출용만 선택할 수 있습니다.");
+  String issueNumber=purpose.equals("제출용")?number(today):null;
+  Certificate saved=certificateRepository.saveAndFlush(new Certificate(issueNumber,member,purpose,request.periodStart(),request.periodEnd(),items.size()));
   return response(saved,items);
  }
 
  @Transactional(readOnly=true)
  public CertificateResponse verify(CertificateVerifyRequest request){
   Certificate c=certificateRepository.findByCertificateTypeAndIssueNumber(request.certificateType(),request.issueNumber().trim().toUpperCase())
+   .filter(certificate->"제출용".equals(certificate.getPurpose()))
    .orElseThrow(()->new CertificateNotFoundException(NOT_FOUND));
   return response(c,List.of());
  }

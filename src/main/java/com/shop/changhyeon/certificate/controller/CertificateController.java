@@ -29,7 +29,8 @@ public class CertificateController {
 
  public record CertificateIssueRequest(
   @NotBlank String certificateType,
-  @NotBlank(message="발급 용도를 입력해주세요.") @Size(max=100) String purpose,
+  @NotBlank(message="사용 용도를 선택해주세요.")
+  @Pattern(regexp="^(조회용|제출용)$",message="사용 용도는 조회용 또는 제출용만 선택할 수 있습니다.") String purpose,
   @NotNull LocalDate periodStart,@NotNull LocalDate periodEnd){}
  public record CertificateVerifyRequest(
   @NotBlank String certificateType,
