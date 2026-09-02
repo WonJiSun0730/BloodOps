@@ -1249,3 +1249,12 @@ export async function removeFavoriteCenter(
     }
   )
 }
+
+
+/*
+ * 대한적십자사 혈액보유현황을 조회합니다.
+ * 적혈구제제는 보유일수, 성분채혈혈소판은 보유율을 반환합니다.
+ */
+export function getBloodStockStatus() {
+  return apiRequest('/api/public/blood-stock-status')
+}
