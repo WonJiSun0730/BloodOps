@@ -2885,3 +2885,43 @@
     padding: 16px 10px;
   }
 }
+
+.blood-crisis-message strong {
+  color: var(--color-primary);
+  font-weight: 850;
+}
+
+.blood-status-error {
+  color: var(--color-primary) !important;
+}
+
+.blood-status-tabs button:focus-visible,
+.blood-status-detail:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+@media (max-width: 480px) {
+  .blood-status-card {
+    min-height: auto;
+    padding: 20px;
+  }
+
+  .blood-status-header {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .blood-status-tabs {
+    margin-top: 18px;
+  }
+
+  .blood-type-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .blood-status-detail {
+    margin-top: 18px;
+  }
+}
