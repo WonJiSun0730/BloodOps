@@ -137,8 +137,18 @@ public class BloodStockStatusService {
         Elements cells = row.select("th, td");
         Map<String, Integer> values = new LinkedHashMap<>();
 
+        int lastColumnIndex = columns.values()
+                .stream()
+                .mapToInt(Integer::intValue)
+                .max()
+                .orElseThrow();
+        int leadingCellOffset = Math.max(
+                0,
+                cells.size() - (lastColumnIndex + 1)
+        );
+
         for (String bloodType : BLOOD_TYPES) {
-            int index = columns.get(bloodType);
+            int index = columns.get(bloodType) + leadingCellOffset;
             if (index >= cells.size()) {
                 throw new IllegalStateException(bloodType + "형 수치가 누락되었습니다.");
             }
