@@ -133,3 +133,28 @@
     justify-self: stretch;
   }
 }
+
+/* 날짜 선택도구 아이콘 가시성 보완 - Chrome / Edge */
+.certificate-panel .period input[type="date"] {
+  padding-right: 10px;
+}
+
+.certificate-panel .period input[type="date"]::-webkit-calendar-picker-indicator {
+  width: 22px;
+  height: 22px;
+  padding: 5px;
+  border: 1px solid var(--color-border, #34383e);
+  border-radius: 7px;
+  background-color: rgba(255, 255, 255, 0.12);
+  cursor: pointer;
+  filter: invert(1) brightness(1.8);
+  opacity: 1;
+}
+
+.certificate-panel .period input[type="date"]::-webkit-calendar-picker-indicator:hover {
+  background-color: rgba(255, 255, 255, 0.22);
+}
+
+.certificate-panel .period input[type="date"]:focus-visible::-webkit-calendar-picker-indicator {
+  border-color: var(--color-primary-hover, #f04440);
+}

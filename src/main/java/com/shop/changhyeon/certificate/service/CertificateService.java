@@ -36,7 +36,7 @@ public class CertificateService {
    .map(h->new DonationItem(h.getId(),h.getDonationType().name(),h.getDonationDate(),h.getDonationPlaceName())).toList();
   String purpose=request.purpose().trim();
   if(!purpose.equals("조회용")&&!purpose.equals("제출용")) throw new IllegalArgumentException("사용 용도는 조회용 또는 제출용만 선택할 수 있습니다.");
-  String issueNumber=purpose.equals("제출용")?number(today):null;
+  // 기존 DB의 issue_number NOT NULL 제약과 호환되도록 내부 번호는 항상 저장합니다.\n  // 조회용 번호는 응답과 증명서 화면에서 노출하지 않습니다.\n  String issueNumber=number(today);
   Certificate saved=certificateRepository.saveAndFlush(new Certificate(issueNumber,member,purpose,request.periodStart(),request.periodEnd(),items.size()));
   return response(saved,items);
  }
@@ -50,7 +50,7 @@ public class CertificateService {
  }
 
  private CertificateResponse response(Certificate c,List<DonationItem> items){
-  return new CertificateResponse(c.getIssueNumber(),c.getCertificateType(),"헌혈확인증명서",c.getMember().getName(),
+  String visibleIssueNumber="제출용".equals(c.getPurpose())?c.getIssueNumber():null;\n  return new CertificateResponse(visibleIssueNumber,c.getCertificateType(),"헌혈확인증명서",c.getMember().getName(),
    c.getMember().getBirthDate(),c.getPurpose(),c.getPeriodStart(),c.getPeriodEnd(),c.getDonationCount(),c.getIssuedAt(),items);
  }
  private String number(LocalDate today){
