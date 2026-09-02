@@ -2886,8 +2886,9 @@
   }
 }
 
-.blood-crisis-message {
+.blood-total .blood-crisis-message {
   --crisis-color: var(--color-primary);
+  font-size: 1rem;
 }
 
 .blood-crisis-message strong {
@@ -2897,23 +2898,23 @@
   line-height: inherit;
 }
 
-.blood-crisis-message--관심 {
+.blood-total .blood-crisis-message--관심 {
   --crisis-color: #2f80ed;
 }
 
-.blood-crisis-message--주의 {
+.blood-total .blood-crisis-message--주의 {
   --crisis-color: #d6a600;
 }
 
-.blood-crisis-message--경계 {
+.blood-total .blood-crisis-message--경계 {
   --crisis-color: #f2994a;
 }
 
-.blood-crisis-message--심각 {
+.blood-total .blood-crisis-message--심각 {
   --crisis-color: #e53935;
 }
 
-.blood-crisis-message--적정 {
+.blood-total .blood-crisis-message--적정 {
   --crisis-color: #27ae60;
 }
 
