@@ -40,11 +40,14 @@ public class SecurityConfig {
                                 "/api/public/**",
                                 "/api/promotions",
                                 "/api/promotions/*",
+                                "/api/promotions/*/image",
 
                                 // 로그인 관련 공개 API
                                 "/api/auth/csrf",
                                 "/api/auth/login",
                                 "/api/auth/oauth-return-to",
+                                // 발급번호를 가진 사람은 로그인 없이 진위여부를 확인할 수 있습니다.
+                                "/api/certificates/verify",
 
                                 // React 회원가입 관련 공개 API
                                 "/api/members/signup",

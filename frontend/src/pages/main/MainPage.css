@@ -582,77 +582,62 @@
 
 
 .blood-type-item {
-  padding: 14px 10px;
-
-  border: 1px solid var(--color-border);
-  border-radius: 12px;
-
-  text-align: center;
-
-  background-color: var(--color-background);
-
-  transition:
-    border-color 0.18s ease,
-    transform 0.18s ease,
-    background-color 0.18s ease;
+  display: flex;
+  min-width: 0;
+  padding: 10px 6px;
+  align-items: center;
+  flex-direction: column;
+  background: transparent;
+  transition: transform 0.18s ease;
 }
-
 
 .blood-type-item:hover {
-  border-color:
-    color-mix(
-      in srgb,
-      var(--color-primary) 35%,
-      var(--color-border)
-    );
-
-  background-color:
-    color-mix(
-      in srgb,
-      var(--color-primary) 4%,
-      var(--color-background)
-    );
-
-  transform: translateY(-2px);
+  transform: translateY(-3px);
 }
 
+.blood-type-item--plain {
+  min-height: 92px;
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  justify-content: center;
+  background-color: var(--color-surface);
+}
 
-.blood-type-name {
-  display: block;
-
+.blood-type-name-plain {
   color: var(--color-primary);
-
-  font-size: 0.82rem;
-  font-weight: 850;
+  font-size: 1rem;
+  font-weight: 900;
 }
 
-
-.blood-type-item div {
-  display: flex;
-
+.blood-type-item--plain .blood-type-value {
   margin-top: 6px;
+}
 
+.blood-drop {
+  width: clamp(72px, 6.2vw, 90px);
+  height: clamp(86px, 7.4vw, 108px);
+  flex: 0 0 auto;
+}
+
+.blood-type-value {
+  display: flex;
+  margin-top: 10px;
   align-items: baseline;
   justify-content: center;
   gap: 3px;
 }
 
-
-.blood-type-item strong {
+.blood-type-value strong {
   color: var(--color-text);
-
-  font-size: 1.1rem;
+  font-size: 1.12rem;
   font-weight: 850;
 }
 
-
-.blood-type-item div span {
+.blood-type-value span {
   color: var(--color-text-muted);
-
-  font-size: 0.62rem;
+  font-size: 0.72rem;
   font-weight: 700;
 }
-
 
 /* ================================
    Detail
@@ -2883,5 +2868,72 @@
 
   .blood-type-item {
     padding: 16px 10px;
+  }
+}
+
+.blood-total .blood-crisis-message {
+  --crisis-color: var(--color-primary);
+  font-size: 1rem;
+}
+
+.blood-crisis-message strong {
+  color: var(--crisis-color);
+  font-size: inherit;
+  font-weight: 850;
+  line-height: inherit;
+}
+
+.blood-total .blood-crisis-message--관심 {
+  --crisis-color: #2f80ed;
+}
+
+.blood-total .blood-crisis-message--주의 {
+  --crisis-color: #d6a600;
+}
+
+.blood-total .blood-crisis-message--경계 {
+  --crisis-color: #f2994a;
+}
+
+.blood-total .blood-crisis-message--심각 {
+  --crisis-color: #e53935;
+}
+
+.blood-total .blood-crisis-message--적정 {
+  --crisis-color: #27ae60;
+}
+
+.blood-status-error {
+  color: var(--color-primary) !important;
+}
+
+.blood-status-tabs button:focus-visible,
+.blood-status-detail:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+@media (max-width: 480px) {
+  .blood-status-card {
+    min-height: auto;
+    padding: 20px;
+  }
+
+  .blood-status-header {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .blood-status-tabs {
+    margin-top: 18px;
+  }
+
+  .blood-type-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .blood-status-detail {
+    margin-top: 18px;
   }
 }

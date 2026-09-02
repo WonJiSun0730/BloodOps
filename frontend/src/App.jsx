@@ -11,6 +11,8 @@ import MyPageLayout
 
 import MainPage
   from './pages/main/MainPage.jsx'
+import BloodStatusPage
+  from './pages/blood-status/BloodStatusPage.jsx'
 
 import LoginPage
   from './pages/auth/LoginPage.jsx'
@@ -46,6 +48,8 @@ import BloodHoldGuidePage
 
 import QuestionnairePage
   from './pages/questionnaire/QuestionnairePage.jsx'
+import CertificatePage
+  from './pages/certificate/CertificatePage.jsx'
 
 import AdminPage
   from './pages/admin/AdminPage.jsx'
@@ -64,7 +68,6 @@ import AdminRewardFulfillmentPage
 
 import PromotionsPage from './pages/promotion/PromotionsPage.jsx'
 import PromotionDetailPage from './pages/promotion/PromotionDetailPage.jsx'
-import AdminPromotionsPage from './pages/admin/AdminPromotionsPage.jsx'
 
 import BloodUnitsManagementPage
   from './pages/medical/BloodUnitsManagementPage.jsx'
@@ -100,6 +103,11 @@ function App() {
         <Route
           path="/"
           element={<MainPage />}
+        />
+
+        <Route
+          path="/blood-status"
+          element={<BloodStatusPage />}
         />
 
         <Route
@@ -149,6 +157,8 @@ function App() {
           path="/questionnaire"
           element={<QuestionnairePage />}
         />
+
+        <Route path="/certificate" element={<CertificatePage />} />
 
 
         <Route
@@ -289,8 +299,6 @@ function App() {
         />
 
         <Route path="/admin/reward-fulfillment" element={<AdminRoute><AdminRewardFulfillmentPage /></AdminRoute>} />
-
-        <Route path="/admin/promotions" element={<AdminRoute><AdminPromotionsPage /></AdminRoute>} />
 
         <Route
           path="/admin/kakao-message-template"

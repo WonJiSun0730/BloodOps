@@ -6,6 +6,7 @@ import com.shop.changhyeon.donation.repository.DonationHistoryRepository;
 import com.shop.changhyeon.reward.service.PointRewardService;
 import com.shop.member.entity.Member;
 import com.shop.member.repository.MemberRepository;
+import com.shop.member.service.MemberService;
 import com.shop.reservation.constant.DonationType;
 import com.shop.reservation.constant.ReservationStatus;
 import com.shop.reservation.entity.Reservation;
@@ -33,6 +34,7 @@ class DonationHistoryServiceTest {
     @Mock ReservationRepository reservationRepository;
     @Mock MemberRepository memberRepository;
     @Mock PointRewardService pointRewardService;
+    @Mock MemberService memberService;
     @InjectMocks DonationHistoryService donationHistoryService;
 
     @Test
@@ -96,7 +98,8 @@ class DonationHistoryServiceTest {
     void 로그인한_회원의_PK로_헌혈기록을_최신순_조회한다() {
         Member member = new Member();
         member.setId(7L);
-        when(memberRepository.findByEmail("user@bloodops.local")).thenReturn(member);
+        when(memberService.findByAuthenticationIdentifier("user@bloodops.local"))
+                .thenReturn(member);
         when(donationHistoryRepository.findByMember_IdOrderByDonationDateDescIdDesc(7L))
                 .thenReturn(List.of());
 

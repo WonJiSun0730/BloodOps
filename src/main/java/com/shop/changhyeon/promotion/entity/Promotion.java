@@ -20,9 +20,12 @@ public class Promotion {
     @Enumerated(EnumType.STRING) @Column(nullable = false, length = 20) private PromotionType type;
     @Column(name = "region_name", length = 50) private String regionName;
     @Column(nullable = false, length = 150) private String title;
-    @Column(nullable = false, length = 300) private String summary;
-    @Lob @Column(nullable = false) private String content;
+    @Column(length = 300) private String summary;
+    @Lob private String content;
     @Column(name = "image_url", length = 1000) private String imageUrl;
+    @Lob @Basic(fetch = FetchType.LAZY) @Column(name = "image_data", columnDefinition = "LONGBLOB") private byte[] imageData;
+    @Column(name = "image_content_type", length = 100) private String imageContentType;
+    @Column(name = "image_original_name", length = 255) private String imageOriginalName;
     @Column(name = "start_date", nullable = false) private LocalDate startDate;
     @Column(name = "end_date", nullable = false) private LocalDate endDate;
     @Column(name = "donation_eligibility_start_date") private LocalDate donationEligibilityStartDate;
@@ -35,5 +38,12 @@ public class Promotion {
     public void replaceOptions(List<String> labels) {
         options.clear();
         for (int i = 0; i < labels.size(); i++) options.add(new PromotionOption(this, labels.get(i), i));
+    }
+
+    public void updateImage(byte[] data, String contentType, String originalName) {
+        imageData = data;
+        imageContentType = contentType;
+        imageOriginalName = originalName;
+        imageUrl = null;
     }
 }
