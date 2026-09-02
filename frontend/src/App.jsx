@@ -44,6 +44,8 @@ import MyRewardOrdersPage
 
 import QuestionnairePage
   from './pages/questionnaire/QuestionnairePage.jsx'
+import CertificatePage
+  from './pages/certificate/CertificatePage.jsx'
 
 import AdminPage
   from './pages/admin/AdminPage.jsx'
@@ -151,6 +153,8 @@ function App() {
           path="/questionnaire"
           element={<QuestionnairePage />}
         />
+
+        <Route path="/certificate" element={<CertificatePage />} />
 
 
         <Route
