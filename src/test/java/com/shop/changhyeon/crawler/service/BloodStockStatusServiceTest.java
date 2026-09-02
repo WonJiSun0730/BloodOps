@@ -39,4 +39,33 @@ class BloodStockStatusServiceTest {
             assertThat(result.crisis().level()).isEqualTo("관심");
         }
     }
+
+    @Test
+    void combinedPlateletTable_accountsForProductNameCell() {
+        Document document = Jsoup.parse("""
+                <h2>적혈구제제 보유 현황</h2>
+                <table>
+                  <tr><th>구분</th><th>합계</th><th>A형</th><th>B형</th><th>O형</th><th>AB형</th></tr>
+                  <tr><td>1일 소요량</td><td>5052</td><td>1732</td><td>1334</td><td>1432</td><td>554</td></tr>
+                  <tr><td>현재 혈액보유량</td><td>20313</td><td>4764</td><td>8133</td><td>5487</td><td>1929</td></tr>
+                </table>
+                <h2>혈소판제제 보유 현황</h2>
+                <table>
+                  <tr><th>구분</th><th>합계</th><th>A형</th><th>B형</th><th>O형</th><th>AB형</th></tr>
+                  <tr><th>농축혈소판</th><td>1일 소요량</td><td>4572</td><td>1555</td><td>1219</td><td>1277</td><td>521</td></tr>
+                  <tr><td>현재 혈액보유량</td><td>6342</td><td>1938</td><td>1778</td><td>2019</td><td>607</td></tr>
+                  <tr><th>성분채혈혈소판</th><td>1일 소요량</td><td>673</td><td>228</td><td>182</td><td>164</td><td>99</td></tr>
+                  <tr><td>현재 혈액보유량</td><td>1121</td><td>342</td><td>378</td><td>269</td><td>132</td></tr>
+                </table>
+                """);
+
+        BloodStockStatusResponse result = service.parseStatus(document);
+
+        assertThat(result.concentratedPlatelet().total().dailyUsage()).isEqualTo(4572);
+        assertThat(result.concentratedPlatelet().bloodTypes().get("A").dailyUsage()).isEqualTo(1555);
+        assertThat(result.apheresisPlatelet().total().dailyUsage()).isEqualTo(673);
+        assertThat(result.apheresisPlatelet().total().currentStock()).isEqualTo(1121);
+        assertThat(result.apheresisPlatelet().total().value()).isEqualTo(170.0);
+        assertThat(result.apheresisPlatelet().bloodTypes().get("B").value()).isEqualTo(210.0);
+    }
 }
