@@ -29,6 +29,10 @@ class BloodStockStatusServiceTest {
             assertThat(result.redBloodCell().total().value()).isEqualTo(4.5);
             assertThat(result.redBloodCell().bloodTypes().get("A").value()).isEqualTo(2.9);
 
+            assertThat(result.concentratedPlatelet().total().dailyUsage()).isEqualTo(1250);
+            assertThat(result.concentratedPlatelet().total().currentStock()).isEqualTo(5612);
+            assertThat(result.concentratedPlatelet().total().value()).isEqualTo(450.0);
+
             assertThat(result.apheresisPlatelet().total().dailyUsage()).isEqualTo(310);
             assertThat(result.apheresisPlatelet().total().currentStock()).isEqualTo(1415);
             assertThat(result.apheresisPlatelet().total().value()).isEqualTo(460.0);
