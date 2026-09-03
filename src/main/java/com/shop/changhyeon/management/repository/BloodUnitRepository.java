@@ -15,6 +15,7 @@ public interface BloodUnitRepository extends JpaRepository<BloodUnit, Long>, Jpa
     List<BloodUnit> findAvailableStockForUpdate(@Param("productType") String productType, @Param("bloodType") String bloodType);
     Optional<BloodUnit> findByUnitId(String unitId);
     List<BloodUnit> findAllByCenterIsNull();
+    List<BloodUnit> findAllByUnitIdStartingWith(String prefix);
     boolean existsByUnitIdAndIdNot(String unitId, Long id);
     long countByStatusIn(Collection<String> statuses);
     long countByStatusInAndExpirationDateBetween(Collection<String> statuses, LocalDateTime from, LocalDateTime to);
