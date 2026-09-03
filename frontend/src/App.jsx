@@ -64,6 +64,7 @@ import AdminRewardFulfillmentPage
 
 import PromotionsPage from './pages/promotion/PromotionsPage.jsx'
 import QnaPage from './pages/qna/QnaPage.jsx'
+import FaqPage from './pages/faq/FaqPage.jsx'
 import AdminQnaPage from './pages/admin/AdminQnaPage.jsx'
 import PromotionDetailPage from './pages/promotion/PromotionDetailPage.jsx'
 
@@ -142,6 +143,7 @@ function App() {
         <Route path="/promotion/:promotionId" element={<PromotionDetailPage />} />
         <Route path="/promotions" element={<Navigate to="/promotion" replace />} />
         <Route path="/qna" element={<QnaPage />} />
+        <Route path="/faq" element={<FaqPage />} />
 
         <Route
           path="/reservations/new"
