@@ -146,11 +146,10 @@ public class DailyBloodDummyService {
 
         if (alreadyGenerated) {
 
-            redistributeExistingDummyUnits(today);
             assignExistingUnassignedUnits(today);
 
             log.info(
-                    "[더미 생성] 오늘({}) 데이터가 이미 존재하여 신규 생성을 생략합니다.",
+                    "[더미 생성] 오늘({}) 데이터가 이미 존재하여 신규 생성과 재배분을 생략합니다.",
                     today
             );
 
@@ -642,30 +641,6 @@ public class DailyBloodDummyService {
 
 
     /**
-     * 기존 자동 생성 더미도 현재 전체 센터 목록을 기준으로 다시 균등 배분합니다.
-     */
-    private void redistributeExistingDummyUnits(
-            LocalDate generationDate
-    ) {
-        List<BloodUnit> dummyUnits =
-                bloodUnitRepository.findAllByUnitIdStartingWith(
-                        DUMMY_UNIT_PREFIX
-                );
-
-        if (dummyUnits.isEmpty()) {
-            return;
-        }
-
-        assignCentersEvenly(dummyUnits, generationDate);
-
-        log.info(
-                "[더미 생성] 기존 더미 혈액 재고 {}건을 전체 센터에 재배분 완료",
-                dummyUnits.size()
-        );
-    }
-
-
-    /**
      * center_id 도입 전에 생성된 기존 혈액팩을 전체 센터에 배정합니다.
      */
     private void assignExistingUnassignedUnits(
@@ -689,7 +664,7 @@ public class DailyBloodDummyService {
 
 
     /**
-     * 제제 + ABO + Rh 그룹별로 활성 센터에 균등 배분합니다.
+     * 제제 + ABO + Rh 그룹별로 모든 센터에 균등 배분합니다.
      * 그룹마다 시작 센터를 변경해 남는 혈액팩이 특정 센터에 집중되지 않게 합니다.
      */
     private void assignCentersEvenly(
