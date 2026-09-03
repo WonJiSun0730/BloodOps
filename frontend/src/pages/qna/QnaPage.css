@@ -11,3 +11,8 @@
 .qna-detail-header{padding-bottom:24px;border-bottom:1px solid #ddd}.qna-detail-header h2{margin:16px 0 8px}.qna-detail-header p{margin:0;color:#777}.qna-detail section{padding:24px 0}.qna-detail section h3{margin:0 0 14px}.qna-detail section p{margin:0;white-space:pre-wrap;line-height:1.75}.qna-answer{border-top:1px solid #eee;background:rgba(198,40,40,.025)}.qna-answer-form{display:grid;gap:12px;border-top:1px solid #ddd;padding-top:24px}.qna-answer-form textarea{min-height:180px}.qna-actions{display:flex;justify-content:flex-end;gap:10px;margin-top:20px}
 .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
 @media(max-width:720px){.qna-page{width:min(100% - 24px,1120px);padding-top:40px}.qna-toolbar{align-items:stretch;flex-direction:column}.qna-toolbar form{max-width:none}.qna-table th:nth-child(1),.qna-table td:nth-child(1),.qna-table th:nth-child(4),.qna-table td:nth-child(4){display:none}.qna-form,.qna-detail{padding:20px}.qna-actions{flex-wrap:wrap}}
+.qna-faq-answer p {
+  margin: 0;
+  line-height: 1.7;
+  white-space: pre-line;
+}
