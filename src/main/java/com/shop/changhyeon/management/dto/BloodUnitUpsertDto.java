@@ -9,6 +9,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 public record BloodUnitUpsertDto(
+        @NotNull(message = "센터를 선택해 주세요.") Long centerId,
         @NotBlank(message = "헌혈자 ID를 입력해 주세요.")
         @Pattern(regexp = "[A-Za-z0-9-]+", message = "헌혈자 ID는 영문, 숫자, 하이픈만 입력할 수 있습니다.") String donorId,
         @NotBlank @Pattern(regexp = "A|B|O|AB", message = "올바른 혈액형을 선택해 주세요.") String bloodType,
