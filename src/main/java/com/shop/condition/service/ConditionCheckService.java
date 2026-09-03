@@ -137,11 +137,11 @@ public class ConditionCheckService {
         return guidance;
     }
 
-    public void verifyAccess(
+    public DonationHistory verifyAccess(
             Long donationHistoryId,
             String authenticationIdentifier
     ) {
-        getOwnedDonationHistory(
+        return getOwnedDonationHistory(
                 donationHistoryId,
                 authenticationIdentifier
         );

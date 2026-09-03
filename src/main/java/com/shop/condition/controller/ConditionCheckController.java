@@ -1,5 +1,6 @@
 package com.shop.condition.controller;
 
+import com.shop.changhyeon.donation.entity.DonationHistory;
 import com.shop.condition.dto.ConditionCheckRequestDto;
 import com.shop.condition.dto.ConditionCheckResponseDto;
 import com.shop.condition.service.ConditionCheckService;
@@ -23,14 +24,24 @@ public class ConditionCheckController {
             @PathVariable Long donationHistoryId,
             Authentication authentication
     ) {
-        conditionCheckService.verifyAccess(
-                donationHistoryId,
-                authentication.getName()
-        );
+        DonationHistory history =
+                conditionCheckService.verifyAccess(
+                        donationHistoryId,
+                        authentication.getName()
+                );
+
+        var center =
+                history.getReservation()
+                        .getSlot()
+                        .getCenter();
 
         return Map.of(
                 "accessible", true,
-                "donationHistoryId", donationHistoryId
+                "donationHistoryId", donationHistoryId,
+                "centerName", center.getCenterName(),
+                "centerPhone", center.getPhone() == null
+                        ? ""
+                        : center.getPhone()
         );
     }
 
