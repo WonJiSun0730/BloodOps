@@ -30,7 +30,7 @@ public class BloodUnitApiController {
 
     @GetMapping("/centers")
     public List<BloodUnitCenterDto> centers() {
-        return centerRepository.findByActiveTrue().stream()
+        return centerRepository.findAll().stream()
                 .sorted(Comparator.comparing(Center::getCenterName)
                         .thenComparing(Center::getId))
                 .map(BloodUnitCenterDto::from)
@@ -104,9 +104,8 @@ public class BloodUnitApiController {
         }
 
         Center center = centerRepository.findById(dto.centerId())
-                .filter(Center::isActive)
                 .orElseThrow(() -> new IllegalArgumentException(
-                        "선택한 센터를 찾을 수 없거나 비활성 상태입니다."
+                        "선택한 센터를 찾을 수 없습니다."
                 ));
 
         BloodUnit saved = repository.save(
