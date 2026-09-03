@@ -26,7 +26,7 @@ public class QnaService {
                 Sort.by(Sort.Direction.DESC, "createdAt")
         );
         return qnaRepository
-                .findByTitleContainingIgnoreCaseOrContentContainingIgnoreCase(
+                .findByTitleContainingIgnoreCaseOrContentContaining(
                         normalized, normalized, pageable
                 )
                 .map(qna -> QnaResponse.from(qna, viewerId));
