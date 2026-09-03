@@ -55,8 +55,8 @@ public class BloodUnit {
     private Center center;
 
     public void assignCenter(Center center) {
-        if (center == null || !center.isActive()) {
-            throw new IllegalArgumentException("활성화된 센터만 혈액 재고에 배정할 수 있습니다.");
+        if (center == null) {
+            throw new IllegalArgumentException("혈액 재고에 배정할 센터가 필요합니다.");
         }
         this.center = center;
     }
