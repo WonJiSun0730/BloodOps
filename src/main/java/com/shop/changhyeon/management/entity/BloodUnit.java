@@ -50,8 +50,8 @@ public class BloodUnit {
     @Column(name = "status")
     private String status;
 
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "center_id", nullable = false)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "center_id")
     private Center center;
 
     public void assignCenter(Center center) {
