@@ -10,7 +10,7 @@ import java.util.Optional;
 
 public interface QnaRepository extends JpaRepository<Qna, Long> {
     @EntityGraph(attributePaths = "member")
-    Page<Qna> findByTitleContainingIgnoreCaseOrContentContainingIgnoreCase(
+    Page<Qna> findByTitleContainingIgnoreCaseOrContentContaining(
             String titleKeyword,
             String contentKeyword,
             Pageable pageable
