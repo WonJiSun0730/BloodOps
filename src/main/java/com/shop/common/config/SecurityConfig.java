@@ -57,11 +57,14 @@ public class SecurityConfig {
                                 "/api/questionnaires/questions",
                                 "/api/questionnaires"
                         ).permitAll()
-                        // 비회원도 헌혈센터 목록과 상세 정보를 조회할 수 있습니다.
+                        // 비회원도 헌혈센터와 QnA 목록·상세를 조회할 수 있습니다.
+                        // 질문 등록·수정·삭제와 관리자 답변은 아래 인증 규칙을 적용합니다.
                         .requestMatchers(
                                 org.springframework.http.HttpMethod.GET,
                                 "/api/centers",
-                                "/api/centers/**"
+                                "/api/centers/**",
+                                "/api/qna",
+                                "/api/qna/**"
                         ).permitAll()
                         // 관리자 전용 화면 및 API
                         .requestMatchers(
