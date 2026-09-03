@@ -63,6 +63,7 @@ import AdminRewardFulfillmentPage
   from './pages/admin/AdminRewardFulfillmentPage.jsx'
 
 import PromotionsPage from './pages/promotion/PromotionsPage.jsx'
+import QnaPage from './pages/qna/QnaPage.jsx'
 import PromotionDetailPage from './pages/promotion/PromotionDetailPage.jsx'
 
 import BloodUnitsManagementPage
@@ -139,6 +140,7 @@ function App() {
         <Route path="/promotion" element={<PromotionsPage />} />
         <Route path="/promotion/:promotionId" element={<PromotionDetailPage />} />
         <Route path="/promotions" element={<Navigate to="/promotion" replace />} />
+        <Route path="/qna" element={<QnaPage />} />
 
         <Route
           path="/reservations/new"
