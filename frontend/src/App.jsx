@@ -45,6 +45,8 @@ import BloodHoldCheckPage
   from './pages/bloodhold/BloodHoldCheckPage.jsx'
 import BloodHoldGuidePage
   from './pages/bloodhold/BloodHoldGuidePage.jsx'
+import ConditionCheckPage
+  from './pages/condition/ConditionCheckPage.jsx'
 
 import QuestionnairePage
   from './pages/questionnaire/QuestionnairePage.jsx'
@@ -149,6 +151,15 @@ function App() {
           element={
             <MemberRoute>
               <ReservationCreatePage />
+            </MemberRoute>
+          }
+        />
+
+        <Route
+          path="/condition-check/:donationHistoryId"
+          element={
+            <MemberRoute>
+              <ConditionCheckPage />
             </MemberRoute>
           }
         />

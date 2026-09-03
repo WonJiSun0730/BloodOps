@@ -879,6 +879,37 @@ export function getMyDonationHistory() {
 }
 
 /*
+ * 로그인한 회원이 완료된 헌혈 기록에 대해
+ * 헌혈 후 컨디션 체크를 저장합니다.
+ */
+export async function createConditionCheck(
+  donationHistoryId,
+  conditionData
+) {
+  const csrf = await getCsrfToken()
+
+  return apiRequest(
+    `/api/condition-checks/${encodeURIComponent(donationHistoryId)}`,
+    {
+      method: 'POST',
+
+      headers: {
+        'Content-Type': 'application/json',
+        [csrf.headerName]: csrf.token,
+      },
+
+      body: JSON.stringify(conditionData),
+    }
+  )
+}
+
+export function verifyConditionCheckAccess(donationHistoryId) {
+  return apiRequest(
+    `/api/condition-checks/${donationHistoryId}/access`
+  )
+}
+
+/*
  * 의료진이 전체 회원의 완료된 헌혈기록을 조회합니다.
  */
 export function getMedicalDonationHistory() {
