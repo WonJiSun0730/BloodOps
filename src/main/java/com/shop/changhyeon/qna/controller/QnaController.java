@@ -18,25 +18,25 @@ public class QnaController {
     private final QnaService qnaService;
     private final MemberService memberService;
 
-    @GetMapping
-    public Page<QnaResponse> list(
-            @RequestParam(defaultValue = "") String keyword,
+    @GetMapping("/me")
+    public Page<QnaResponse> myQuestions(
             @RequestParam(defaultValue = "0") int page,
             Authentication authentication
     ) {
-        return qnaService.list(keyword, page, viewerId(authentication));
+        requireLogin(authentication);
+        return qnaService.myQuestions(authentication.getName(), page);
     }
 
     @GetMapping("/{id}")
     public QnaResponse detail(@PathVariable Long id, Authentication authentication) {
-        return qnaService.detail(id, viewerId(authentication));
+        requireLogin(authentication);
+        return qnaService.detailForMember(
+                id, authentication.getName(), isAdmin(authentication)
+        );
     }
 
     @PostMapping
-    public QnaResponse create(
-            @Valid @RequestBody QnaRequest request,
-            Authentication authentication
-    ) {
+    public QnaResponse create(@Valid @RequestBody QnaRequest request, Authentication authentication) {
         requireLogin(authentication);
         return qnaService.create(request, authentication.getName());
     }
@@ -52,10 +52,7 @@ public class QnaController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> delete(
-            @PathVariable Long id,
-            Authentication authentication
-    ) {
+    public ResponseEntity<Void> delete(@PathVariable Long id, Authentication authentication) {
         requireLogin(authentication);
         qnaService.delete(id, authentication.getName(), isAdmin(authentication));
         return ResponseEntity.noContent().build();
@@ -72,8 +69,6 @@ public class QnaController {
     }
 
     private Long viewerId(Authentication authentication) {
-        if (authentication == null || !authentication.isAuthenticated()
-                || "anonymousUser".equals(authentication.getName())) return null;
         Member member = memberService.findByAuthenticationIdentifier(authentication.getName());
         return member.getId();
     }

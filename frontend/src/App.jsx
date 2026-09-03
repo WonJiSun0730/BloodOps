@@ -64,6 +64,7 @@ import AdminRewardFulfillmentPage
 
 import PromotionsPage from './pages/promotion/PromotionsPage.jsx'
 import QnaPage from './pages/qna/QnaPage.jsx'
+import AdminQnaPage from './pages/admin/AdminQnaPage.jsx'
 import PromotionDetailPage from './pages/promotion/PromotionDetailPage.jsx'
 
 import BloodUnitsManagementPage
@@ -283,6 +284,7 @@ function App() {
         />
 
         <Route path="/admin/reward-fulfillment" element={<AdminRoute><AdminRewardFulfillmentPage /></AdminRoute>} />
+        <Route path="/admin/qna" element={<AdminRoute><AdminQnaPage /></AdminRoute>} />
 
         <Route
           path="/admin/kakao-message-template"

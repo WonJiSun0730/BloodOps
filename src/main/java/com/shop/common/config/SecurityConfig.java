@@ -62,9 +62,7 @@ public class SecurityConfig {
                         .requestMatchers(
                                 org.springframework.http.HttpMethod.GET,
                                 "/api/centers",
-                                "/api/centers/**",
-                                "/api/qna",
-                                "/api/qna/**"
+                                "/api/centers/**"
                         ).permitAll()
                         // 관리자 전용 화면 및 API
                         .requestMatchers(

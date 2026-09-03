@@ -18,23 +18,24 @@ public class QnaService {
     private final MemberService memberService;
 
     @Transactional(readOnly = true)
-    public Page<QnaResponse> list(String keyword, int page, Long viewerId) {
-        String normalized = keyword == null ? "" : keyword.trim();
-        Pageable pageable = PageRequest.of(
-                Math.max(page, 0),
-                10,
-                Sort.by(Sort.Direction.DESC, "createdAt")
-        );
-        return qnaRepository
-                .findByTitleContainingIgnoreCaseOrContentContaining(
-                        normalized, normalized, pageable
-                )
-                .map(qna -> QnaResponse.from(qna, viewerId));
+    public Page<QnaResponse> myQuestions(String identifier, int page) {
+        Member member = findMember(identifier);
+        return qnaRepository.findByMember_Id(member.getId(), pageRequest(page))
+                .map(qna -> QnaResponse.from(qna, member.getId()));
     }
 
     @Transactional(readOnly = true)
-    public QnaResponse detail(Long id, Long viewerId) {
-        return QnaResponse.from(find(id), viewerId);
+    public Page<QnaResponse> adminList(int page, Long adminId) {
+        return qnaRepository.findAll(pageRequest(page))
+                .map(qna -> QnaResponse.from(qna, adminId));
+    }
+
+    @Transactional(readOnly = true)
+    public QnaResponse detailForMember(Long id, String identifier, boolean admin) {
+        Member member = findMember(identifier);
+        Qna qna = find(id);
+        if (!admin) requireOwner(qna, member);
+        return QnaResponse.from(qna, member.getId());
     }
 
     public QnaResponse create(QnaRequest request, String identifier) {
@@ -69,6 +70,10 @@ public class QnaService {
         return QnaResponse.from(qna, viewerId);
     }
 
+    private Pageable pageRequest(int page) {
+        return PageRequest.of(Math.max(page, 0), 10, Sort.by(Sort.Direction.DESC, "createdAt"));
+    }
+
     private Qna find(Long id) {
         return qnaRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("질문을 찾을 수 없습니다."));
@@ -80,7 +85,7 @@ public class QnaService {
 
     private void requireOwner(Qna qna, Member member) {
         if (!qna.getMember().getId().equals(member.getId())) {
-            throw new IllegalStateException("본인이 작성한 질문만 변경할 수 있습니다.");
+            throw new IllegalStateException("본인이 작성한 질문만 조회하거나 변경할 수 있습니다.");
         }
     }
 }
