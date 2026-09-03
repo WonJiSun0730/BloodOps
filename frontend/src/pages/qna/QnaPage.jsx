@@ -4,6 +4,29 @@ import './QnaPage.css'
 
 const emptyForm = { title: '', content: '' }
 
+const frequentlyAskedQuestions = [
+  {
+    question: '헌혈 예약은 어디에서 확인하거나 취소할 수 있나요?',
+    answer: '로그인 후 마이페이지의 예약 내역에서 본인의 예약 정보를 확인하고 취소할 수 있습니다.',
+  },
+  {
+    question: '전자문진을 작성하면 바로 헌혈할 수 있나요?',
+    answer: '전자문진은 헌혈 가능 여부를 미리 확인하는 절차입니다. 방문 당일 신분 확인과 의료진 상담 결과에 따라 최종 헌혈 가능 여부가 결정됩니다.',
+  },
+  {
+    question: '헌혈 기록은 언제 확인할 수 있나요?',
+    answer: '헌혈이 정상적으로 완료 처리된 뒤 마이페이지의 헌혈 기록에서 확인할 수 있습니다.',
+  },
+  {
+    question: '헌혈 증명서는 어디에서 발급하나요?',
+    answer: '로그인 후 증명서 발급 화면에서 발급 가능한 헌혈 기록을 선택해 신청할 수 있습니다.',
+  },
+  {
+    question: '헌혈 포인트는 언제 지급되나요?',
+    answer: '헌혈 완료 처리가 끝나면 헌혈 종류에 따른 포인트가 지급되며, 마이페이지의 내 포인트에서 내역을 확인할 수 있습니다.',
+  },
+]
+
 async function request(url, options = {}) {
   const response = await fetch(url, { credentials: 'include', ...options })
   if (!response.ok) {
@@ -144,6 +167,29 @@ function QnaPage() {
       </header>
 
       {message && <div className="qna-message" role="alert">{message}</div>}
+
+      {mode === 'list' && (
+        <section className="qna-faq" aria-labelledby="qna-faq-title">
+          <div className="qna-section-heading">
+            <p>FAQ</p>
+            <h2 id="qna-faq-title">자주 묻는 질문</h2>
+          </div>
+          <div className="qna-faq-list">
+            {frequentlyAskedQuestions.map((item, index) => (
+              <details key={item.question}>
+                <summary>
+                  <span className="qna-faq-number">Q{index + 1}</span>
+                  <span>{item.question}</span>
+                </summary>
+                <div className="qna-faq-answer">
+                  <strong aria-hidden="true">A</strong>
+                  <p>{item.answer}</p>
+                </div>
+              </details>
+            ))}
+          </div>
+        </section>
+      )}
 
       {mode === 'list' && (
         <>
