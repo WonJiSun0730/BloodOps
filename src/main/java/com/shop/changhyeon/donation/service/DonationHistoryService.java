@@ -95,13 +95,10 @@ public class DonationHistoryService {
     public List<MedicalDonationHistoryResponseDto> getAllDonationHistory(
             Long centerId
     ) {
-        List<DonationHistory> histories = centerId == null
-                ? donationHistoryRepository
-                        .findAllByOrderByRegTimeDescIdDesc()
-                : donationHistoryRepository
-                        .findByReservation_Slot_Center_IdOrderByRegTimeDescIdDesc(
-                                centerId
-                        );
+        List<DonationHistory> histories =
+                donationHistoryRepository.findMedicalDonationHistory(
+                        centerId
+                );
 
         return histories.stream()
                 .map(MedicalDonationHistoryResponseDto::from)
