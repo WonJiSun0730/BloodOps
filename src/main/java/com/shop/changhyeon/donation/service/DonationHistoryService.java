@@ -88,9 +88,19 @@ public class DonationHistoryService {
 
     @Transactional(readOnly = true)
     public List<MedicalDonationHistoryResponseDto> getAllDonationHistory() {
-        return donationHistoryRepository
-                .findAllByOrderByRegTimeDescIdDesc()
-                .stream()
+        return getAllDonationHistory(null);
+    }
+
+    @Transactional(readOnly = true)
+    public List<MedicalDonationHistoryResponseDto> getAllDonationHistory(
+            Long centerId
+    ) {
+        List<DonationHistory> histories =
+                donationHistoryRepository.findMedicalDonationHistory(
+                        centerId
+                );
+
+        return histories.stream()
                 .map(MedicalDonationHistoryResponseDto::from)
                 .toList();
     }

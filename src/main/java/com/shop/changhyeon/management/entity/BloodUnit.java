@@ -1,5 +1,6 @@
 package com.shop.changhyeon.management.entity;
 
+import com.shop.center.entity.Center;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -48,4 +49,15 @@ public class BloodUnit {
 
     @Column(name = "status")
     private String status;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "center_id")
+    private Center center;
+
+    public void assignCenter(Center center) {
+        if (center == null) {
+            throw new IllegalArgumentException("혈액 재고에 배정할 센터가 필요합니다.");
+        }
+        this.center = center;
+    }
 }

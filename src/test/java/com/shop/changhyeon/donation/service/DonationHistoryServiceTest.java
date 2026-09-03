@@ -111,12 +111,23 @@ class DonationHistoryServiceTest {
 
     @Test
     void 의료진은_전체_헌혈기록을_최신순_조회한다() {
-        when(donationHistoryRepository.findAllByOrderByRegTimeDescIdDesc())
+        when(donationHistoryRepository.findMedicalDonationHistory(null))
                 .thenReturn(List.of());
 
         donationHistoryService.getAllDonationHistory();
 
         verify(donationHistoryRepository)
-                .findAllByOrderByRegTimeDescIdDesc();
+                .findMedicalDonationHistory(null);
+    }
+
+    @Test
+    void 의료진은_선택한_센터의_헌혈기록만_조회한다() {
+        when(donationHistoryRepository.findMedicalDonationHistory(15L))
+                .thenReturn(List.of());
+
+        donationHistoryService.getAllDonationHistory(15L);
+
+        verify(donationHistoryRepository)
+                .findMedicalDonationHistory(15L);
     }
 }

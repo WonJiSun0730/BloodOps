@@ -1,5 +1,7 @@
 package com.shop.changhyeon.crawler.service;
 
+import com.shop.center.entity.Center;
+import com.shop.center.repository.CenterRepository;
 import com.shop.changhyeon.crawler.model.RawStockData;
 import com.shop.changhyeon.management.entity.BloodUnit;
 import com.shop.changhyeon.management.repository.BloodUnitRepository;
@@ -17,9 +19,11 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 import java.util.concurrent.atomic.AtomicLong;
 
 @Slf4j
@@ -61,6 +65,7 @@ public class DailyBloodDummyService {
 
     private final BloodInfoService bloodInfoService;
     private final BloodUnitRepository bloodUnitRepository;
+    private final CenterRepository centerRepository;
 
     /**
      * application.properties
@@ -141,8 +146,11 @@ public class DailyBloodDummyService {
 
         if (alreadyGenerated) {
 
+            redistributeExistingDummyUnits(today);
+            assignExistingUnassignedUnits(today);
+
             log.info(
-                    "[더미 생성] 오늘({}) 데이터가 이미 존재하여 생략합니다.",
+                    "[더미 생성] 오늘({}) 데이터가 이미 존재하여 신규 생성을 생략합니다.",
                     today
             );
 
@@ -220,6 +228,7 @@ public class DailyBloodDummyService {
                         today
                 );
 
+        assignCentersEvenly(units, today);
 
         log.info(
                 "[더미 생성] 생성 대상 데이터: 총 {}건",
@@ -629,6 +638,117 @@ public class DailyBloodDummyService {
 
 
         return unit;
+    }
+
+
+    /**
+     * 기존 자동 생성 더미도 현재 전체 센터 목록을 기준으로 다시 균등 배분합니다.
+     */
+    private void redistributeExistingDummyUnits(
+            LocalDate generationDate
+    ) {
+        List<BloodUnit> dummyUnits =
+                bloodUnitRepository.findAllByUnitIdStartingWith(
+                        DUMMY_UNIT_PREFIX
+                );
+
+        if (dummyUnits.isEmpty()) {
+            return;
+        }
+
+        assignCentersEvenly(dummyUnits, generationDate);
+
+        log.info(
+                "[더미 생성] 기존 더미 혈액 재고 {}건을 전체 센터에 재배분 완료",
+                dummyUnits.size()
+        );
+    }
+
+
+    /**
+     * center_id 도입 전에 생성된 기존 혈액팩을 전체 센터에 배정합니다.
+     */
+    private void assignExistingUnassignedUnits(
+            LocalDate generationDate
+    ) {
+        List<BloodUnit> unassignedUnits =
+                bloodUnitRepository.findAllByCenterIsNull();
+
+        if (unassignedUnits.isEmpty()) {
+            return;
+        }
+
+        assignCentersEvenly(unassignedUnits, generationDate);
+        saveUnitsWithProgress(unassignedUnits);
+
+        log.info(
+                "[더미 생성] 기존 센터 미배정 혈액 재고 {}건 배정 완료",
+                unassignedUnits.size()
+        );
+    }
+
+
+    /**
+     * 제제 + ABO + Rh 그룹별로 활성 센터에 균등 배분합니다.
+     * 그룹마다 시작 센터를 변경해 남는 혈액팩이 특정 센터에 집중되지 않게 합니다.
+     */
+    private void assignCentersEvenly(
+            List<BloodUnit> units,
+            LocalDate generationDate
+    ) {
+        List<Center> centers = new ArrayList<>(
+                centerRepository.findAll()
+        );
+        centers.sort(Comparator.comparing(Center::getId));
+
+        if (centers.isEmpty()) {
+            throw new IllegalStateException(
+                    "혈액 재고를 배정할 센터가 없습니다."
+            );
+        }
+
+        Map<StockGroupKey, List<BloodUnit>> groupedUnits =
+                new LinkedHashMap<>();
+
+        for (BloodUnit unit : units) {
+            StockGroupKey key = new StockGroupKey(
+                    unit.getProductType(),
+                    unit.getBloodType(),
+                    unit.getRhType()
+            );
+            groupedUnits
+                    .computeIfAbsent(key, ignored -> new ArrayList<>())
+                    .add(unit);
+        }
+
+        long seed = generationDate.toEpochDay();
+
+        for (Map.Entry<StockGroupKey, List<BloodUnit>> entry
+                : groupedUnits.entrySet()) {
+            StockGroupKey key = entry.getKey();
+            List<BloodUnit> group = entry.getValue();
+            Random random = new Random(seed ^ key.hashCode());
+            int startIndex = random.nextInt(centers.size());
+
+            for (int index = 0; index < group.size(); index++) {
+                Center center = centers.get(
+                        (startIndex + index) % centers.size()
+                );
+                group.get(index).assignCenter(center);
+            }
+        }
+
+        log.info(
+                "[더미 생성] 전체 센터 {}곳에 제제·ABO·Rh 그룹별 균등 배분 완료",
+                centers.size()
+        );
+    }
+
+    private record StockGroupKey(
+            String productType,
+            String bloodType,
+            String rhType
+    ) {
     }
 
 

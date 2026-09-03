@@ -16,7 +16,9 @@ public record BloodUnitResponseDto(
         String productType,
         LocalDateTime collectionDate,
         LocalDateTime expirationDate,
-        String status
+        String status,
+        Long centerId,
+        String centerName
 ) {
     public static BloodUnitResponseDto from(BloodUnit unit) {
         return new BloodUnitResponseDto(
@@ -30,7 +32,13 @@ public record BloodUnitResponseDto(
                 unit.getProductType(),
                 unit.getCollectionDate(),
                 unit.getExpirationDate(),
-                unit.getStatus()
+                unit.getStatus(),
+                unit.getCenter() == null
+                        ? null
+                        : unit.getCenter().getId(),
+                unit.getCenter() == null
+                        ? "미배정"
+                        : unit.getCenter().getCenterName()
         );
     }
 }

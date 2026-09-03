@@ -108,5 +108,18 @@ public interface ReservationRepository
             String email
     );
 
-    List<Reservation> findBySlot_ReservationDateOrderBySlot_StartTimeAscIdAsc(LocalDate reservationDate);
+    @Query("""
+        select r
+        from Reservation r
+        join fetch r.member m
+        join fetch r.slot s
+        join fetch s.center c
+        where s.reservationDate = :reservationDate
+          and (:centerId is null or c.id = :centerId)
+        order by s.startTime asc, r.id asc
+        """)
+    List<Reservation> findMedicalTodayReservations(
+            @Param("reservationDate") LocalDate reservationDate,
+            @Param("centerId") Long centerId
+    );
 }
