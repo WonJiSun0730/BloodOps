@@ -43,6 +43,56 @@
   cursor: pointer;
 }
 
+
+.medical-donation-history__filter {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(320px, .8fr);
+  align-items: end;
+  gap: 24px;
+  margin-bottom: 18px;
+  padding: 20px 24px;
+  border: 1px solid var(--color-border);
+  border-radius: 16px;
+  background: var(--color-surface);
+}
+
+.medical-donation-history__filter h2 {
+  margin: 0;
+  color: var(--color-text);
+  font-size: 1.05rem;
+}
+
+.medical-donation-history__filter p {
+  margin: 8px 0 0;
+  color: var(--color-text-muted);
+  font-size: .8rem;
+}
+
+.medical-donation-history__filter label {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 6px;
+  color: var(--color-text-muted);
+  font-size: .76rem;
+  font-weight: 750;
+}
+
+.medical-donation-history__filter select {
+  min-height: 44px;
+  padding: 9px 11px;
+  border: 1px solid var(--color-border);
+  border-radius: 9px;
+  color: var(--color-text);
+  background: var(--color-surface);
+  font: inherit;
+}
+
+.medical-donation-history__filter select:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
 .medical-donation-history__panel {
   overflow: hidden;
   border: 1px solid var(--color-border);
@@ -123,6 +173,13 @@
   color: var(--color-danger, #c93838);
 }
 
+
+@media (max-width: 1024px) {
+  .medical-donation-history__filter {
+    grid-template-columns: 1fr;
+  }
+}
+
 @media (max-width: 768px) {
   .medical-donation-history {
     padding: 32px 0 64px;
@@ -137,7 +194,76 @@
     align-self: flex-start;
   }
 
+  .medical-donation-history__filter {
+    padding: 20px;
+  }
+
   .medical-donation-history__summary {
     padding-inline: 18px;
+  }
+
+  .medical-donation-history__table-wrap {
+    overflow: visible;
+  }
+
+  .medical-donation-history table,
+  .medical-donation-history tbody {
+    display: block;
+    min-width: 0;
+  }
+
+  .medical-donation-history thead {
+    display: none;
+  }
+
+  .medical-donation-history tr {
+    display: grid;
+    gap: 0;
+    margin: 14px;
+    padding: 12px;
+    border: 1px solid var(--color-border);
+    border-radius: 12px;
+    background: var(--color-surface-hover);
+  }
+
+  .medical-donation-history td {
+    display: grid;
+    grid-template-columns: minmax(110px, .8fr) 1.2fr;
+    gap: 10px;
+    padding: 9px;
+    border-bottom: 1px solid var(--color-border);
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
+
+  .medical-donation-history td::before {
+    content: attr(data-label);
+    color: var(--color-text-muted);
+    font-size: .72rem;
+    font-weight: 750;
+  }
+
+  .medical-donation-history td:last-child {
+    border-bottom: 0;
+  }
+}
+
+@media (max-width: 480px) {
+  .medical-donation-history {
+    width: min(100% - 32px, 100%);
+    padding-top: 24px;
+  }
+
+  .medical-donation-history__filter {
+    padding: 18px;
+  }
+
+  .medical-donation-history tr {
+    margin: 12px;
+  }
+
+  .medical-donation-history td {
+    grid-template-columns: 1fr;
+    gap: 4px;
   }
 }
