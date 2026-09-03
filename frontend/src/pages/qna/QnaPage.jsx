@@ -39,9 +39,7 @@ function QnaPage() {
   const [message, setMessage] = useState('')
   const [loading, setLoading] = useState(false)
 
-  const isAdmin = user?.authorities?.some(
-    item => (typeof item === 'string' ? item : item.authority) === 'ROLE_ADMIN'
-  )
+  const isAdmin = user?.roles?.includes('ROLE_ADMIN')
 
   const loadList = async (page = 0, term = searchKeyword) => {
     setLoading(true)

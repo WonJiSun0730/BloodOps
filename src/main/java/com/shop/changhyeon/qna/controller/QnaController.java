@@ -3,7 +3,7 @@ package com.shop.changhyeon.qna.controller;
 import com.shop.changhyeon.qna.dto.*;
 import com.shop.changhyeon.qna.service.QnaService;
 import com.shop.member.entity.Member;
-import com.shop.member.repository.MemberRepository;
+import com.shop.member.service.MemberService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.*;
 @RequiredArgsConstructor
 public class QnaController {
     private final QnaService qnaService;
-    private final MemberRepository memberRepository;
+    private final MemberService memberService;
 
     @GetMapping
     public Page<QnaResponse> list(
@@ -74,8 +74,8 @@ public class QnaController {
     private Long viewerId(Authentication authentication) {
         if (authentication == null || !authentication.isAuthenticated()
                 || "anonymousUser".equals(authentication.getName())) return null;
-        Member member = memberRepository.findByEmail(authentication.getName());
-        return member == null ? null : member.getId();
+        Member member = memberService.findByAuthenticationIdentifier(authentication.getName());
+        return member.getId();
     }
 
     private boolean isAdmin(Authentication authentication) {
