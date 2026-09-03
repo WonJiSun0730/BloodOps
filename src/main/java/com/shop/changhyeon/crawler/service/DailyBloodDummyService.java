@@ -146,8 +146,10 @@ public class DailyBloodDummyService {
 
         if (alreadyGenerated) {
 
+            assignExistingUnassignedUnits(today);
+
             log.info(
-                    "[더미 생성] 오늘({}) 데이터가 이미 존재하여 생략합니다.",
+                    "[더미 생성] 오늘({}) 데이터가 이미 존재하여 신규 생성을 생략합니다.",
                     today
             );
 
@@ -635,6 +637,29 @@ public class DailyBloodDummyService {
 
 
         return unit;
+    }
+
+
+    /**
+     * center_id 도입 전에 생성된 기존 혈액팩을 활성 센터에 배정합니다.
+     */
+    private void assignExistingUnassignedUnits(
+            LocalDate generationDate
+    ) {
+        List<BloodUnit> unassignedUnits =
+                bloodUnitRepository.findAllByCenterIsNull();
+
+        if (unassignedUnits.isEmpty()) {
+            return;
+        }
+
+        assignCentersEvenly(unassignedUnits, generationDate);
+        saveUnitsWithProgress(unassignedUnits);
+
+        log.info(
+                "[더미 생성] 기존 센터 미배정 혈액 재고 {}건 배정 완료",
+                unassignedUnits.size()
+        );
     }
 
 
