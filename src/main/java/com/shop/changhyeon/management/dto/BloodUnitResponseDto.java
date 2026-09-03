@@ -33,8 +33,12 @@ public record BloodUnitResponseDto(
                 unit.getCollectionDate(),
                 unit.getExpirationDate(),
                 unit.getStatus(),
-                unit.getCenter().getId(),
-                unit.getCenter().getCenterName()
+                unit.getCenter() == null
+                        ? null
+                        : unit.getCenter().getId(),
+                unit.getCenter() == null
+                        ? "미배정"
+                        : unit.getCenter().getCenterName()
         );
     }
 }
