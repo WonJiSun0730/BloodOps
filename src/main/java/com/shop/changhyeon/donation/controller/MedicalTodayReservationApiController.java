@@ -21,20 +21,15 @@ public class MedicalTodayReservationApiController {
 
     @GetMapping("/today")
     public List<AdminReservationResponseDto> getTodayReservations(
-            @RequestParam(required = false) Long centerId
+            @RequestParam(name = "centerId", required = false) Long centerId
     ) {
         LocalDate today = LocalDate.now(ZoneId.of("Asia/Seoul"));
 
-        List<Reservation> reservations = centerId == null
-                ? reservationRepository
-                        .findBySlot_ReservationDateOrderBySlot_StartTimeAscIdAsc(
-                                today
-                        )
-                : reservationRepository
-                        .findBySlot_ReservationDateAndSlot_Center_IdOrderBySlot_StartTimeAscIdAsc(
-                                today,
-                                centerId
-                        );
+        List<Reservation> reservations =
+                reservationRepository.findMedicalTodayReservations(
+                        today,
+                        centerId
+                );
 
         return reservations.stream()
                 .map(AdminReservationResponseDto::new)
