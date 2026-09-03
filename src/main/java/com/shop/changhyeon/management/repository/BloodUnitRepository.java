@@ -14,6 +14,7 @@ public interface BloodUnitRepository extends JpaRepository<BloodUnit, Long>, Jpa
     @Query("SELECT b FROM BloodUnit b WHERE b.productType=:productType AND b.bloodType=:bloodType AND b.status='보유중' AND b.expirationDate>CURRENT_TIMESTAMP ORDER BY b.expirationDate")
     List<BloodUnit> findAvailableStockForUpdate(@Param("productType") String productType, @Param("bloodType") String bloodType);
     Optional<BloodUnit> findByUnitId(String unitId);
+    List<BloodUnit> findAllByCenterIsNull();
     boolean existsByUnitIdAndIdNot(String unitId, Long id);
     long countByStatusIn(Collection<String> statuses);
     long countByStatusInAndExpirationDateBetween(Collection<String> statuses, LocalDateTime from, LocalDateTime to);
