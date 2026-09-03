@@ -38,7 +38,7 @@ public class DonationHistoryApiController {
 
     @GetMapping("/medical/donations")
     public List<MedicalDonationHistoryResponseDto> getAllDonationHistory(
-            @RequestParam(required = false) Long centerId
+            @RequestParam(name = "centerId", required = false) Long centerId
     ) {
         return donationHistoryService.getAllDonationHistory(centerId);
     }
