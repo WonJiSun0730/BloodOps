@@ -28,13 +28,18 @@ const DEFAULT_MESSAGES = [
 const CHATBOT_STORAGE_KEY =
   'bloodops-chatbot-messages'
 
-function ChatbotWidget() {
-  const navigate = useNavigate()
+const RECOMMENDED_QUESTIONS = [
+  '현재 혈액 보유량 알려줘',
+  '가장 빠르게 예약 가능한 센터 찾아줘',
+  '헌혈확인증명서는 어떻게 발급해?',
+  '지금 진행 중인 프로모션 알려줘',
+]
 
-  const [
-    isOpen,
-    setIsOpen,
-  ] = useState(false)
+function ChatbotWidget({
+  isOpen,
+  onOpenChange,
+}) {
+  const navigate = useNavigate()
 
   const [
     input,
@@ -104,11 +109,12 @@ function ChatbotWidget() {
     isOpen,
   ])
 
-  async function handleSubmit(event) {
-    event.preventDefault()
-
+  async function sendMessage(
+    rawMessage,
+    appendUserMessage = true
+  ) {
     const message =
-      input.trim()
+      rawMessage.trim()
 
     if (
       !message
@@ -117,17 +123,19 @@ function ChatbotWidget() {
       return
     }
 
-    const userMessage = {
-      id: Date.now(),
-      role: 'user',
-      text: message,
-      actions: [],
-    }
+    if (appendUserMessage) {
+      const userMessage = {
+        id: Date.now(),
+        role: 'user',
+        text: message,
+        actions: [],
+      }
 
-    setMessages((current) => [
-      ...current,
-      userMessage,
-    ])
+      setMessages((current) => [
+        ...current,
+        userMessage,
+      ])
+    }
 
     setInput('')
     setIsSending(true)
@@ -176,24 +184,63 @@ function ChatbotWidget() {
               : [],
         },
       ])
-
-    } catch (error) {
+    } catch {
       setMessages((current) => [
         ...current,
         {
           id: Date.now() + 1,
           role: 'assistant',
           text:
-            error.message
-            || 'AI 안내 서비스 연결 중 오류가 발생했습니다.',
+            '답변을 불러오는 중 문제가 발생했습니다. 잠시 후 다시 시도해주세요.',
           actions: [],
           isError: true,
+          retryMessage: message,
         },
       ])
-
     } finally {
       setIsSending(false)
     }
+  }
+
+
+  function handleSubmit(event) {
+    event.preventDefault()
+
+    sendMessage(input)
+  }
+
+
+  function handleRecommendedQuestion(question) {
+    sendMessage(question)
+  }
+
+
+  function handleRetry(message) {
+    if (
+      !message
+      || isSending
+    ) {
+      return
+    }
+
+    /*
+     * 직전 오류 말풍선을 제거한 뒤
+     * 동일한 질문을 다시 요청합니다.
+     */
+    setMessages((current) =>
+      current.filter(
+        (item) =>
+          !(
+            item.isError
+            && item.retryMessage === message
+          )
+      )
+    )
+
+    sendMessage(
+      message,
+      false
+    )
   }
 
 
@@ -205,7 +252,7 @@ function ChatbotWidget() {
       return
     }
 
-    setIsOpen(false)
+    onOpenChange(false)
     navigate(action.url)
   }
 
@@ -266,7 +313,7 @@ function ChatbotWidget() {
                 type="button"
                 className="chatbot-close"
                 onClick={() =>
-                  setIsOpen(false)
+                  onOpenChange(false)
                 }
                 aria-label="챗봇 닫기"
               >
@@ -276,6 +323,33 @@ function ChatbotWidget() {
           </header>
 
           <div className="chatbot-messages">
+            {messages.length === 1 && (
+              <div className="chatbot-recommendations">
+                <span className="chatbot-recommendations-title">
+                  이런 질문을 해보세요
+                </span>
+
+                <div className="chatbot-recommendation-list">
+                  {RECOMMENDED_QUESTIONS.map(
+                    (question) => (
+                      <button
+                        key={question}
+                        type="button"
+                        className="chatbot-recommendation-button"
+                        onClick={() =>
+                          handleRecommendedQuestion(
+                            question
+                          )
+                        }
+                        disabled={isSending}
+                      >
+                        {question}
+                      </button>
+                    )
+                  )}
+                </div>
+              </div>
+            )}
             {messages.map((message) => (
               <div
                 key={message.id}
@@ -298,6 +372,23 @@ function ChatbotWidget() {
                 >
                   {message.text}
                 </div>
+
+                {message.isError
+                  && message.retryMessage
+                  && (
+                    <button
+                      type="button"
+                      className="chatbot-retry-button"
+                      onClick={() =>
+                        handleRetry(
+                          message.retryMessage
+                        )
+                      }
+                      disabled={isSending}
+                    >
+                      다시 시도
+                    </button>
+                  )}
 
                 {message.role === 'assistant'
                   && message.sources?.length > 0
@@ -390,9 +481,7 @@ function ChatbotWidget() {
         type="button"
         className="chatbot-toggle"
         onClick={() =>
-          setIsOpen((current) =>
-            !current
-          )
+          onOpenChange(!isOpen)
         }
         aria-label="AI 챗봇 열기"
         aria-expanded={isOpen}

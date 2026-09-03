@@ -16,6 +16,7 @@ function HeaderActions({
   onThemeToggle,
   onSearchKeywordChange,
   onSearch,
+  onChatbotOpen,
 }) {
   const [accountMenuOpen, setAccountMenuOpen] =
     useState(false)
@@ -203,9 +204,9 @@ function HeaderActions({
         <button
           type="button"
           className="header-mobile-utility-button"
-          aria-label="AI 채팅"
-          title="AI 채팅 - 준비 중"
-          aria-disabled="true"
+          onClick={onChatbotOpen}
+          aria-label="AI 채팅 열기"
+          title="AI 채팅"
         >
           <span
             className="header-utility-icon"

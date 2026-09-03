@@ -325,7 +325,95 @@
   color: #fff;
 }
 
+.chatbot-recommendations {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+
+  margin-bottom: 4px;
+}
+
+.chatbot-recommendations-title {
+  padding: 0 2px;
+
+  color: var(--color-text-muted);
+
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.chatbot-recommendation-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+
+.chatbot-recommendation-button {
+  padding: 7px 10px;
+
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+
+  background: var(--color-surface);
+  color: var(--color-text);
+
+  font-size: 12px;
+  line-height: 1.35;
+
+  cursor: pointer;
+
+  transition:
+    border-color 0.15s ease,
+    color 0.15s ease,
+    background-color 0.15s ease;
+}
+
+.chatbot-recommendation-button:hover:not(:disabled) {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+
+.chatbot-recommendation-button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.chatbot-retry-button {
+  align-self: flex-start;
+
+  padding: 7px 11px;
+
+  border: 1px solid var(--color-primary);
+  border-radius: 999px;
+
+  background: transparent;
+  color: var(--color-primary);
+
+  font-size: 12px;
+  font-weight: 700;
+
+  cursor: pointer;
+
+  transition:
+    background-color 0.15s ease,
+    color 0.15s ease;
+}
+
+.chatbot-retry-button:hover:not(:disabled) {
+  background: var(--color-primary);
+  color: #fff;
+}
+
+.chatbot-retry-button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
 @media (max-width: 768px) {
+  .chatbot-toggle {
+      display: none;
+    }
+
   .chatbot-widget {
     right: 16px;
     bottom: 16px;
