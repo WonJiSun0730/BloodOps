@@ -13,6 +13,7 @@ public record MedicalDonationHistoryResponseDto(
         LocalDateTime createdAt,
         LocalDate donationDate,
         DonationType donationType,
+        Long centerId,
         String bloodCenterName,
         String donationPlaceName
 ) {
@@ -24,6 +25,10 @@ public record MedicalDonationHistoryResponseDto(
                 history.getRegTime(),
                 history.getDonationDate(),
                 history.getDonationType(),
+                history.getReservation()
+                        .getSlot()
+                        .getCenter()
+                        .getId(),
                 history.getBloodCenterName(),
                 history.getDonationPlaceName()
         );
