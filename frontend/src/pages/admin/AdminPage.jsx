@@ -37,6 +37,14 @@ const adminMenus = [
     to: '/admin/reward-products',
   },
   {
+    id: 'qna',
+    eyebrow: 'Q&A',
+    title: '회원 질문 관리',
+    description:
+      '회원이 남긴 질문을 확인하고 관리자 답변을 등록합니다.',
+    to: '/admin/qna',
+  },
+  {
     id: 'kakao-message',
     eyebrow: 'KAKAO MESSAGE',
     title: '카카오 예약 알림 관리',
