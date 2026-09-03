@@ -146,11 +146,11 @@ function FaqPage() {
     <main className="faq-page">
       <header className="faq-heading">
         <p>고객지원</p>
-        <h1>자주 묻는 질문</h1>
+        <h1>자주하는 질문</h1>
         <span>헌혈과 BloodOps 이용에 관한 궁금증을 빠르게 확인해보세요.</span>
       </header>
 
-      <section className="faq-list" aria-label="자주 묻는 질문 목록">
+      <section className="faq-list" aria-label="자주하는 질문 목록">
         {visibleFaqs.map((item, localIndex) => {
           const index = page * FAQ_PAGE_SIZE + localIndex
           const open = openIndex === index
@@ -176,7 +176,7 @@ function FaqPage() {
       </section>
 
       {totalPages > 1 && (
-        <nav className="faq-pagination" aria-label="자주 묻는 질문 페이지">
+        <nav className="faq-pagination" aria-label="자주하는 질문 페이지">
           {Array.from({ length: totalPages }, (_, index) => (
             <button type="button" key={index} className={page === index ? 'active' : ''}
               onClick={() => changePage(index)}
