@@ -89,12 +89,7 @@ function BloodUnitsManagementPage() {
         const response = await getMedicalBloodUnitCenters()
         if (!active) return
         setCenters(response)
-        if (response.length) {
-          setFilters((current) => ({
-            ...current,
-            centerId: current.centerId || String(response[0].id),
-          }))
-        } else {
+        if (!response.length) {
           setError('조회 가능한 센터가 없습니다.')
         }
       } catch (requestError) {
@@ -111,11 +106,6 @@ function BloodUnitsManagementPage() {
   }, [])
 
   const load = useCallback(async () => {
-    if (!filters.centerId) {
-      setData(null)
-      return
-    }
-
     try {
       setLoading(true)
       setError('')
@@ -255,10 +245,10 @@ function BloodUnitsManagementPage() {
           <p className="blood-units-center-caption">
             {selectedCenter
               ? `${selectedCenter.centerName} 재고를 조회하고 있습니다.`
-              : '조회할 센터를 선택해 주세요.'}
+              : '전체 센터 재고를 조회하고 있습니다.'}
           </p>
         </div>
-        <button className="blood-unit-button primary" type="button" onClick={openCreate} disabled={!filters.centerId}>
+        <button className="blood-unit-button primary" type="button" onClick={openCreate}>
           혈액 팩 추가
         </button>
       </header>
@@ -278,7 +268,7 @@ function BloodUnitsManagementPage() {
         <label>
           <span>조회 센터</span>
           <select name="centerId" value={filters.centerId} onChange={changeFilter}>
-            {!centers.length && <option value="">센터 없음</option>}
+            <option value="">전체 센터</option>
             {centers.map((center) => (
               <option key={center.id} value={center.id}>
                 {center.centerName} · {center.address}
