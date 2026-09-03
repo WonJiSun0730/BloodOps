@@ -87,10 +87,18 @@ public class DonationHistoryService {
     }
 
     @Transactional(readOnly = true)
-    public List<MedicalDonationHistoryResponseDto> getAllDonationHistory() {
-        return donationHistoryRepository
-                .findAllByOrderByRegTimeDescIdDesc()
-                .stream()
+    public List<MedicalDonationHistoryResponseDto> getAllDonationHistory(
+            Long centerId
+    ) {
+        List<DonationHistory> histories = centerId == null
+                ? donationHistoryRepository
+                        .findAllByOrderByRegTimeDescIdDesc()
+                : donationHistoryRepository
+                        .findByReservation_Slot_Center_IdOrderByRegTimeDescIdDesc(
+                                centerId
+                        );
+
+        return histories.stream()
                 .map(MedicalDonationHistoryResponseDto::from)
                 .toList();
     }
