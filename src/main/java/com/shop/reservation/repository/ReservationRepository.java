@@ -108,5 +108,12 @@ public interface ReservationRepository
             String email
     );
 
-    List<Reservation> findBySlot_ReservationDateOrderBySlot_StartTimeAscIdAsc(LocalDate reservationDate);
+    List<Reservation> findBySlot_ReservationDateOrderBySlot_StartTimeAscIdAsc(
+            LocalDate reservationDate
+    );
+
+    List<Reservation> findBySlot_ReservationDateAndSlot_Center_IdOrderBySlot_StartTimeAscIdAsc(
+            LocalDate reservationDate,
+            Long centerId
+    );
 }
