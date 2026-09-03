@@ -87,6 +87,11 @@ public class DonationHistoryService {
     }
 
     @Transactional(readOnly = true)
+    public List<MedicalDonationHistoryResponseDto> getAllDonationHistory() {
+        return getAllDonationHistory(null);
+    }
+
+    @Transactional(readOnly = true)
     public List<MedicalDonationHistoryResponseDto> getAllDonationHistory(
             Long centerId
     ) {
