@@ -95,7 +95,7 @@ function BloodUnitsManagementPage() {
             centerId: current.centerId || String(response[0].id),
           }))
         } else {
-          setError('조회 가능한 활성 센터가 없습니다.')
+          setError('조회 가능한 센터가 없습니다.')
         }
       } catch (requestError) {
         if (active) {
@@ -278,7 +278,7 @@ function BloodUnitsManagementPage() {
         <label>
           <span>조회 센터</span>
           <select name="centerId" value={filters.centerId} onChange={changeFilter}>
-            {!centers.length && <option value="">활성 센터 없음</option>}
+            {!centers.length && <option value="">센터 없음</option>}
             {centers.map((center) => (
               <option key={center.id} value={center.id}>
                 {center.centerName} · {center.address}
