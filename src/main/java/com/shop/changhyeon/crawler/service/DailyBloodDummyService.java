@@ -146,6 +146,7 @@ public class DailyBloodDummyService {
 
         if (alreadyGenerated) {
 
+            redistributeExistingDummyUnits(today);
             assignExistingUnassignedUnits(today);
 
             log.info(
@@ -641,7 +642,31 @@ public class DailyBloodDummyService {
 
 
     /**
-     * center_id 도입 전에 생성된 기존 혈액팩을 활성 센터에 배정합니다.
+     * 기존 자동 생성 더미도 현재 전체 센터 목록을 기준으로 다시 균등 배분합니다.
+     */
+    private void redistributeExistingDummyUnits(
+            LocalDate generationDate
+    ) {
+        List<BloodUnit> dummyUnits =
+                bloodUnitRepository.findAllByUnitIdStartingWith(
+                        DUMMY_UNIT_PREFIX
+                );
+
+        if (dummyUnits.isEmpty()) {
+            return;
+        }
+
+        assignCentersEvenly(dummyUnits, generationDate);
+
+        log.info(
+                "[더미 생성] 기존 더미 혈액 재고 {}건을 전체 센터에 재배분 완료",
+                dummyUnits.size()
+        );
+    }
+
+
+    /**
+     * center_id 도입 전에 생성된 기존 혈액팩을 전체 센터에 배정합니다.
      */
     private void assignExistingUnassignedUnits(
             LocalDate generationDate
@@ -672,13 +697,13 @@ public class DailyBloodDummyService {
             LocalDate generationDate
     ) {
         List<Center> centers = new ArrayList<>(
-                centerRepository.findByActiveTrue()
+                centerRepository.findAll()
         );
         centers.sort(Comparator.comparing(Center::getId));
 
         if (centers.isEmpty()) {
             throw new IllegalStateException(
-                    "혈액 재고를 배정할 활성 센터가 없습니다."
+                    "혈액 재고를 배정할 센터가 없습니다."
             );
         }
 
@@ -714,7 +739,7 @@ public class DailyBloodDummyService {
         }
 
         log.info(
-                "[더미 생성] 활성 센터 {}곳에 제제·ABO·Rh 그룹별 균등 배분 완료",
+                "[더미 생성] 전체 센터 {}곳에 제제·ABO·Rh 그룹별 균등 배분 완료",
                 centers.size()
         );
     }
