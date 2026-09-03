@@ -886,9 +886,12 @@ export function getMyDonationHistory() {
 /*
  * 의료진이 전체 회원의 완료된 헌혈기록을 조회합니다.
  */
-export function getMedicalDonationHistory() {
+export function getMedicalDonationHistory(centerId = '') {
+  const params = new URLSearchParams()
+  if (centerId) params.set('centerId', String(centerId))
+  const query = params.toString()
   return apiRequest(
-    '/api/medical/donations'
+    `/api/medical/donations${query ? `?${query}` : ''}`
   )
 }
 
@@ -896,8 +899,11 @@ export function getMedicalQuestionnaires() {
   return apiRequest('/api/medical/questionnaires')
 }
 
-export function getMedicalTodayReservations() {
-  return apiRequest('/api/medical/reservations/today')
+export function getMedicalTodayReservations(centerId = '') {
+  const params = new URLSearchParams()
+  if (centerId) params.set('centerId', String(centerId))
+  const query = params.toString()
+  return apiRequest(`/api/medical/reservations/today${query ? `?${query}` : ''}`)
 }
 
 export async function completeMedicalReservation(reservationId) {
