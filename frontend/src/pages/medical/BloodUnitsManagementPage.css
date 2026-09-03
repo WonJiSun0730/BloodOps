@@ -2,6 +2,11 @@
 .blood-units-header { display:flex; align-items:flex-end; justify-content:space-between; gap:24px; padding-bottom:24px; border-bottom:1px solid var(--color-border); }
 .blood-units-eyebrow { margin:0; color:var(--color-primary); font-size:.72rem; font-weight:850; letter-spacing:.12em; }
 .blood-units-header h1 { margin:8px 0 0; color:var(--color-text); font-size:clamp(1.8rem,4vw,2.5rem); letter-spacing:-.04em; }
+.blood-units-center-caption { margin:10px 0 0; color:var(--color-text-muted); font-size:.88rem; }
+.blood-units-center-selector { display:grid; grid-template-columns:minmax(0,1fr) minmax(320px,.8fr); align-items:end; gap:24px; margin-top:24px; padding:20px 24px; border:1px solid var(--color-border); border-radius:16px; background:var(--color-surface); }
+.blood-units-center-selector h2 { margin:0; color:var(--color-text); font-size:1.05rem; }
+.blood-units-center-selector p { margin:8px 0 0; color:var(--color-text-muted); font-size:.8rem; }
+.blood-units-center-selector label { display:flex; min-width:0; flex-direction:column; gap:6px; color:var(--color-text-muted); font-size:.76rem; font-weight:750; }
 .blood-unit-button { min-height:44px; padding:0 16px; border:1px solid transparent; border-radius:9px; font:inherit; font-weight:800; cursor:pointer; transition:background-color .18s ease,border-color .18s ease,color .18s ease; }
 .blood-unit-button.primary { color:#fff; background:var(--color-primary); }
 .blood-unit-button.primary:hover:not(:disabled) { background:var(--color-primary-hover); }
@@ -38,9 +43,9 @@
 .blood-unit-modal-actions { display:flex; grid-column:1/-1; justify-content:flex-end; gap:10px; padding-top:8px; }
 .blood-unit-field-error { display:block; margin:0; color:#ff6b67; font-size:.72rem; font-weight:700; line-height:1.45; visibility:visible; }
 .blood-units-page [aria-invalid="true"] { border-color:var(--color-primary); box-shadow:0 0 0 1px var(--color-primary); }
-@media (max-width:1024px) { .blood-units-summary,.blood-units-filters { grid-template-columns:repeat(2,minmax(0,1fr)); } }
+@media (max-width:1024px) { .blood-units-center-selector { grid-template-columns:1fr; } .blood-units-summary,.blood-units-filters { grid-template-columns:repeat(2,minmax(0,1fr)); } }
 @media (max-width:768px) {
-  .blood-units-page { padding:32px 0 64px; }.blood-units-header { align-items:flex-start; flex-direction:column; }.blood-units-header .primary { width:100%; }
+  .blood-units-page { padding:32px 0 64px; }.blood-units-header { align-items:flex-start; flex-direction:column; }.blood-units-header .primary { width:100%; }.blood-units-center-selector { padding:20px; }
   .blood-units-summary { grid-template-columns:repeat(2,minmax(0,1fr)); }.blood-units-filters { grid-template-columns:1fr; }
   .blood-units-table-card { border:0; background:transparent; }.blood-units-table-wrap { overflow:visible; }.blood-units-table-card table,.blood-units-table-card tbody { display:block; }.blood-units-table-card thead { display:none; }
   .blood-units-table-card tr { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:0; margin-bottom:14px; padding:12px; border:1px solid var(--color-border); border-radius:16px; background:var(--color-surface); }
@@ -48,4 +53,4 @@
   .blood-units-table-card td[data-label="Unit ID"],.blood-units-table-card td[data-label="채혈일"],.blood-units-table-card td[data-label="유효기간"],.blood-units-table-card td[data-label="관리"] { grid-column:1/-1; }.blood-units-table-card td[data-label="관리"] .edit { width:100%; }
   .blood-unit-modal form { grid-template-columns:1fr; }.blood-unit-readonly-details,.collection-date-fields { grid-template-columns:1fr; }.blood-unit-modal-actions { position:sticky; bottom:-24px; margin:0 -24px -24px; padding:14px 24px; background:var(--color-surface); }.blood-unit-modal-actions .blood-unit-button { flex:1; }
 }
-@media (max-width:480px) { .blood-units-page { width:min(100% - 32px,100%); padding-top:24px; }.blood-units-summary { grid-template-columns:1fr; }.blood-units-summary article { min-height:96px; padding:18px; }.blood-units-table-card tr { grid-template-columns:1fr; }.blood-units-table-card td { grid-column:1/-1; }.blood-unit-modal { padding:10px; }.blood-unit-modal form { padding:18px; border-radius:14px; }.blood-unit-modal-actions { bottom:-18px; margin:0 -18px -18px; padding:12px 18px; } }
+@media (max-width:480px) { .blood-units-page { width:min(100% - 32px,100%); padding-top:24px; }.blood-units-center-selector { padding:18px; }.blood-units-summary { grid-template-columns:1fr; }.blood-units-summary article { min-height:96px; padding:18px; }.blood-units-table-card tr { grid-template-columns:1fr; }.blood-units-table-card td { grid-column:1/-1; }.blood-unit-modal { padding:10px; }.blood-unit-modal form { padding:18px; border-radius:14px; }.blood-unit-modal-actions { bottom:-18px; margin:0 -18px -18px; padding:12px 18px; } }
