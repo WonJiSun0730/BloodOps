@@ -12,6 +12,10 @@ public interface DonationHistoryRepository extends JpaRepository<DonationHistory
 
     List<DonationHistory> findAllByOrderByRegTimeDescIdDesc();
 
+    List<DonationHistory> findByReservation_Slot_Center_IdOrderByRegTimeDescIdDesc(
+            Long centerId
+    );
+
     boolean existsByMember_IdAndDonationDateBetween(
             Long memberId,
             LocalDate startDate,
