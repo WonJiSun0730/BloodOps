@@ -63,6 +63,9 @@ import AdminRewardFulfillmentPage
   from './pages/admin/AdminRewardFulfillmentPage.jsx'
 
 import PromotionsPage from './pages/promotion/PromotionsPage.jsx'
+import QnaPage from './pages/qna/QnaPage.jsx'
+import FaqPage from './pages/faq/FaqPage.jsx'
+import AdminQnaPage from './pages/admin/AdminQnaPage.jsx'
 import PromotionDetailPage from './pages/promotion/PromotionDetailPage.jsx'
 
 import BloodUnitsManagementPage
@@ -139,6 +142,8 @@ function App() {
         <Route path="/promotion" element={<PromotionsPage />} />
         <Route path="/promotion/:promotionId" element={<PromotionDetailPage />} />
         <Route path="/promotions" element={<Navigate to="/promotion" replace />} />
+        <Route path="/qna" element={<QnaPage />} />
+        <Route path="/faq" element={<FaqPage />} />
 
         <Route
           path="/reservations/new"
@@ -281,6 +286,7 @@ function App() {
         />
 
         <Route path="/admin/reward-fulfillment" element={<AdminRoute><AdminRewardFulfillmentPage /></AdminRoute>} />
+        <Route path="/admin/qna" element={<AdminRoute><AdminQnaPage /></AdminRoute>} />
 
         <Route
           path="/admin/kakao-message-template"
