@@ -213,6 +213,7 @@ function HeaderActions({
             aria-hidden="true"
           >
             <ChatIcon />
+            <ChatIcon />
           </span>
         </button>
 

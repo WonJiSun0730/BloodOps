@@ -932,6 +932,27 @@ export function getMyDonationHistory() {
 }
 
 /*
+ * 메인화면 명예의전당에 표시할
+ * 헌혈 종류별 TOP 3 랭킹을 조회합니다.
+ */
+export function getDonationRankings() {
+  return apiRequest(
+    '/api/public/donation-rankings'
+  )
+}
+
+
+/*
+ * 로그인한 회원의 누적 헌혈횟수를
+ * 전체 및 헌혈 종류별로 조회합니다.
+ */
+export function getMyDonationSummary() {
+  return apiRequest(
+    '/api/donations/me/summary'
+  )
+}
+
+/*
  * 로그인한 회원이 완료된 헌혈 기록에 대해
  * 헌혈 후 컨디션 체크를 저장합니다.
  */
@@ -1410,5 +1431,163 @@ export async function getBloodHoldRoute({
 export function getBloodStockStatus() {
   return apiRequest(
     '/api/public/blood-stock-status'
+  )
+}
+
+export function getDonationTips(
+  category
+) {
+  const query =
+    category
+      ? `?category=${encodeURIComponent(category)}`
+      : ''
+
+  return apiRequest(
+    `/api/donation-tips${query}`
+  )
+}
+
+/*
+ * ADMIN이 헌혈팁에 사용할 이미지를 업로드합니다.
+ */
+export async function uploadDonationTipImage(
+  imageFile
+) {
+  const csrf =
+    await getCsrfToken()
+
+  const formData =
+    new FormData()
+
+  formData.append(
+    'image',
+    imageFile
+  )
+
+  return apiRequest(
+    '/api/donation-tips/images',
+    {
+      method: 'POST',
+
+      headers: {
+        [csrf.headerName]:
+          csrf.token,
+      },
+
+      body: formData,
+    }
+  )
+}
+
+/*
+ * 메인화면에 표시할
+ * 최신 헌혈팁 3개를 조회합니다.
+ */
+export function getLatestDonationTips() {
+  return apiRequest(
+    '/api/donation-tips/latest'
+  )
+}
+
+
+/*
+ * 헌혈팁 상세 내용을 조회합니다.
+ */
+export function getDonationTip(
+  tipId
+) {
+  return apiRequest(
+    `/api/donation-tips/${
+      encodeURIComponent(tipId)
+    }`
+  )
+}
+
+
+/*
+ * 로그인한 회원이
+ * 새로운 헌혈팁을 작성합니다.
+ */
+export async function createDonationTip(
+  tipData
+) {
+  const csrf =
+    await getCsrfToken()
+
+  return apiRequest(
+    '/api/donation-tips',
+    {
+      method: 'POST',
+
+      headers: {
+        'Content-Type':
+          'application/json',
+
+        [csrf.headerName]:
+          csrf.token,
+      },
+
+      body: JSON.stringify(
+        tipData
+      ),
+    }
+  )
+}
+
+
+/*
+ * 본인이 작성한 헌혈팁을 수정합니다.
+ */
+export async function updateDonationTip(
+  tipId,
+  tipData
+) {
+  const csrf =
+    await getCsrfToken()
+
+  return apiRequest(
+    `/api/donation-tips/${
+      encodeURIComponent(tipId)
+    }`,
+    {
+      method: 'PUT',
+
+      headers: {
+        'Content-Type':
+          'application/json',
+
+        [csrf.headerName]:
+          csrf.token,
+      },
+
+      body: JSON.stringify(
+        tipData
+      ),
+    }
+  )
+}
+
+
+/*
+ * 본인이 작성한 헌혈팁을 삭제합니다.
+ */
+export async function deleteDonationTip(
+  tipId
+) {
+  const csrf =
+    await getCsrfToken()
+
+  return apiRequest(
+    `/api/donation-tips/${
+      encodeURIComponent(tipId)
+    }`,
+    {
+      method: 'DELETE',
+
+      headers: {
+        [csrf.headerName]:
+          csrf.token,
+      },
+    }
   )
 }

@@ -567,8 +567,8 @@ function BloodHoldGuidePage() {
         <article
           className={
             primary
-              ? 'blood-hold-contact-card primary'
-              : 'blood-hold-contact-card secondary'
+              ? 'blood-hold-contact-card blood-hold-contact-card--primary'
+              : 'blood-hold-contact-card blood-hold-contact-card--secondary'
           }
         >
           <div

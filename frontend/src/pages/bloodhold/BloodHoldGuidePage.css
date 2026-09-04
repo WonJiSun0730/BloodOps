@@ -115,7 +115,7 @@
     var(--color-surface);
 }
 
-.blood-hold-contact-card.primary {
+.blood-hold-contact-card--primary {
   border-color:
     color-mix(
       in srgb,

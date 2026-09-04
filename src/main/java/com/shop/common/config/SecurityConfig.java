@@ -34,7 +34,7 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http.authorizeHttpRequests(auth -> auth
-                .requestMatchers("/css/**", "/js/**", "/img/**", "/favicon.ico", "/error").permitAll()
+                .requestMatchers("/css/**", "/js/**", "/img/**", "/uploads/**", "/favicon.ico", "/error").permitAll()
                 .requestMatchers("/", "/item/**", "/images/**").permitAll()
                         .requestMatchers(
                                 "/api/public/**",
@@ -64,11 +64,27 @@ public class SecurityConfig {
                                 "/api/chatbot/**"
                         ).permitAll()
                         // 비회원도 헌혈센터 목록과 상세 정보를 조회할 수 있습니다.
+                        // 헌혈팁 목록·최신글·상세글도 비회원 조회가 가능합니다.
                         .requestMatchers(
                                 org.springframework.http.HttpMethod.GET,
                                 "/api/centers",
-                                "/api/centers/**"
+                                "/api/centers/**",
+                                "/api/donation-tips",
+                                "/api/donation-tips/**"
                         ).permitAll()
+                        .requestMatchers(
+                                org.springframework.http.HttpMethod.POST,
+                                "/api/donation-tips",
+                                "/api/donation-tips/images"
+                        ).hasRole("ADMIN")
+                        .requestMatchers(
+                                org.springframework.http.HttpMethod.PUT,
+                                "/api/donation-tips/**"
+                        ).hasRole("ADMIN")
+                        .requestMatchers(
+                                org.springframework.http.HttpMethod.DELETE,
+                                "/api/donation-tips/**"
+                        ).hasRole("ADMIN")
                         // 관리자 전용 화면 및 API
                         .requestMatchers(
                                 "/admin/**",

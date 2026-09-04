@@ -13,6 +13,8 @@ import MainPage
   from './pages/main/MainPage.jsx'
 import BloodStatusPage
   from './pages/blood-status/BloodStatusPage.jsx'
+import DonationTipsPage
+from './pages/donation-tip/DonationTipsPage.jsx'
 
 import LoginPage
   from './pages/auth/LoginPage.jsx'
@@ -110,6 +112,11 @@ function App() {
         <Route
           path="/blood-status"
           element={<BloodStatusPage />}
+        />
+
+        <Route
+          path="/donation-tips"
+          element={<DonationTipsPage />}
         />
 
         <Route
