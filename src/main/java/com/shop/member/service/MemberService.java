@@ -250,25 +250,25 @@ public class MemberService implements UserDetailsService { //유저디테일서�
             );
         }
 
-        /*
-         * 추가정보 입력 화면에서 직접 입력한
-         * 휴대전화 번호가 다른 회원에게 이미 등록되어 있다면 차단합니다.
-         */
-        if (
-                dto.getPhone() != null
-                        && !dto.getPhone().isBlank()
-                        && memberRepository.existsByPhone(
-                        dto.getPhone()
-                )
-                        && !dto.getPhone().equals(
-                        member.getPhone()
-                )
-        ) {
-            throw new IllegalArgumentException(
-                    "이미 가입된 휴대전화 번호입니다. "
-                            + "아이디 찾기 또는 비밀번호 변경을 이용해주세요."
-            );
-        }
+//        /*
+//         * 추가정보 입력 화면에서 직접 입력한
+//         * 휴대전화 번호가 다른 회원에게 이미 등록되어 있다면 차단합니다.
+//         */
+//        if (
+//                dto.getPhone() != null
+//                        && !dto.getPhone().isBlank()
+//                        && memberRepository.existsByPhone(
+//                        dto.getPhone()
+//                )
+//                        && !dto.getPhone().equals(
+//                        member.getPhone()
+//                )
+//        ) {
+//            throw new IllegalArgumentException(
+//                    "이미 가입된 휴대전화 번호입니다. "
+//                            + "아이디 찾기 또는 비밀번호 변경을 이용해주세요."
+//            );
+//        }
 
         member.setEmail(dto.getEmail().trim());
 

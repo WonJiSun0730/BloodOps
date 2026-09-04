@@ -7,10 +7,12 @@ import { useNavigate } from 'react-router-dom'
 
 import {
   confirmEmailVerificationCode,
+  confirmPhoneVerificationCode,
   getCurrentUser,
   getOAuthReturnTo,
   logout,
   sendEmailVerificationCode,
+  sendPhoneVerificationCode,
   updateAdditionalInfo,
 } from '../../api/apiClient'
 
@@ -83,6 +85,36 @@ function AdditionalInfoPage() {
     setVerificationSent,
   ] = useState(false)
 
+  const [
+    phoneVerificationCode,
+    setPhoneVerificationCode,
+  ] = useState('')
+
+  const [
+    phoneVerificationSent,
+    setPhoneVerificationSent,
+  ] = useState(false)
+
+  const [
+    phoneVerified,
+    setPhoneVerified,
+  ] = useState(false)
+
+  const [
+    phoneVerificationMessage,
+    setPhoneVerificationMessage,
+  ] = useState('')
+
+  const [
+    isSendingPhoneCode,
+    setIsSendingPhoneCode,
+  ] = useState(false)
+
+  const [
+    isCheckingPhoneCode,
+    setIsCheckingPhoneCode,
+  ] = useState(false)
+
 useEffect(() => {
   if (verificationExpiresIn <= 0) {
     return undefined
@@ -125,14 +157,28 @@ useEffect(() => {
 
 useEffect(() => {
   if (
-    verificationSent
-    && !emailVerified
-    && verificationExpiresIn === 0
+    !verificationSent
+    || emailVerified
+    || verificationExpiresIn > 0
   ) {
-    setVerificationMessage(
-      '인증번호가 만료되었습니다. 인증번호를 다시 발송해주세요.'
-    )
+    return
   }
+
+  /*
+   * 인증에 성공하지 않은 상태에서
+   * 실제 인증번호 입력시간이 끝난 경우에만
+   * 만료 안내를 표시합니다.
+   */
+  setVerificationCode('')
+
+  setErrors((current) => ({
+    ...current,
+    verificationCode: '',
+  }))
+
+  setVerificationMessage(
+    '인증번호가 만료되었습니다. 인증번호를 다시 발송해주세요.'
+  )
 }, [
   verificationExpiresIn,
   verificationSent,
@@ -240,15 +286,41 @@ useEffect(() => {
     }))
 
     if (name === 'email') {
+      /*
+       * 이메일이 변경되면 이전 이메일에 대한
+       * 모든 인증 UI 상태를 제거합니다.
+       *
+       * 이전 인증번호/성공문구/만료문구가
+       * 새 이메일 입력 후 남아있지 않도록 합니다.
+       */
       setEmailVerified(false)
+      setVerificationCode('')
+      setVerificationSent(false)
+      setVerificationMessage('')
+      setVerificationExpiresIn(0)
+      setResendAvailableIn(0)
 
-      if (verificationSent) {
-        setVerificationMessage(
-          '이메일이 변경되었습니다. 새 이메일로 인증번호를 다시 발송해주세요.'
-        )
-      } else {
-        setVerificationMessage('')
-      }
+      setErrors((current) => ({
+        ...current,
+        email: '',
+        verificationCode: '',
+      }))
+    }
+
+    if (
+      name === 'phoneMiddle'
+      || name === 'phoneLast'
+    ) {
+      setPhoneVerified(false)
+      setPhoneVerificationCode('')
+      setPhoneVerificationSent(false)
+      setPhoneVerificationMessage('')
+
+      setErrors((current) => ({
+        ...current,
+        phone: '',
+        phoneVerificationCode: '',
+      }))
     }
   }
 
@@ -393,6 +465,139 @@ function formatVerificationTime(
     2,
     '0'
   )}`
+}
+
+function getPhone() {
+  return `010${form.phoneMiddle}${form.phoneLast}`
+}
+
+async function handleSendPhoneVerificationCode() {
+  const phone = getPhone()
+
+  if (!/^010\d{8}$/.test(phone)) {
+    setErrors((current) => ({
+      ...current,
+      phone:
+        '휴대전화 번호를 정확하게 입력해주세요.',
+      phoneVerificationCode: '',
+    }))
+
+    setPhoneVerificationMessage('')
+    return
+  }
+
+  if (isSendingPhoneCode) {
+    return
+  }
+
+  setIsSendingPhoneCode(true)
+
+  /*
+   * 새 번호 발송 요청은
+   * 이전 휴대전화 인증 상태를 무효화합니다.
+   */
+  setPhoneVerified(false)
+  setPhoneVerificationCode('')
+  setPhoneVerificationMessage('')
+
+  setErrors((current) => ({
+    ...current,
+    phone: '',
+    phoneVerificationCode: '',
+  }))
+
+  try {
+    const response =
+      await sendPhoneVerificationCode(phone)
+
+    setPhoneVerificationSent(true)
+
+    setPhoneVerificationMessage(
+      response?.message
+      || '인증번호를 발송했습니다.'
+    )
+  } catch (error) {
+    setPhoneVerificationSent(false)
+    setPhoneVerificationMessage('')
+
+    setErrors((current) => ({
+      ...current,
+      phone:
+        error.message
+        || '인증번호 발송에 실패했습니다.',
+      phoneVerificationCode: '',
+    }))
+  } finally {
+    setIsSendingPhoneCode(false)
+  }
+}
+
+async function handleConfirmPhoneVerificationCode() {
+  const phone = getPhone()
+
+  if (!phoneVerificationSent) {
+    setErrors((current) => ({
+      ...current,
+      phoneVerificationCode:
+        '먼저 인증번호를 발송해주세요.',
+    }))
+
+    return
+  }
+
+  if (!/^\d{6}$/.test(phoneVerificationCode)) {
+    setErrors((current) => ({
+      ...current,
+      phoneVerificationCode:
+        '인증번호 6자리를 입력해주세요.',
+    }))
+
+    return
+  }
+
+  if (isCheckingPhoneCode) {
+    return
+  }
+
+  setIsCheckingPhoneCode(true)
+
+  setErrors((current) => ({
+    ...current,
+    phoneVerificationCode: '',
+  }))
+
+  try {
+    const response =
+      await confirmPhoneVerificationCode(
+        phone,
+        phoneVerificationCode
+      )
+
+    setPhoneVerified(true)
+
+    setPhoneVerificationMessage(
+      response?.message
+      || '휴대전화 인증이 완료되었습니다.'
+    )
+
+    setErrors((current) => ({
+      ...current,
+      phone: '',
+      phoneVerificationCode: '',
+    }))
+  } catch (error) {
+    setPhoneVerified(false)
+    setPhoneVerificationMessage('')
+
+    setErrors((current) => ({
+      ...current,
+      phoneVerificationCode:
+        error.message
+        || '인증번호 확인에 실패했습니다.',
+    }))
+  } finally {
+    setIsCheckingPhoneCode(false)
+  }
 }
 
 async function handleSendVerificationCode() {
@@ -572,15 +777,17 @@ async function handleConfirmVerificationCode() {
           }
         }
 
-        if (
-          !providedFields.phone
-          && (
+        if (!providedFields.phone) {
+          if (
             !/^\d{4}$/.test(form.phoneMiddle)
             || !/^\d{4}$/.test(form.phoneLast)
-          )
-        ) {
-          nextErrors.phone =
-            '휴대전화 번호를 정확하게 입력해주세요.'
+          ) {
+            nextErrors.phone =
+              '휴대전화 번호를 정확하게 입력해주세요.'
+          } else if (!phoneVerified) {
+            nextErrors.phone =
+              '휴대전화 인증을 완료해주세요.'
+          }
         }
 
         if (
@@ -766,6 +973,10 @@ async function handleConfirmVerificationCode() {
                 maxLength={4}
                 value={form.phoneMiddle}
                 readOnly={providedFields.phone}
+                disabled={
+                  !providedFields.phone
+                  && phoneVerified
+                }
                 aria-label="휴대전화 가운데 번호"
                 onChange={(event) => {
                   const value =
@@ -795,6 +1006,10 @@ async function handleConfirmVerificationCode() {
                 maxLength={4}
                 value={form.phoneLast}
                 readOnly={providedFields.phone}
+                disabled={
+                  !providedFields.phone
+                  && phoneVerified
+                }
                 aria-label="휴대전화 마지막 번호"
                 onChange={(event) => {
                   const value =
@@ -807,6 +1022,27 @@ async function handleConfirmVerificationCode() {
                   )
                 }}
               />
+
+              {!providedFields.phone && (
+                <button
+                  type="button"
+                  disabled={
+                    isSendingPhoneCode
+                    || phoneVerified
+                  }
+                  onClick={
+                    handleSendPhoneVerificationCode
+                  }
+                >
+                  {isSendingPhoneCode
+                    ? '발송 중...'
+                    : phoneVerified
+                      ? '인증 완료'
+                      : phoneVerificationSent
+                        ? '인증번호 재발송'
+                        : '인증번호 발송'}
+                </button>
+              )}
             </div>
 
             {providedFields.phone && (
@@ -815,10 +1051,78 @@ async function handleConfirmVerificationCode() {
               </p>
             )}
 
+            {!providedFields.phone
+              && phoneVerificationSent
+              && !phoneVerified && (
+                <div className="email-verification-row">
+                  <div className="verification-code-input">
+                    <input
+                      type="text"
+                      inputMode="numeric"
+                      autoComplete="one-time-code"
+                      maxLength={6}
+                      value={phoneVerificationCode}
+                      placeholder="인증번호 6자리"
+                      aria-label="휴대전화 인증번호"
+                      onChange={(event) => {
+                        const value =
+                          event.target.value
+                            .replace(/\D/g, '')
+                            .slice(0, 6)
+
+                        setPhoneVerificationCode(value)
+
+                        setErrors((current) => ({
+                          ...current,
+                          phoneVerificationCode: '',
+                        }))
+
+                        setPhoneVerificationMessage('')
+                      }}
+                    />
+                  </div>
+
+                  <button
+                    type="button"
+                    disabled={
+                      isCheckingPhoneCode
+                      || phoneVerificationCode.length !== 6
+                    }
+                    onClick={
+                      handleConfirmPhoneVerificationCode
+                    }
+                  >
+                    {isCheckingPhoneCode
+                      ? '확인 중...'
+                      : '인증하기'}
+                  </button>
+                </div>
+            )}
+
             {errors.phone && (
               <p className="field-error">
                 {errors.phone}
               </p>
+            )}
+
+            {errors.phoneVerificationCode && (
+              <p className="field-error">
+                {errors.phoneVerificationCode}
+              </p>
+            )}
+
+            {!providedFields.phone
+              && phoneVerificationMessage && (
+                <p
+                  className={
+                    phoneVerified
+                      ? 'field-success'
+                      : 'field-guide'
+                  }
+                >
+                  {phoneVerified ? '✓ ' : ''}
+                  {phoneVerificationMessage}
+                </p>
             )}
           </div>
 

@@ -53,6 +53,9 @@ public class SecurityConfig {
                                 "/api/members/signup",
                                 "/api/members/check-login-id",
                                 "/api/members/check-email",
+                                "/api/members/email-verification/**",
+                                "/api/members/phone-verification/**",
+
                                 // 비회원도 전자문진 문항 조회와 제출 가능
                                 "/api/questionnaires/questions",
                                 "/api/questionnaires",

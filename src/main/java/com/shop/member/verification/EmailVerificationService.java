@@ -206,6 +206,18 @@ public class EmailVerificationService {
                 SESSION_VERIFIED,
                 true
         );
+
+        /*
+         * 인증 성공 후에는 실제 인증번호와 만료시간이
+         * 더 이상 필요하지 않으므로 세션에서 제거합니다.
+         */
+        session.removeAttribute(
+                SESSION_CODE
+        );
+
+        session.removeAttribute(
+                SESSION_EXPIRES_AT
+        );
     }
 
     public boolean isVerified(
@@ -226,31 +238,16 @@ public class EmailVerificationService {
                         SESSION_VERIFIED
                 );
 
-        Long expiresAt =
-                (Long) session.getAttribute(
-                        SESSION_EXPIRES_AT
-                );
-
-        if (
-                savedEmail == null
-                        || verified == null
-                        || !verified
-                        || expiresAt == null
-        ) {
-            return false;
-        }
-
-        if (
-                Instant.now().getEpochSecond()
-                        > expiresAt
-        ) {
-            clearVerificationCode(session);
-            return false;
-        }
-
-        return savedEmail.equals(
-                normalizedEmail
-        );
+        /*
+         * 5분 제한은 인증번호를 입력할 수 있는 시간입니다.
+         *
+         * 한 번 인증에 성공한 뒤에는
+         * 회원 정보 저장이 완료될 때까지
+         * 인증 완료 상태를 유지합니다.
+         */
+        return savedEmail != null
+                && Boolean.TRUE.equals(verified)
+                && savedEmail.equals(normalizedEmail);
     }
 
     public void clearVerification(
@@ -294,6 +291,8 @@ public class EmailVerificationService {
                 SESSION_VERIFIED,
                 false
         );
+
+
     }
 
     private String normalizeEmail(

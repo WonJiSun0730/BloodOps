@@ -2,6 +2,10 @@ import { useRef, useState } from 'react'
 import {
   checkEmail,
   checkLoginId,
+  confirmEmailVerificationCode,
+  confirmPhoneVerificationCode,
+  sendEmailVerificationCode,
+  sendPhoneVerificationCode,
   signup,
 } from '../../api/apiClient.js'
 import '../../styles/signup.css'
@@ -33,11 +37,48 @@ function SignupPage() {
   })
 
   const [errors, setErrors] = useState({})
+  const [submitErrors, setSubmitErrors] = useState([])
   const [generalError, setGeneralError] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
 
   const [loginIdStatus, setLoginIdStatus] = useState('')
   const [emailStatus, setEmailStatus] = useState('')
+
+  const [phoneVerificationCode, setPhoneVerificationCode] =
+    useState('')
+
+  const [phoneVerificationSent, setPhoneVerificationSent] =
+    useState(false)
+
+  const [phoneVerified, setPhoneVerified] =
+    useState(false)
+
+  const [phoneVerificationMessage, setPhoneVerificationMessage] =
+    useState('')
+
+  const [isSendingPhoneCode, setIsSendingPhoneCode] =
+    useState(false)
+
+  const [isCheckingPhoneCode, setIsCheckingPhoneCode] =
+    useState(false)
+
+  const [emailVerificationCode, setEmailVerificationCode] =
+    useState('')
+
+  const [emailVerificationSent, setEmailVerificationSent] =
+    useState(false)
+
+  const [emailVerified, setEmailVerified] =
+    useState(false)
+
+  const [emailVerificationMessage, setEmailVerificationMessage] =
+    useState('')
+
+  const [isSendingEmailCode, setIsSendingEmailCode] =
+    useState(false)
+
+  const [isCheckingEmailCode, setIsCheckingEmailCode] =
+    useState(false)
 
   function updateField(name, value) {
     setForm((previous) => ({
@@ -45,20 +86,44 @@ function SignupPage() {
       [name]: value,
     }))
 
-    // 사용자가 값을 다시 입력하면 이전 오류를 제거합니다.
-    // 비밀번호/비밀번호 확인은 서로 연관된 필드이므로
-    // 어느 한쪽을 수정해도 불일치 오류를 함께 초기화합니다.
-    setErrors((previous) => ({
-      ...previous,
-      [name]: '',
+    // 사용자가 내용을 다시 수정하면
+    // 이전 회원가입 제출 결과는 더 이상 현재 상태가 아닙니다.
+    setSubmitErrors([])
+    setGeneralError('')
 
-      ...(name === 'password'
+    setErrors((previous) => {
+      const next = {
+        ...previous,
+        [name]: '',
+      }
+
+      if (
+        name === 'password'
         || name === 'passwordConfirm'
-        ? {
-            passwordConfirm: '',
-          }
-        : {}),
-    }))
+      ) {
+        next.password = ''
+        next.passwordConfirm = ''
+      }
+
+      if (
+        name === 'emailId'
+        || name === 'emailDomain'
+        || name === 'customEmailDomain'
+      ) {
+        next.email = ''
+        next.emailVerificationCode = ''
+      }
+
+      if (
+        name === 'phoneMiddle'
+        || name === 'phoneLast'
+      ) {
+        next.phone = ''
+        next.phoneVerificationCode = ''
+      }
+
+      return next
+    })
 
     if (name === 'loginId') {
       setLoginIdStatus('')
@@ -70,6 +135,20 @@ function SignupPage() {
       || name === 'customEmailDomain'
     ) {
       setEmailStatus('')
+      setEmailVerificationCode('')
+      setEmailVerificationSent(false)
+      setEmailVerified(false)
+      setEmailVerificationMessage('')
+    }
+
+    if (
+      name === 'phoneMiddle'
+      || name === 'phoneLast'
+    ) {
+      setPhoneVerificationCode('')
+      setPhoneVerificationSent(false)
+      setPhoneVerified(false)
+      setPhoneVerificationMessage('')
     }
   }
 
@@ -79,6 +158,34 @@ function SignupPage() {
       : form.emailDomain
 
     return `${form.emailId}@${domain}`
+  }
+
+  function getPhone() {
+    return `010${form.phoneMiddle}${form.phoneLast}`
+  }
+
+  function clearPhoneVerificationFeedback() {
+    setErrors((previous) => ({
+      ...previous,
+      phone: '',
+      phoneVerificationCode: '',
+    }))
+
+    setPhoneVerificationMessage('')
+    setSubmitErrors([])
+    setGeneralError('')
+  }
+
+  function clearEmailVerificationFeedback() {
+    setErrors((previous) => ({
+      ...previous,
+      email: '',
+      emailVerificationCode: '',
+    }))
+
+    setEmailVerificationMessage('')
+    setSubmitErrors([])
+    setGeneralError('')
   }
 
   function getPasswordStrength() {
@@ -191,6 +298,354 @@ function SignupPage() {
     }
   }
 
+  async function handleEmailCheckWithDomain(domain) {
+    const email = `${form.emailId}@${domain}`
+    const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+
+    if (!emailPattern.test(email)) {
+      return
+    }
+
+    try {
+      const result = await checkEmail(email)
+
+      setEmailStatus(
+        result.available
+          ? 'available'
+          : 'duplicate'
+      )
+
+      setErrors((previous) => ({
+        ...previous,
+        email: result.available
+          ? ''
+          : '이미 가입된 이메일입니다.',
+      }))
+    } catch (error) {
+      setGeneralError(error.message)
+    }
+  }
+
+  async function handleSendEmailVerificationCode() {
+    const email = getEmail()
+    const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+
+    if (!emailPattern.test(email)) {
+      setErrors((previous) => ({
+        ...previous,
+        email: '올바른 이메일 주소를 입력해주세요.',
+        emailVerificationCode: '',
+      }))
+
+      setEmailVerificationMessage('')
+      return
+    }
+
+    /*
+     * 중복 확인을 통과한 이메일에 대해서만
+     * 인증번호를 발송합니다.
+     */
+    if (emailStatus !== 'available') {
+      setErrors((previous) => ({
+        ...previous,
+        email: '먼저 이메일 중복 확인을 해주세요.',
+        emailVerificationCode: '',
+      }))
+
+      setEmailVerificationMessage('')
+      return
+    }
+
+    if (isSendingEmailCode) {
+      return
+    }
+
+    clearEmailVerificationFeedback()
+    setIsSendingEmailCode(true)
+
+    /*
+     * 발송 요청 전에는 기존 인증번호를 지우지 않습니다.
+     * 실제 새 인증번호 발송에 성공했을 때만 지웁니다.
+     */
+    setEmailVerified(false)
+    setEmailVerificationMessage('')
+
+    setErrors((previous) => ({
+      ...previous,
+      email: '',
+      emailVerificationCode: '',
+    }))
+
+    try {
+      const response =
+        await sendEmailVerificationCode(email)
+
+      /*
+       * 새 인증번호가 실제 발송된 경우
+       * 이전에 입력하던 인증번호를 초기화합니다.
+       */
+      setEmailVerificationCode('')
+      setEmailVerificationSent(true)
+
+      setEmailVerificationMessage(
+        response?.message
+        || '인증번호를 발송했습니다.'
+      )
+    } catch (error) {
+      const message =
+        error.message
+        || '인증번호 발송에 실패했습니다.'
+
+      const isResendCooldown =
+        message.includes('초 후 다시 발송')
+
+      /*
+       * 재발송 대기시간 오류이면
+       * 기존 인증번호와 입력값을 유지합니다.
+       *
+       * 실제 발송 실패일 때만 상태를 초기화합니다.
+       */
+      if (!isResendCooldown) {
+        setEmailVerificationSent(false)
+        setEmailVerificationCode('')
+      }
+
+      setEmailVerificationMessage('')
+
+      setErrors((previous) => ({
+        ...previous,
+        email: message,
+        emailVerificationCode: '',
+      }))
+    } finally {
+      setIsSendingEmailCode(false)
+    }
+  }
+
+  async function handleConfirmEmailVerificationCode() {
+    const email = getEmail()
+
+    if (!emailVerificationSent) {
+      setErrors((previous) => ({
+        ...previous,
+        emailVerificationCode:
+          '먼저 인증번호를 발송해주세요.',
+      }))
+
+      return
+    }
+
+    if (!/^\d{6}$/.test(emailVerificationCode)) {
+      setErrors((previous) => ({
+        ...previous,
+        emailVerificationCode:
+          '인증번호 6자리를 입력해주세요.',
+      }))
+
+      return
+    }
+
+    if (isCheckingEmailCode) {
+      return
+    }
+
+    clearEmailVerificationFeedback()
+    setIsCheckingEmailCode(true)
+
+    setEmailVerificationMessage('')
+
+
+    setErrors((previous) => ({
+      ...previous,
+      emailVerificationCode: '',
+    }))
+
+    try {
+      const response =
+        await confirmEmailVerificationCode(
+          email,
+          emailVerificationCode
+        )
+
+      setEmailVerified(true)
+
+      setEmailVerificationMessage(
+        response?.message
+        || '이메일 인증이 완료되었습니다.'
+      )
+
+      setErrors((previous) => ({
+        ...previous,
+        email: '',
+        emailVerificationCode: '',
+      }))
+    } catch (error) {
+      setEmailVerified(false)
+      setEmailVerificationMessage('')
+
+      setErrors((previous) => ({
+        ...previous,
+        emailVerificationCode:
+          error.message
+          || '인증번호 확인에 실패했습니다.',
+      }))
+    } finally {
+      setIsCheckingEmailCode(false)
+    }
+  }
+
+  async function handleSendPhoneVerificationCode() {
+    const phone = getPhone()
+
+    if (!/^010\d{8}$/.test(phone)) {
+      setErrors((previous) => ({
+        ...previous,
+        phone: '휴대전화 번호를 정확하게 입력해주세요.',
+        phoneVerificationCode: '',
+      }))
+
+      setPhoneVerificationMessage('')
+      return
+    }
+
+    if (isSendingPhoneCode) {
+      return
+    }
+
+    clearPhoneVerificationFeedback()
+    setIsSendingPhoneCode(true)
+
+    /*
+     * 발송 요청 전에는 기존 인증번호를 지우지 않습니다.
+     * 실제 새 인증번호 발송에 성공했을 때만 지웁니다.
+     */
+    setPhoneVerified(false)
+    setPhoneVerificationMessage('')
+
+    setErrors((previous) => ({
+      ...previous,
+      phone: '',
+      phoneVerificationCode: '',
+    }))
+
+    try {
+      const response =
+        await sendPhoneVerificationCode(phone)
+
+      /*
+       * 새 인증번호가 실제 발송된 경우
+       * 이전에 입력하던 인증번호를 초기화합니다.
+       */
+      setPhoneVerificationCode('')
+      setPhoneVerificationSent(true)
+
+      setPhoneVerificationMessage(
+        response?.message
+        || '인증번호를 발송했습니다.'
+      )
+    } catch (error) {
+      const message =
+        error.message
+        || '인증번호 발송에 실패했습니다.'
+
+      const isResendCooldown =
+        message.includes('초 후 다시 발송')
+
+      /*
+       * 재발송 대기시간 오류이면
+       * 기존에 받은 인증번호를 계속 사용할 수 있으므로
+       * 기존 입력값과 발송 상태를 유지합니다.
+       *
+       * 실제 발송 실패일 때만 상태를 초기화합니다.
+       */
+      if (!isResendCooldown) {
+        setPhoneVerificationSent(false)
+        setPhoneVerificationCode('')
+      }
+
+      setPhoneVerificationMessage('')
+
+      setErrors((previous) => ({
+        ...previous,
+        phone: message,
+        phoneVerificationCode: '',
+      }))
+    } finally {
+      setIsSendingPhoneCode(false)
+    }
+  }
+
+  async function handleConfirmPhoneVerificationCode() {
+    const phone = getPhone()
+
+    if (!phoneVerificationSent) {
+      setErrors((previous) => ({
+        ...previous,
+        phoneVerificationCode:
+          '먼저 인증번호를 발송해주세요.',
+      }))
+
+      return
+    }
+
+    if (!/^\d{6}$/.test(phoneVerificationCode)) {
+      setErrors((previous) => ({
+        ...previous,
+        phoneVerificationCode:
+          '인증번호 6자리를 입력해주세요.',
+      }))
+
+      return
+    }
+
+    if (isCheckingPhoneCode) {
+      return
+    }
+
+    clearPhoneVerificationFeedback()
+    setIsCheckingPhoneCode(true)
+
+    setPhoneVerificationMessage('')
+
+    setErrors((previous) => ({
+      ...previous,
+      phoneVerificationCode: '',
+    }))
+
+    try {
+      const response =
+        await confirmPhoneVerificationCode(
+          phone,
+          phoneVerificationCode
+        )
+
+      setPhoneVerified(true)
+
+      setPhoneVerificationMessage(
+        response?.message
+        || '휴대전화 인증이 완료되었습니다.'
+      )
+
+      setErrors((previous) => ({
+        ...previous,
+        phone: '',
+        phoneVerificationCode: '',
+      }))
+    } catch (error) {
+      setPhoneVerified(false)
+      setPhoneVerificationMessage('')
+
+      setErrors((previous) => ({
+        ...previous,
+        phoneVerificationCode:
+          error.message
+          || '인증번호 확인에 실패했습니다.',
+      }))
+    } finally {
+      setIsCheckingPhoneCode(false)
+    }
+  }
+
   function validateForm() {
     const nextErrors = {}
 
@@ -281,27 +736,47 @@ function SignupPage() {
       }
     }
 
-    if (!/^\d{4}$/.test(form.phoneMiddle)
-        || !/^\d{4}$/.test(form.phoneLast)) {
-      nextErrors.phone = '휴대전화 번호를 정확하게 입력해주세요.'
+    if (
+      !/^\d{4}$/.test(form.phoneMiddle)
+      || !/^\d{4}$/.test(form.phoneLast)
+    ) {
+      nextErrors.phone =
+        '휴대전화 번호를 정확하게 입력해주세요.'
+    } else if (!phoneVerified) {
+      nextErrors.phone =
+        '휴대전화 인증을 완료해주세요.'
     }
 
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(getEmail())) {
-      nextErrors.email = '올바른 이메일 주소를 입력해주세요.'
+      nextErrors.email =
+        '올바른 이메일 주소를 입력해주세요.'
     } else if (emailStatus !== 'available') {
-      nextErrors.email = '이메일 중복 확인을 해주세요.'
+      nextErrors.email =
+        '이메일 사용 가능 여부를 확인해주세요.'
+    } else if (!emailVerified) {
+      nextErrors.email =
+        '이메일 인증을 완료해주세요.'
     }
 
-    setErrors(nextErrors)
-
-    return Object.keys(nextErrors).length === 0
+    return nextErrors
   }
 
   async function handleSubmit(event) {
     event.preventDefault()
+
     setGeneralError('')
 
-    if (!validateForm()) {
+    const nextErrors = validateForm()
+    const messages = [
+      ...new Set(
+        Object.values(nextErrors).filter(Boolean)
+      ),
+    ]
+
+    setErrors(nextErrors)
+    setSubmitErrors(messages)
+
+    if (messages.length > 0) {
       window.scrollTo({
         top: 0,
         behavior: 'smooth',
@@ -315,7 +790,7 @@ function SignupPage() {
       passwordConfirm: form.passwordConfirm,
       name: form.name.trim(),
       birthDate: form.birthDate,
-      phone: `010${form.phoneMiddle}${form.phoneLast}`,
+      phone: getPhone(),
       email: getEmail(),
       smsAgreed: form.smsAgreed,
       emailAgreed: form.emailAgreed,
@@ -329,8 +804,21 @@ function SignupPage() {
       alert('회원가입이 완료되었습니다.')
       window.location.href = '/login'
     } catch (error) {
-      setGeneralError(error.message)
-      setErrors(error.fieldErrors ?? {})
+      const fieldErrors =
+        error.fieldErrors ?? {}
+
+      setErrors(fieldErrors)
+
+      setSubmitErrors([
+        ...new Set(
+          Object.values(fieldErrors)
+            .filter(Boolean)
+        ),
+      ])
+
+      setGeneralError(
+        error.message || '회원가입에 실패했습니다.'
+      )
 
       window.scrollTo({
         top: 0,
@@ -342,7 +830,6 @@ function SignupPage() {
   }
 
   const passwordStrength = getPasswordStrength()
-  const hasErrors = Object.values(errors).some(Boolean)
 
   return (
     <main className="signup-page">
@@ -355,18 +842,23 @@ function SignupPage() {
 
         {/* 브라우저 기본 오류 팝업을 사용하지 않습니다. */}
         <form onSubmit={handleSubmit} noValidate>
-          {(generalError || hasErrors) && (
+          {(generalError || submitErrors.length > 0) && (
             <div className="error-summary" role="alert">
               <strong>입력 내용을 확인해주세요.</strong>
 
-              {generalError && <p>{generalError}</p>}
+              {generalError && (
+                <p>{generalError}</p>
+              )}
 
-              <ul>
-                {[...new Set(Object.values(errors).filter(Boolean))]
-                  .map((message) => (
-                    <li key={message}>{message}</li>
+              {submitErrors.length > 0 && (
+                <ul>
+                  {submitErrors.map((message) => (
+                    <li key={message}>
+                      {message}
+                    </li>
                   ))}
-              </ul>
+                </ul>
+              )}
             </div>
           )}
 
@@ -398,18 +890,18 @@ function SignupPage() {
                 </button>
               </div>
 
-              <p className="field-guide">
-                영문 소문자와 숫자만 사용할 수 있습니다.
-              </p>
-
-              {loginIdStatus === 'available' && (
+              {errors.loginId ? (
+                <p className="field-error">
+                  {errors.loginId}
+                </p>
+              ) : loginIdStatus === 'available' ? (
                 <p className="field-success">
                   사용할 수 있는 아이디입니다.
                 </p>
-              )}
-
-              {errors.loginId && (
-                <p className="field-error">{errors.loginId}</p>
+              ) : (
+                <p className="field-guide">
+                  영문 소문자와 숫자를 사용하여 5~20자로 입력해주세요.
+                </p>
               )}
             </div>
 
@@ -537,7 +1029,11 @@ function SignupPage() {
               <label>휴대전화</label>
 
               <div className="phone-fields">
-                <select aria-label="휴대전화 앞 번호" value="010" disabled>
+                <select
+                  aria-label="휴대전화 앞 번호"
+                  value="010"
+                  disabled
+                >
                   <option value="010">010</option>
                 </select>
 
@@ -549,8 +1045,11 @@ function SignupPage() {
                   maxLength={4}
                   value={form.phoneMiddle}
                   aria-label="휴대전화 가운데 번호"
+                  disabled={phoneVerified}
                   onChange={(event) => {
-                    const value = event.target.value.replace(/\D/g, '')
+                    const value =
+                      event.target.value.replace(/\D/g, '')
+
                     updateField('phoneMiddle', value)
 
                     if (value.length === 4) {
@@ -568,15 +1067,114 @@ function SignupPage() {
                   maxLength={4}
                   value={form.phoneLast}
                   aria-label="휴대전화 마지막 번호"
+                  disabled={phoneVerified}
                   onChange={(event) => {
-                    const value = event.target.value.replace(/\D/g, '')
+                    const value =
+                      event.target.value.replace(/\D/g, '')
+
                     updateField('phoneLast', value)
                   }}
                 />
+
+                <button
+                  type="button"
+                  disabled={
+                    isSendingPhoneCode
+                    || phoneVerified
+                  }
+                  onClick={handleSendPhoneVerificationCode}
+                >
+                  {isSendingPhoneCode
+                    ? '발송 중...'
+                    : phoneVerified
+                      ? '인증 완료'
+                      : phoneVerificationSent
+                        ? '재발송'
+                        : '인증번호 발송'}
+                </button>
               </div>
 
+            {phoneVerificationSent && (
+              <div className="verification-row">
+                <div className="verification-code-input">
+                  <input
+                    type="text"
+                    inputMode="numeric"
+                    autoComplete="one-time-code"
+                    maxLength={6}
+                    value={phoneVerificationCode}
+                    placeholder={
+                      phoneVerificationSent
+                        ? '인증번호 6자리'
+                        : '인증번호 발송 후 입력'
+                    }
+                    aria-label="휴대전화 인증번호"
+                    disabled={
+                      !phoneVerificationSent
+                      || phoneVerified
+                    }
+                    onChange={(event) => {
+                      const value =
+                        event.target.value
+                          .replace(/\D/g, '')
+                          .slice(0, 6)
+
+                      setPhoneVerificationCode(value)
+                      clearPhoneVerificationFeedback()
+
+                      setErrors((previous) => ({
+                        ...previous,
+                        phone: '',
+                        phoneVerificationCode: '',
+                      }))
+
+                      setPhoneVerificationMessage('')
+                    }}
+                  />
+                </div>
+
+                <button
+                  type="button"
+                  disabled={
+                    !phoneVerificationSent
+                    || phoneVerified
+                    || isCheckingPhoneCode
+                    || phoneVerificationCode.length !== 6
+                  }
+                  onClick={handleConfirmPhoneVerificationCode}
+                >
+                  {phoneVerified
+                    ? '인증 완료'
+                    : isCheckingPhoneCode
+                      ? '확인 중...'
+                      : '인증하기'}
+                </button>
+              </div>
+              )}
+
               {errors.phone && (
-                <p className="field-error">{errors.phone}</p>
+                <p className="field-error">
+                  {errors.phone}
+                </p>
+              )}
+
+              {errors.phoneVerificationCode && (
+                <p className="field-error">
+                  {errors.phoneVerificationCode}
+                </p>
+              )}
+
+              {phoneVerificationMessage && (
+                <p
+                  className={
+                    phoneVerified
+                      ? 'field-success'
+                      : 'field-guide'
+                  }
+                >
+                  {phoneVerified ? '✓ ' : ''}
+                  {phoneVerificationMessage}
+                </p>
               )}
             </div>
 
@@ -589,6 +1187,7 @@ function SignupPage() {
                   value={form.emailId}
                   aria-label="이메일 아이디"
                   placeholder="이메일 아이디"
+                  disabled={emailVerified}
                   onChange={(event) => {
                     const value = event.target.value
                       .replace(/[^a-zA-Z0-9._+-]/g, '')
@@ -598,6 +1197,7 @@ function SignupPage() {
                       value
                     )
                   }}
+                    onBlur={handleEmailCheck}
                 />
 
                 <span>@</span>
@@ -608,6 +1208,7 @@ function SignupPage() {
                     value={form.customEmailDomain}
                     aria-label="이메일 도메인 직접 입력"
                     placeholder="도메인 직접 입력"
+                    disabled={emailVerified}
                     onChange={(event) => {
                       const value = event.target.value
                         .toLowerCase()
@@ -618,46 +1219,162 @@ function SignupPage() {
                         value
                       )
                     }}
+                    onBlur={handleEmailCheck}
                   />
                 ) : (
+                  <select
+                    value={form.emailDomain}
+                    aria-label="이메일 도메인 선택"
+                    disabled={emailVerified}
+                    onChange={(event) => {
+                      const nextDomain = event.target.value
+
+                      updateField(
+                        'emailDomain',
+                        nextDomain
+                      )
+
+                      if (nextDomain !== 'custom' && form.emailId) {
+                        handleEmailCheckWithDomain(nextDomain)
+                      }
+                    }}
+                  >
+                    {EMAIL_DOMAINS.map((domain) => (
+                      <option
+                        key={domain}
+                        value={domain}
+                      >
+                        {domain === 'custom'
+                          ? '직접 입력'
+                          : domain}
+                      </option>
+                    ))}
+                  </select>
+                )}
+              </div>
+
+              {emailStatus === 'available'
+                && !emailVerified && (
+                  <p className="field-success">
+                    사용할 수 있는 이메일입니다.
+                  </p>
+              )}
+
+            {!emailVerificationSent
+              && !emailVerified && (
+              <button
+                type="button"
+                disabled={
+                  isSendingEmailCode
+                  || emailStatus !== 'available'
+                }
+                onClick={handleSendEmailVerificationCode}
+              >
+                {isSendingEmailCode
+                  ? '발송 중...'
+                  : '인증번호 발송'}
+              </button>
+            )}
+
+            {emailVerificationSent && (
+              <div className="verification-row">
+                <div className="verification-code-input">
                   <input
                     type="text"
-                    value={form.emailDomain}
-                    aria-label="선택한 이메일 도메인"
-                    readOnly
-                  />
-                )}
+                    inputMode="numeric"
+                    autoComplete="one-time-code"
+                    maxLength={6}
+                    value={emailVerificationCode}
+                    placeholder={
+                      emailVerificationSent
+                        ? '인증번호 6자리'
+                        : '인증번호 발송 후 입력'
+                    }
+                    aria-label="이메일 인증번호"
+                    disabled={
+                      !emailVerificationSent
+                      || emailVerified
+                    }
+                    onChange={(event) => {
+                      const value =
+                        event.target.value
+                          .replace(/\D/g, '')
+                          .slice(0, 6)
 
-                <select
-                  value={form.emailDomain}
-                  aria-label="이메일 도메인 선택"
-                  onChange={(event) =>
-                    updateField('emailDomain', event.target.value)
-                  }
-                >
-                  {EMAIL_DOMAINS.map((domain) => (
-                    <option key={domain} value={domain}>
-                      {domain === 'custom' ? '직접 입력' : domain}
-                    </option>
-                  ))}
-                </select>
+                      setEmailVerificationCode(value)
+                      clearEmailVerificationFeedback()
+
+                      setErrors((previous) => ({
+                        ...previous,
+                        email: '',
+                        emailVerificationCode: '',
+                      }))
+
+                      setEmailVerificationMessage('')
+                    }}
+                  />
+                </div>
 
                 <button
                   type="button"
-                  onClick={handleEmailCheck}
+                  disabled={
+                    isSendingEmailCode
+                    || emailVerified
+                    || emailStatus !== 'available'
+                  }
+                  onClick={handleSendEmailVerificationCode}
                 >
-                  중복 확인
+                  {isSendingEmailCode
+                    ? '발송 중...'
+                    : emailVerificationSent
+                      ? '재발송'
+                      : '인증번호 발송'}
+                </button>
+
+                <button
+                  type="button"
+                  disabled={
+                    !emailVerificationSent
+                    || emailVerified
+                    || isCheckingEmailCode
+                    || emailVerificationCode.length !== 6
+                  }
+                  onClick={
+                    handleConfirmEmailVerificationCode
+                  }
+                >
+                  {emailVerified
+                    ? '인증 완료'
+                    : isCheckingEmailCode
+                      ? '확인 중...'
+                      : '인증하기'}
                 </button>
               </div>
-
-              {emailStatus === 'available' && (
-                <p className="field-success">
-                  사용할 수 있는 이메일입니다.
-                </p>
               )}
 
               {errors.email && (
-                <p className="field-error">{errors.email}</p>
+                <p className="field-error">
+                  {errors.email}
+                </p>
+              )}
+
+              {errors.emailVerificationCode && (
+                <p className="field-error">
+                  {errors.emailVerificationCode}
+                </p>
+              )}
+
+              {emailVerificationMessage && (
+                <p
+                  className={
+                    emailVerified
+                      ? 'field-success'
+                      : 'field-guide'
+                  }
+                >
+                  {emailVerified ? '✓ ' : ''}
+                  {emailVerificationMessage}
+                </p>
               )}
             </div>
           </div>

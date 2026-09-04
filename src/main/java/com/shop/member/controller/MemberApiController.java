@@ -5,6 +5,7 @@ import com.shop.member.dto.MemberFormDto;
 import com.shop.member.entity.Member;
 import com.shop.member.service.MemberService;
 import com.shop.member.verification.EmailVerificationService;
+import com.shop.member.verification.PhoneVerificationService;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -26,10 +27,8 @@ import java.util.Map;
 public class MemberApiController {
 
     private final MemberService memberService;
-
-    private final EmailVerificationService
-            emailVerificationService;
-
+    private final EmailVerificationService emailVerificationService;
+    private final PhoneVerificationService phoneVerificationService;
     private final PasswordEncoder passwordEncoder;
 
     /*
@@ -41,7 +40,8 @@ public class MemberApiController {
     @PostMapping("/signup")
     public ResponseEntity<Map<String, Object>> signup(
             @Valid @RequestBody MemberFormDto memberFormDto,
-            BindingResult bindingResult
+            BindingResult bindingResult,
+            HttpSession session
     ) {
         /*
          * DTO 검증에 실패한 경우 각 입력칸의 오류를 모아 반환합니다.
@@ -79,16 +79,72 @@ public class MemberApiController {
         }
 
         try {
-            Member member =
-                    Member.createMember(memberFormDto, passwordEncoder);
+            /*
+             * 최종 회원가입 시 서버 세션에서
+             * 실제 이메일 인증 여부를 다시 확인합니다.
+             */
+            if (!emailVerificationService.isVerified(
+                    memberFormDto.getEmail(),
+                    session
+            )) {
+                return ResponseEntity
+                        .badRequest()
+                        .body(
+                                Map.of(
+                                        "message",
+                                        "이메일 인증이 필요합니다.",
+                                        "errors",
+                                        Map.of(
+                                                "email",
+                                                "이메일 인증을 완료해주세요."
+                                        )
+                                )
+                        );
+            }
+
+            /*
+             * 최종 회원가입 시 서버 세션에서
+             * 실제 휴대전화 인증 여부를 다시 확인합니다.
+             */
+            if (!phoneVerificationService.isVerified(
+                    memberFormDto.getPhone(),
+                    session
+            )) {
+                return ResponseEntity
+                        .badRequest()
+                        .body(
+                                Map.of(
+                                        "message", "휴대전화 인증이 필요합니다.",
+                                        "errors", Map.of(
+                                                "phone",
+                                                "휴대전화 인증을 완료해주세요."
+                                        )
+                                )
+                        );
+            }
+
+            Member member = Member.createMember(
+                    memberFormDto,
+                    passwordEncoder
+            );
 
             memberService.saveMember(member);
 
-            return ResponseEntity.status(HttpStatus.CREATED).body(
-                    Map.of(
-                            "message", "회원가입이 완료되었습니다."
-                    )
-            );
+            /*
+             * 회원가입이 DB에 정상 저장된 뒤에만
+             * 인증 완료 세션을 제거합니다.
+             */
+            emailVerificationService.clearVerification(session);
+            phoneVerificationService.clearVerification(session);
+
+            return ResponseEntity
+                    .status(HttpStatus.CREATED)
+                    .body(
+                            Map.of(
+                                    "message",
+                                    "회원가입이 완료되었습니다."
+                            )
+                    );
 
         } catch (DateTimeException e) {
             /*
@@ -202,12 +258,68 @@ public class MemberApiController {
                                 )
                         );
             }
+
+            /*
+             * 소셜 계정에서 이미 제공받은 휴대전화 번호를
+             * 그대로 사용하는 경우에는 추가 SMS 인증을 요구하지 않습니다.
+             *
+             * 기존 번호와 다른 번호를 제출하는 경우에는
+             * 반드시 현재 세션에서 해당 번호의 SMS 인증을 완료해야 합니다.
+             */
+            Member currentMember =
+                    memberService.findByAuthenticationIdentifier(
+                            authentication.getName()
+                    );
+
+            String existingPhone =
+                    currentMember.getPhone() == null
+                            ? ""
+                            : currentMember.getPhone()
+                            .replaceAll("\\D", "");
+
+            String requestedPhone =
+                    dto.getPhone() == null
+                            ? ""
+                            : dto.getPhone()
+                            .replaceAll("\\D", "");
+
+            boolean sameProvidedPhone =
+                    !existingPhone.isBlank()
+                            && existingPhone.equals(requestedPhone);
+
+            if (
+                    !sameProvidedPhone
+                            && !phoneVerificationService.isVerified(
+                            dto.getPhone(),
+                            session
+                    )
+            ) {
+                return ResponseEntity
+                        .badRequest()
+                        .body(
+                                Map.of(
+                                        "message",
+                                        "휴대전화 인증이 필요합니다.",
+                                        "errors",
+                                        Map.of(
+                                                "phone",
+                                                "휴대전화 인증을 완료해주세요."
+                                        )
+                                )
+                        );
+            }
+
             memberService.updateAdditionalInfo(
                     authentication.getName(),
                     dto
             );
 
             emailVerificationService
+                    .clearVerification(
+                            session
+                    );
+
+            phoneVerificationService
                     .clearVerification(
                             session
                     );

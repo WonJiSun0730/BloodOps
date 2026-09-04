@@ -201,6 +201,59 @@ export async function confirmEmailVerificationCode(
 }
 
 /*
+ * 회원가입 화면에서
+ * 휴대전화 인증번호를 발송합니다.
+ */
+export async function sendPhoneVerificationCode(
+  phone
+) {
+  const csrf = await getCsrfToken()
+
+  return apiRequest(
+    '/api/members/phone-verification/send',
+    {
+      method: 'POST',
+
+      headers: {
+        'Content-Type': 'application/json',
+        [csrf.headerName]: csrf.token,
+      },
+
+      body: JSON.stringify({
+        phone,
+      }),
+    }
+  )
+}
+
+/*
+ * 문자로 받은 6자리 인증번호를 확인합니다.
+ */
+export async function confirmPhoneVerificationCode(
+  phone,
+  code
+) {
+  const csrf = await getCsrfToken()
+
+  return apiRequest(
+    '/api/members/phone-verification/confirm',
+    {
+      method: 'POST',
+
+      headers: {
+        'Content-Type': 'application/json',
+        [csrf.headerName]: csrf.token,
+      },
+
+      body: JSON.stringify({
+        phone,
+        code,
+      }),
+    }
+  )
+}
+
+/*
  * 아이디 중복 여부를 확인합니다.
  *
  * 반환 예:
