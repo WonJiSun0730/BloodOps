@@ -98,6 +98,9 @@ import MemberRoute
 import NotFoundPage
   from './pages/NotFoundPage.jsx'
 
+import SearchPage
+  from './pages/search/SearchPage.jsx'
+
 
 function App() {
   return (
@@ -107,6 +110,11 @@ function App() {
         <Route
           path="/"
           element={<MainPage />}
+        />
+
+        <Route
+          path="/search"
+          element={<SearchPage />}
         />
 
         <Route

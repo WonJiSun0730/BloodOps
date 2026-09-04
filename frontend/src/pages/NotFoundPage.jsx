@@ -2,6 +2,9 @@ import { Link } from 'react-router-dom'
 import BackgroundOrbit from '../components/decorations/BackgroundOrbit.jsx'
 import './NotFoundPage.css'
 
+import error404Blob
+  from '../assets/mascot/error-404-blob.png'
+
 function NotFoundPage() {
     return (
         <main className="error-page">
@@ -27,14 +30,16 @@ function NotFoundPage() {
                 </div>
 
                 <div
-                    className="error-card__mascot"
-                    aria-hidden="true"
+                  className="error-card__mascot"
+                  aria-hidden="true"
                 >
-          <span className="error-card__mascot-placeholder">
-            BLOOD
-            <br />
-            OPS
-          </span>
+                  <div className="error-card__mascot-frame">
+                    <img
+                      src={error404Blob}
+                      alt=""
+                      className="error-card__mascot-image"
+                    />
+                  </div>
                 </div>
             </section>
         </main>

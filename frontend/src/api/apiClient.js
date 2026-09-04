@@ -1392,6 +1392,16 @@ export function getMyBloodHoldGuide() {
   )
 }
 
+/*
+ * 혈액사용 보류 안내에 사용할
+ * 활성 혈액원 전체 목록을 조회합니다.
+ */
+export function getBloodHoldBloodCenters() {
+  return apiRequest(
+    '/api/blood-hold/blood-centers'
+  )
+}
+
 export async function getBloodHoldRoute({
   startLatitude,
   startLongitude,

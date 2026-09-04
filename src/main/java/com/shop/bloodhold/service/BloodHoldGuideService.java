@@ -1,5 +1,6 @@
 package com.shop.bloodhold.service;
 
+import com.shop.bloodhold.constant.BloodHoldContactType;
 import com.shop.bloodhold.dto.BloodHoldGuideResponse;
 import com.shop.bloodhold.entity.BloodHoldContact;
 import com.shop.bloodhold.repository.BloodHoldContactRepository;
@@ -96,6 +97,27 @@ public class BloodHoldGuideService {
         );
     }
 
+    public List<BloodHoldGuideResponse.ContactTarget>
+    getBloodCenters() {
+
+        return bloodHoldContactRepository
+                .findByTypeAndActiveTrueOrderByNameAsc(
+                        BloodHoldContactType.BLOOD_CENTER
+                )
+                .stream()
+                .map(
+                        contact ->
+                                new BloodHoldGuideResponse.ContactTarget(
+                                        "BLOOD_CENTER",
+                                        contact.getName(),
+                                        contact.getAddress(),
+                                        contact.getPhone(),
+                                        contact.getLatitude(),
+                                        contact.getLongitude()
+                                )
+                )
+                .toList();
+    }
 
     private BloodHoldContact findBloodCenter(
             String bloodCenterName

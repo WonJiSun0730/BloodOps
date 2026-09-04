@@ -8,6 +8,8 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/api/blood-hold")
 @RequiredArgsConstructor
@@ -24,5 +26,13 @@ public class BloodHoldGuideController {
         return bloodHoldGuideService.getMyGuide(
                 authentication.getName()
         );
+    }
+
+    @GetMapping("/blood-centers")
+    public List<BloodHoldGuideResponse.ContactTarget>
+    getBloodCenters() {
+
+        return bloodHoldGuideService
+                .getBloodCenters();
     }
 }

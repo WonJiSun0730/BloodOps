@@ -4,7 +4,14 @@
 
 
 .blood-hold-intro {
+  display: flex;
+
   padding: 22px 24px;
+
+  align-items: center;
+  justify-content: space-between;
+
+  gap: 24px;
 
   border-left:
     3px solid
@@ -18,7 +25,14 @@
     );
 }
 
-.blood-hold-intro > span {
+
+.blood-hold-intro-content {
+  min-width: 0;
+
+  flex: 1;
+}
+
+.blood-hold-intro-content > span {
   color:
     var(--color-primary);
 
@@ -662,6 +676,20 @@
   .blood-hold-route-map {
     height: 280px;
   }
+
+  .blood-hold-intro {
+    align-items: stretch;
+
+    flex-direction: column;
+
+    gap: 16px;
+  }
+
+
+  .blood-hold-intro
+    .blood-hold-show-all-button {
+    width: 100%;
+  }
 }
 
 /* =========================
@@ -888,6 +916,276 @@
   cursor: pointer;
 }
 
+.blood-hold-all-link-row {
+  display: flex;
+
+  justify-content: flex-end;
+}
+
+
+.blood-hold-show-all-button {
+  display: inline-flex;
+
+  min-height: 40px;
+
+  padding:
+    0 14px;
+
+  align-items: center;
+  justify-content: center;
+
+  gap: 7px;
+
+  border:
+    1px solid
+    var(--color-border);
+
+  border-radius: 9px;
+
+  color:
+    var(--color-text-muted);
+
+  background:
+    var(--color-background);
+
+  font: inherit;
+  font-size: 0.75rem;
+  font-weight: 800;
+
+  cursor: pointer;
+
+  transition:
+    color 0.18s ease,
+    border-color 0.18s ease,
+    transform 0.18s ease;
+}
+
+
+.blood-hold-show-all-button:hover {
+  border-color:
+    var(--color-primary);
+
+  color:
+    var(--color-primary);
+
+  transform:
+    translateY(-1px);
+}
+
+
+.blood-hold-no-history {
+  padding:
+    24px;
+
+  border:
+    1px solid
+    var(--color-border);
+
+  border-radius: 14px;
+
+  background:
+    var(--color-surface);
+}
+
+
+.blood-hold-no-history > strong {
+  display: block;
+
+  color:
+    var(--color-text);
+
+  font-size: 0.95rem;
+}
+
+
+.blood-hold-no-history > p {
+  margin:
+    8px 0 18px;
+
+  color:
+    var(--color-text-muted);
+
+  font-size: 0.8rem;
+  line-height: 1.65;
+}
+
+
+.blood-hold-center-list-section {
+  scroll-margin-top: 100px;
+
+  overflow: hidden;
+
+  border:
+    1px solid
+    var(--color-border);
+
+  border-radius: 16px;
+
+  background:
+    var(--color-surface);
+}
+
+
+.blood-hold-center-list-header {
+  display: flex;
+
+  padding:
+    20px 22px;
+
+  align-items: center;
+  justify-content: space-between;
+
+  gap: 20px;
+
+  border-bottom:
+    1px solid
+    var(--color-border);
+}
+
+
+.blood-hold-center-list-header span {
+  color:
+    var(--color-primary);
+
+  font-size: 0.66rem;
+  font-weight: 850;
+
+  letter-spacing: 0.11em;
+}
+
+
+.blood-hold-center-list-header h3 {
+  margin:
+    5px 0 0;
+
+  color:
+    var(--color-text);
+
+  font-size: 1rem;
+}
+
+
+.blood-hold-center-list-header p {
+  margin:
+    6px 0 0;
+
+  color:
+    var(--color-text-muted);
+
+  font-size: 0.75rem;
+}
+
+
+.blood-hold-center-list-header > strong {
+  flex-shrink: 0;
+
+  color:
+    var(--color-primary);
+
+  font-size: 0.8rem;
+}
+
+
+.blood-hold-center-table-wrap {
+  width: 100%;
+
+  overflow-x: auto;
+}
+
+
+.blood-hold-center-table {
+  width: 100%;
+
+  border-collapse: collapse;
+}
+
+
+.blood-hold-center-table th,
+.blood-hold-center-table td {
+  padding:
+    14px 16px;
+
+  border-bottom:
+    1px solid
+    var(--color-border);
+
+  text-align: left;
+  vertical-align: middle;
+}
+
+
+.blood-hold-center-table th {
+  color:
+    var(--color-text-muted);
+
+  background:
+    var(--color-background);
+
+  font-size: 0.7rem;
+  font-weight: 800;
+}
+
+
+.blood-hold-center-table td {
+  color:
+    var(--color-text);
+
+  font-size: 0.76rem;
+  line-height: 1.55;
+}
+
+
+.blood-hold-center-table tbody
+  tr:last-child
+  td {
+  border-bottom: 0;
+}
+
+
+.blood-hold-center-call {
+  display: inline-flex;
+
+  min-height: 34px;
+
+  padding:
+    0 11px;
+
+  align-items: center;
+  justify-content: center;
+
+  border:
+    1px solid
+    var(--color-primary);
+
+  border-radius: 8px;
+
+  color:
+    var(--color-primary);
+
+  font-size: 0.72rem;
+  font-weight: 800;
+
+  text-decoration: none;
+}
+
+
+.blood-hold-center-call:hover {
+  color: #ffffff;
+
+  background:
+    var(--color-primary);
+}
+
+
+.blood-hold-center-list-empty {
+  padding: 28px;
+
+  color:
+    var(--color-text-muted);
+
+  font-size: 0.8rem;
+  text-align: center;
+}
 
 /* 접근성: 애니메이션 최소화 설정 */
 
@@ -913,5 +1211,86 @@
   .blood-hold-inline-warning-actions
     .blood-hold-action-button {
     width: 100%;
+  }
+
+  .blood-hold-all-link-row {
+    justify-content: stretch;
+  }
+
+
+  .blood-hold-show-all-button {
+    width: 100%;
+  }
+
+
+  .blood-hold-center-list-header {
+    align-items: flex-start;
+
+    flex-direction: column;
+
+    gap: 10px;
+  }
+
+
+  .blood-hold-center-table thead {
+    display: none;
+  }
+
+
+  .blood-hold-center-table,
+  .blood-hold-center-table tbody,
+  .blood-hold-center-table tr,
+  .blood-hold-center-table td {
+    display: block;
+
+    width: 100%;
+  }
+
+
+  .blood-hold-center-table tr {
+    padding:
+      12px 16px;
+
+    border-bottom:
+      1px solid
+      var(--color-border);
+  }
+
+
+  .blood-hold-center-table tbody
+    tr:last-child {
+    border-bottom: 0;
+  }
+
+
+  .blood-hold-center-table td {
+    display: grid;
+
+    padding:
+      5px 0;
+
+    grid-template-columns:
+      72px
+      minmax(0, 1fr);
+
+    gap: 10px;
+
+    border: 0;
+  }
+
+
+  .blood-hold-center-table td::before {
+    content:
+      attr(data-label);
+
+    color:
+      var(--color-text-muted);
+
+    font-size: 0.7rem;
+  }
+
+
+  .blood-hold-center-call {
+    width: fit-content;
   }
 }

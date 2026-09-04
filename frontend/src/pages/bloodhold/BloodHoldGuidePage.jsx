@@ -1,9 +1,11 @@
 import {
   useEffect,
+  useRef,
   useState,
 } from 'react'
 
 import {
+  getBloodHoldBloodCenters,
   getBloodHoldRoute,
   getMyBloodHoldGuide,
 } from '../../api/apiClient.js'
@@ -244,6 +246,19 @@ function BloodHoldGuidePage() {
   ] = useState(null)
 
   const [
+    bloodCenters,
+    setBloodCenters,
+  ] = useState([])
+
+  const [
+    bloodCentersError,
+    setBloodCentersError,
+  ] = useState('')
+
+  const bloodCentersRef =
+    useRef(null)
+
+  const [
     loading,
     setLoading,
   ] = useState(true)
@@ -326,13 +341,17 @@ function BloodHoldGuidePage() {
       try {
         setLoading(true)
         setError('')
+        setBloodCentersError('')
 
-        const data =
+        const guideData =
           await getMyBloodHoldGuide()
 
         if (active) {
-          setGuide(data)
+          setGuide(
+            guideData || null
+          )
         }
+
       } catch (error) {
         if (active) {
           setGuide(null)
@@ -342,6 +361,30 @@ function BloodHoldGuidePage() {
             || '혈액사용 보류 안내 정보를 불러오지 못했습니다.'
           )
         }
+      }
+
+      try {
+        const bloodCenterData =
+          await getBloodHoldBloodCenters()
+
+        if (active) {
+          setBloodCenters(
+            Array.isArray(bloodCenterData)
+              ? bloodCenterData
+              : []
+          )
+        }
+
+      } catch (error) {
+        if (active) {
+          setBloodCenters([])
+
+          setBloodCentersError(
+            error.message
+            || '혈액원 목록을 불러오지 못했습니다.'
+          )
+        }
+
       } finally {
         if (active) {
           setLoading(false)
@@ -356,6 +399,13 @@ function BloodHoldGuidePage() {
     }
   }, [])
 
+  function handleShowAllBloodCenters() {
+    bloodCentersRef.current
+      ?.scrollIntoView({
+        behavior: 'smooth',
+        block: 'start',
+      })
+  }
 
   async function handleLocationClick(
     target,
@@ -770,7 +820,6 @@ function BloodHoldGuidePage() {
         </div>
         </div>
 
-
         <div
           className={
             routeOpen
@@ -844,7 +893,6 @@ function BloodHoldGuidePage() {
         </div>
         </div>
 
-
         {errorOpen
           && locationError && (
           <div
@@ -867,7 +915,6 @@ function BloodHoldGuidePage() {
     )
   }
 
-
   if (loading) {
     return (
       <div className="mypage-page">
@@ -884,136 +931,251 @@ function BloodHoldGuidePage() {
     )
   }
 
-
-  if (error) {
-    return (
-      <div className="mypage-page">
-        <div className="mypage-empty-state standalone">
-          <strong>
-            안내 정보를 확인할 수 없습니다.
-          </strong>
-
-          <p>
-            {error}
-          </p>
-        </div>
-      </div>
-    )
-  }
-
-
-  if (!guide) {
-    return (
-      <div className="mypage-page">
-        <div className="mypage-empty-state standalone">
-          <strong>
-            혈액사용 보류 안내 정보가 없습니다.
-          </strong>
-        </div>
-      </div>
-    )
-  }
-
-
   return (
     <div className="mypage-page blood-hold-page">
 
       <section className="blood-hold-intro">
-        <span>
-          BLOOD USE HOLD
-        </span>
+        <div className="blood-hold-intro-content">
+          <span>
+            BLOOD USE HOLD
+          </span>
 
-        <h2>
-          혈액사용 보류 안내
-        </h2>
+          <h2>
+            혈액사용 보류 안내
+          </h2>
 
-        <p>
-          최근 헌혈 기록을 기준으로
-          우선 연락해야 할 혈액원과
-          헌혈 장소를 안내합니다.
-        </p>
+          <p>
+            최근 헌혈 기록을 기준으로
+            우선 연락해야 할 혈액원과
+            헌혈 장소를 안내합니다.
+          </p>
+        </div>
+
+        <button
+          type="button"
+          className="blood-hold-show-all-button"
+          onClick={handleShowAllBloodCenters}
+        >
+          전국 혈액원 모두보기
+
+          <span aria-hidden="true">
+            ↓
+          </span>
+        </button>
       </section>
-
-
-      <section className="blood-hold-latest">
-        <div>
-          <span>
-            최근 헌혈
-          </span>
-
-          <strong>
-            {guide.donationDate}
-          </strong>
-        </div>
-
-        <div>
-          <span>
-            헌혈 종류
-          </span>
-
-          <strong>
-            {
-              donationTypeLabels[
-                guide.donationType
-              ]
-              || guide.donationType
-            }
-          </strong>
-        </div>
-
-        <div>
-          <span>
-            헌혈 장소
-          </span>
-
-          <strong>
-            {guide.secondaryContact?.name
-              || '정보 없음'}
-          </strong>
-        </div>
-      </section>
-
-
-      {renderContactCard(
-        guide.primaryContact,
-        'primary'
-      )}
-
 
       <section
-        className="blood-hold-warning"
-        role="alert"
-      >
-        <div
-          className="blood-hold-warning-icon"
-          aria-hidden="true"
+          className="blood-hold-warning"
+          role="alert"
         >
-          !
-        </div>
+          <div
+            className="blood-hold-warning-icon"
+            aria-hidden="true"
+          >
+            !
+          </div>
 
+          <div>
+            <span>
+              잠깐!
+            </span>
+
+            <h3>
+              전염성이 심한 질병 발병 상태이신가요?
+            </h3>
+
+            <p>
+              직접 방문하기 전에
+              우선 혈액원으로 전화하여
+              상황을 알려주세요.
+            </p>
+          </div>
+        </section>
+
+        {error && (
+          <div
+            className="mypage-record-error"
+            role="alert"
+          >
+            {error}
+          </div>
+        )}
+
+      {guide ? (
+        <>
+          <section className="blood-hold-latest">
+            <div>
+              <span>
+                최근 헌혈
+              </span>
+
+              <strong>
+                {guide.donationDate}
+              </strong>
+            </div>
+
+            <div>
+              <span>
+                헌혈 종류
+              </span>
+
+              <strong>
+                {
+                  donationTypeLabels[
+                    guide.donationType
+                  ]
+                  || guide.donationType
+                }
+              </strong>
+            </div>
+
+            <div>
+              <span>
+                헌혈 장소
+              </span>
+
+              <strong>
+                {guide.secondaryContact?.name
+                  || '정보 없음'}
+              </strong>
+            </div>
+          </section>
+
+
+          {renderContactCard(
+            guide.primaryContact,
+            'primary'
+          )}
+
+          {renderContactCard(
+            guide.secondaryContact,
+            'secondary'
+          )}
+        </>
+      ) : (
+        <section className="blood-hold-no-history">
+          <strong>
+            완료된 헌혈 기록이 없습니다.
+          </strong>
+
+          <p>
+            최근 헌혈 기록이 없어
+            우선 연락해야 할 혈액원과
+            헌혈 장소를 특정할 수 없습니다.
+            아래에서 혈액원 연락처를 확인해 주세요.
+          </p>
+        </section>
+      )}
+
+    <section
+      ref={bloodCentersRef}
+      className="blood-hold-center-list-section"
+    >
+      <header className="blood-hold-center-list-header">
         <div>
           <span>
-            잠깐!
+            BLOOD CENTER
           </span>
 
           <h3>
-            전염성이 심한 질병 발병 상태이신가요?
+            전국 혈액원 연락처
           </h3>
 
           <p>
-            직접 방문하기 전에
-            우선 혈액원으로 전화하여
-            상황을 알려주세요.
+            혈액사용 보류와 관련해
+            문의할 수 있는 혈액원 목록입니다.
           </p>
         </div>
-      </section>
+
+        <strong>
+          {bloodCenters.length}곳
+        </strong>
+      </header>
 
 
-      {renderContactCard(
-        guide.secondaryContact,
-        'secondary'
+      {bloodCentersError ? (
+        <div
+          className="mypage-record-error"
+          role="alert"
+        >
+          {bloodCentersError}
+        </div>
+      ) : bloodCenters.length === 0 ? (
+        <div className="blood-hold-center-list-empty">
+          등록된 혈액원 정보가 없습니다.
+        </div>
+      ) : (
+        <div className="blood-hold-center-table-wrap">
+          <table className="blood-hold-center-table">
+            <thead>
+              <tr>
+                <th>
+                  혈액원
+                </th>
+
+                <th>
+                  주소
+                </th>
+
+                <th>
+                  전화번호
+                </th>
+
+                <th>
+                  문의
+                </th>
+              </tr>
+            </thead>
+
+            <tbody>
+              {bloodCenters.map(
+                (bloodCenter) => {
+                  const dialablePhone =
+                    getDialablePhone(
+                      bloodCenter.phone
+                    )
+
+                  return (
+                    <tr key={bloodCenter.name}>
+                      <td data-label="혈액원">
+                        <strong>
+                          {bloodCenter.name}
+                        </strong>
+                      </td>
+
+                      <td data-label="주소">
+                        {bloodCenter.address
+                          || '정보 없음'}
+                      </td>
+
+                      <td data-label="전화번호">
+                        {bloodCenter.phone
+                          || '정보 없음'}
+                      </td>
+
+                      <td data-label="문의">
+                        {dialablePhone ? (
+                          <a
+                            href={`tel:${dialablePhone}`}
+                            className="blood-hold-center-call"
+                          >
+                            전화하기
+                          </a>
+                        ) : (
+                          <span>
+                            -
+                          </span>
+                        )}
+                      </td>
+                    </tr>
+                  )
+                }
+              )}
+            </tbody>
+          </table>
+        </div>
       )}
-
+    </section>
     </div>
   )
 }

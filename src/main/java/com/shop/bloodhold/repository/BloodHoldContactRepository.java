@@ -1,5 +1,6 @@
 package com.shop.bloodhold.repository;
 
+import com.shop.bloodhold.constant.BloodHoldContactType;
 import com.shop.bloodhold.entity.BloodHoldContact;
 import org.springframework.data.jpa.repository.JpaRepository;
 
@@ -12,4 +13,9 @@ public interface BloodHoldContactRepository
 
     List<BloodHoldContact>
     findByLatitudeIsNullOrLongitudeIsNull();
+
+    List<BloodHoldContact>
+    findByTypeAndActiveTrueOrderByNameAsc(
+            BloodHoldContactType type
+    );
 }

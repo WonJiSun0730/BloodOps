@@ -35,6 +35,73 @@ const RECOMMENDED_QUESTIONS = [
   '지금 진행 중인 프로모션 알려줘',
 ]
 
+function ChatbotRobotIcon() {
+  return (
+    <svg
+      className="chatbot-robot-icon"
+      viewBox="0 0 32 32"
+      aria-hidden="true"
+    >
+      <path
+        d="M16 5V8"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+      />
+
+      <circle
+        cx="16"
+        cy="4"
+        r="1.8"
+        fill="currentColor"
+      />
+
+      <rect
+        x="6"
+        y="9"
+        width="20"
+        height="16"
+        rx="6"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+      />
+
+      <circle
+        cx="12"
+        cy="16"
+        r="2"
+        fill="currentColor"
+      />
+
+      <circle
+        cx="20"
+        cy="16"
+        r="2"
+        fill="currentColor"
+      />
+
+      <path
+        d="M12 21C13.3 22.2 14.6 22.8 16 22.8C17.4 22.8 18.7 22.2 20 21"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+        transform="translate(0 -1)"
+      />
+
+      <path
+        d="M6 15H3.5V20H6M26 15H28.5V20H26"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinejoin="round"
+      />
+    </svg>
+  )
+}
+
 function ChatbotWidget({
   isOpen,
   onOpenChange,
@@ -437,7 +504,18 @@ function ChatbotWidget({
             {isSending && (
               <div className="chatbot-message-group assistant">
                 <div className="chatbot-message assistant loading">
-                  답변을 작성하고 있습니다...
+                  <span>
+                    답변을 작성하고 있습니다
+                  </span>
+
+                  <span
+                    className="chatbot-loading-dots"
+                    aria-hidden="true"
+                  >
+                    <i />
+                    <i />
+                    <i />
+                  </span>
                 </div>
               </div>
             )}
@@ -483,10 +561,11 @@ function ChatbotWidget({
         onClick={() =>
           onOpenChange(!isOpen)
         }
-        aria-label="AI 챗봇 열기"
+        aria-label="BloodOps AI 상담 챗봇 열기"
         aria-expanded={isOpen}
+        title="AI 상담"
       >
-        AI
+        <ChatbotRobotIcon />
       </button>
     </div>
   )
