@@ -29,3 +29,12 @@ button.workspace-data-card { cursor: pointer; }
 @media (max-width: 1024px) { .workspace-center-filter { grid-template-columns: 1fr; } .workspace-data-card { grid-template-columns: 1fr 1fr; } }
 @media (max-width: 768px) { .workspace-center-filter { padding: 20px; } .workspace-panel { padding: 16px; } .workspace-data-card { grid-template-columns: 1fr; min-height: 44px; } .workspace-detail dl { grid-template-columns: 1fr; } }
 @media (max-width: 480px) { .workspace-center-filter { padding: 18px; } .workspace-panel { padding: 12px; } .workspace-data-card { padding: 14px; } }
+
+.workspace-pagination { display: flex; margin-top: 20px; align-items: center; justify-content: center; gap: 14px; }
+.workspace-pagination span { color: var(--color-text-muted); font-size: .82rem; }
+.workspace-pagination button { min-width: 72px; min-height: 42px; padding: 0 14px; border: 1px solid var(--color-border); border-radius: 8px; color: var(--color-text); background: var(--color-surface-hover); cursor: pointer; }
+.workspace-pagination button:hover:not(:disabled) { border-color: var(--color-primary); }
+.workspace-pagination button:focus-visible { outline: 2px solid var(--color-primary); outline-offset: 2px; }
+.workspace-pagination button:disabled { color: var(--color-text-muted); cursor: not-allowed; opacity: .55; }
+@media (max-width: 768px) { .workspace-pagination button { min-height: 44px; } }
+@media (max-width: 480px) { .workspace-pagination { gap: 10px; } .workspace-pagination span { font-size: .75rem; } }

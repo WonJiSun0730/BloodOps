@@ -10,6 +10,8 @@ import com.shop.changhyeon.reward.security.VoucherCodeCipher;
 import com.shop.member.entity.Member;
 import com.shop.member.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.security.SecureRandom;
@@ -97,9 +99,12 @@ public class RewardPurchaseService {
     }
 
     @Transactional(readOnly = true)
-    public List<RewardOrderResponse> adminOrders() {
-        return purchaseRepository.findAllByOrderByCreatedAtDescIdDesc().stream()
-                .map(p -> RewardOrderResponse.from(p, voucherRepository.findByPurchaseId(p.getId()).orElse(null))).toList();
+    public Page<RewardOrderResponse> adminOrders(Long centerId, Pageable pageable) {
+        return purchaseRepository.findAdminOrders(centerId, pageable)
+                .map(purchase -> RewardOrderResponse.from(
+                        purchase,
+                        voucherRepository.findByPurchaseId(purchase.getId()).orElse(null)
+                ));
     }
 
     public RewardOrderResponse completePickup(Long purchaseId) {

@@ -9,6 +9,9 @@ import com.shop.changhyeon.questionnaire.repository.QuestionnaireSubmissionRepos
 import com.shop.member.entity.Member;
 import com.shop.member.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -86,7 +89,11 @@ public class QuestionnaireService {
 
     @Transactional(readOnly = true)
     public QuestionnaireSubmissionDto getLatest(String email) {
-        return submissionRepository.findFirstByMember_EmailOrderBySubmittedAtDesc(email)
+        return submissionRepository
+                .findFirstByMember_EmailAndExpiresAtAfterOrderBySubmittedAtDesc(
+                        email,
+                        LocalDateTime.now()
+                )
                 .map(this::toDto)
                 .orElse(null);
     }
@@ -115,10 +122,19 @@ public class QuestionnaireService {
                 .orElse(null);
     }
 
-    @Transactional(readOnly = true)
-    public List<QuestionnaireSubmissionDto> getMedicalSubmissionList() {
-        return submissionRepository.findAllByOrderBySubmittedAtDesc()
-                .stream().map(this::toDto).toList();
+    public Page<QuestionnaireSubmissionDto> getMedicalSubmissionList(
+            Long centerId,
+            Pageable pageable
+    ) {
+        deleteExpiredSubmissions();
+        return submissionRepository
+                .findMedicalSubmissions(centerId, LocalDateTime.now(), pageable)
+                .map(this::toDto);
+    }
+
+    @Scheduled(cron = "0 0 3 * * *", zone = "Asia/Seoul")
+    public void deleteExpiredSubmissions() {
+        submissionRepository.deleteByExpiresAtBefore(LocalDateTime.now());
     }
 
     private void validateAnswers(Map<String, String> answers, Map<String, String> answerDetails) {
