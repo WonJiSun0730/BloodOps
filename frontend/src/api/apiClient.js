@@ -895,8 +895,17 @@ export function getMedicalDonationHistory(centerId = '') {
   )
 }
 
-export function getMedicalQuestionnaires() {
-  return apiRequest('/api/medical/questionnaires')
+export function getMedicalQuestionnaires(
+  centerId = '',
+  page = 0,
+  size = 10
+) {
+  const params = new URLSearchParams({
+    page: String(page),
+    size: String(size),
+  })
+  if (centerId) params.set('centerId', String(centerId))
+  return apiRequest(`/api/medical/questionnaires?${params.toString()}`)
 }
 
 export function getMedicalTodayReservations(centerId = '') {
@@ -1180,8 +1189,19 @@ export function revealRewardVoucherCode(purchaseId) {
   return apiRequest('/api/rewards/orders/' + encodeURIComponent(purchaseId) + '/voucher-code')
 }
 
-export function getAdminRewardOrders() {
-  return apiRequest('/api/admin/reward-fulfillment/orders')
+export function getAdminRewardOrders(
+  centerId = '',
+  page = 0,
+  size = 10
+) {
+  const params = new URLSearchParams({
+    page: String(page),
+    size: String(size),
+  })
+  if (centerId) params.set('centerId', String(centerId))
+  return apiRequest(
+    `/api/admin/reward-fulfillment/orders?${params.toString()}`
+  )
 }
 
 export async function generateRewardVoucherCodes(productId, quantity, validDays) {
