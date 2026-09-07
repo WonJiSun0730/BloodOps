@@ -137,6 +137,20 @@
 
 
 .hero-banner--dark {
+  background:
+    linear-gradient(
+      135deg,
+      color-mix(
+        in srgb,
+        var(--color-primary) 4%,
+        var(--color-surface)
+      ),
+      var(--color-background)
+    );
+}
+
+
+:root[data-theme="dark"] .hero-banner--dark {
   color: #ffffff;
 
   background:
@@ -148,13 +162,13 @@
 }
 
 
-.hero-banner--dark h1,
-.hero-banner--dark p {
+:root[data-theme="dark"] .hero-banner--dark h1,
+:root[data-theme="dark"] .hero-banner--dark p {
   color: #ffffff;
 }
 
 
-.hero-banner--dark p {
+:root[data-theme="dark"] .hero-banner--dark p {
   opacity: 0.78;
 }
 
