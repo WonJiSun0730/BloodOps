@@ -2,13 +2,16 @@
   position: relative;
   display: flex;
 
+  width: 100%;
+  max-width: none;
   min-height: calc(100vh - 140px);
+
+  margin: 0;
 
   align-items: center;
   justify-content: center;
 
-  padding-top: 56px;
-  padding-bottom: 80px;
+  padding: 56px var(--page-padding) 80px;
 
   background: var(--color-background);
 

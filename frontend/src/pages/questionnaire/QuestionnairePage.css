@@ -276,22 +276,22 @@
   outline-offset: 2px;
 }
 
-.center-search-results,
-.selected-center {
+.questionnaire-page .center-search-results,
+.questionnaire-page .selected-center {
   overflow: hidden;
   border: 1px solid var(--color-border);
   border-radius: 10px;
   background: var(--color-background);
 }
 
-.center-search-results > span {
+.questionnaire-page .center-search-results > span {
   display: block;
   padding: 14px;
   color: var(--color-text-muted);
   font-size: .86rem;
 }
 
-.center-search-results > button {
+.questionnaire-page .center-search-results > button {
   display: grid;
   width: 100%;
   min-height: 52px;
@@ -305,24 +305,24 @@
   text-align: left;
 }
 
-.center-search-results > button:last-child {
+.questionnaire-page .center-search-results > button:last-child {
   border-bottom: 0;
 }
 
-.center-search-results > button:hover,
-.center-search-results > button:focus-visible {
+.questionnaire-page .center-search-results > button:hover,
+.questionnaire-page .center-search-results > button:focus-visible {
   background: var(--color-surface-hover);
   outline: 2px solid var(--questionnaire-red);
   outline-offset: -2px;
 }
 
-.center-search-results > button span,
-.selected-center > span {
+.questionnaire-page .center-search-results > button span,
+.questionnaire-page .selected-center > span {
   color: var(--color-text-muted);
   font-size: .82rem;
 }
 
-.selected-center {
+.questionnaire-page .selected-center {
   display: flex;
   min-height: 56px;
   align-items: center;
@@ -332,17 +332,17 @@
   border-color: var(--questionnaire-red);
 }
 
-.selected-center > span {
+.questionnaire-page .selected-center > span {
   display: grid;
   gap: 3px;
 }
 
-.selected-center strong {
+.questionnaire-page .selected-center strong {
   color: var(--color-text);
   font-size: .94rem;
 }
 
-.selected-center button {
+.questionnaire-page .selected-center button {
   min-height: 44px;
   flex: 0 0 auto;
   cursor: pointer;
@@ -353,12 +353,13 @@
 }
 
 @media (max-width: 480px) {
-  .selected-center {
+  .questionnaire-page .selected-center {
     align-items: stretch;
     flex-direction: column;
   }
 
-  .selected-center button {
+  .questionnaire-page .selected-center button {
     width: 100%;
   }
 }
+
