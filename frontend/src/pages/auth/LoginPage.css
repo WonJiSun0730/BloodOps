@@ -1,27 +1,24 @@
 .page-content > main.login-page {
   position: relative;
-  display: grid;
+  display: flex;
 
-  width: 100%;
-  max-width: none;
-  min-height:
-    calc(100vh - 140px);
+  min-height: calc(100vh - 140px);
 
-  margin: 0;
+  align-items: center;
+  justify-content: center;
 
-  padding:
-    56px
-    var(--page-padding)
-    80px;
+  padding-top: 56px;
+  padding-bottom: 80px;
 
-  place-items: center;
+  background: var(--color-background);
 
-  background:
-    var(--color-background);
   isolation: isolate;
 }
 
 .login-card {
+  position: relative;
+  z-index: 1;
+
   width:
     min(100%, 460px);
 
