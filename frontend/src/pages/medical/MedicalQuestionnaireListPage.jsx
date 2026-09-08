@@ -96,6 +96,7 @@ function MedicalQuestionnaireListPage() {
               <div><dt>체중</dt><dd>{selected.weightKg} kg</dd></div>
               <div><dt>연락처</dt><dd>{selected.contactPhone || '-'}</dd></div>
               <div><dt>이메일</dt><dd>{selected.contactEmail || '-'}</dd></div>
+              <div><dt>방문 예정 장소</dt><dd>{selected.donationCenterName ? `${selected.donationCenterName} · ${selected.donationCenterAddress || ''}` : '회원 예약 센터 기준'}</dd></div>
             </dl>
             {selected.reviewReasons?.length > 0 && (
               <><h3>현장 확인 항목</h3><ul>{selected.reviewReasons.map((reason) => <li key={reason}>{reason}</li>)}</ul></>

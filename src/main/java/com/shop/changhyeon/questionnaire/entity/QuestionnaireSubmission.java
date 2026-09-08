@@ -1,6 +1,7 @@
 package com.shop.changhyeon.questionnaire.entity;
 
 import com.shop.changhyeon.questionnaire.constant.QuestionnaireStatus;
+import com.shop.center.entity.Center;
 import com.shop.common.entity.BaseEntity;
 import com.shop.member.entity.Member;
 import com.shop.changhyeon.management.entity.DonorConfirmation;
@@ -27,7 +28,7 @@ public class QuestionnaireSubmission extends BaseEntity {
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "member_id")
+    @JoinColumn(name = "member_id", nullable = true)
     private Member member;
 
     @Column(name = "receipt_code", nullable = false, unique = true, length = 20)
@@ -69,6 +70,10 @@ public class QuestionnaireSubmission extends BaseEntity {
 
     @Column(name = "contact_email_snapshot", length = 255)
     private String contactEmailSnapshot;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "donation_center_id")
+    private Center donationCenter;
 
     @ElementCollection
     @CollectionTable(name = "questionnaire_answer", joinColumns = @JoinColumn(name = "submission_id"))

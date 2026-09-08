@@ -1,6 +1,8 @@
 package com.shop.changhyeon.questionnaire.service;
 
 import com.shop.changhyeon.identity.ResidentNumberHashService;
+import com.shop.center.entity.Center;
+import com.shop.center.repository.CenterRepository;
 import com.shop.changhyeon.management.entity.DonorConfirmation;
 import com.shop.changhyeon.questionnaire.constant.QuestionnaireStatus;
 import com.shop.changhyeon.questionnaire.dto.*;
@@ -42,6 +44,7 @@ public class QuestionnaireService {
 
     private final QuestionnaireSubmissionRepository submissionRepository;
     private final MemberRepository memberRepository;
+    private final CenterRepository centerRepository;
     private final ResidentNumberHashService residentNumberHashService;
 
     @Transactional(readOnly = true)
@@ -51,6 +54,7 @@ public class QuestionnaireService {
 
     public QuestionnaireSubmissionDto submit(QuestionnaireSubmitRequest request, String email) {
         Member member = findMember(email);
+        Center donationCenter = resolveDonationCenter(member, request.donationCenterId());
         validateAnswers(request.answers(), request.answerDetails());
         ResidentIdentity residentIdentity = validateResidentIdentity(request.residentRegistrationNumber());
         validateWeight(request.weightKg(), residentIdentity.gender());
@@ -78,6 +82,7 @@ public class QuestionnaireService {
                         .weightKg(request.weightKg())
                         .contactPhoneSnapshot(member == null ? null : member.getPhone())
                         .contactEmailSnapshot(member == null ? null : member.getEmail())
+                        .donationCenter(donationCenter)
                         .answers(new LinkedHashMap<>(request.answers()))
                         .answerDetails(normalizedDetails)
                         .reviewReasons(new ArrayList<>(reasons))
@@ -233,6 +238,20 @@ public class QuestionnaireService {
         return reasons;
     }
 
+    private Center resolveDonationCenter(Member member, Long donationCenterId) {
+        if (member != null) return null;
+        if (donationCenterId == null) {
+            throw new IllegalArgumentException("방문하실 헌혈 장소를 선택해주세요.");
+        }
+
+        Center center = centerRepository.findById(donationCenterId)
+                .orElseThrow(() -> new IllegalArgumentException("선택한 헌혈 장소를 찾을 수 없습니다."));
+        if (!center.isActive()) {
+            throw new IllegalArgumentException("현재 운영 중인 헌혈 장소를 선택해주세요.");
+        }
+        return center;
+    }
+
     private Member findMember(String email) {
         if (email == null || email.isBlank()) return null;
         return memberRepository.findByEmail(email);
@@ -255,6 +274,9 @@ public class QuestionnaireService {
                 submission.getResidentNumberMasked(), submission.getStatus(),
                 submission.getSubmittedAt(), submission.getExpiresAt(), submission.getWeightKg(),
                 submission.getContactPhoneSnapshot(), submission.getContactEmailSnapshot(),
+                submission.getDonationCenter() == null ? null : submission.getDonationCenter().getId(),
+                submission.getDonationCenter() == null ? null : submission.getDonationCenter().getCenterName(),
+                submission.getDonationCenter() == null ? null : submission.getDonationCenter().getAddress(),
                 new LinkedHashMap<>(submission.getAnswers()),
                 new LinkedHashMap<>(submission.getAnswerDetails()),
                 List.copyOf(submission.getReviewReasons()), submission.getVerifiedAt() != null, NOTICE
