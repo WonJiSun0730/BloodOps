@@ -1054,7 +1054,7 @@ async function handleConfirmVerificationCode() {
             {!providedFields.phone
               && phoneVerificationSent
               && !phoneVerified && (
-                <div className="email-verification-row">
+                <div className="verification-row">
                   <div className="verification-code-input">
                     <input
                       type="text"
@@ -1192,7 +1192,7 @@ async function handleConfirmVerificationCode() {
               )}
 
               {!emailVerified && (
-                <div className="email-verification-row">
+                <div className="verification-row">
                   <div className="verification-code-input">
                     <input
                       type="text"
