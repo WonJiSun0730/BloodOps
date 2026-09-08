@@ -402,7 +402,7 @@
 
 /* Small Mobile */
 
-@media (max-width: 480px) {
+@media (max-width: 520px) {
   .signup-card {
     padding: 24px 16px;
   }
@@ -416,8 +416,20 @@
   }
 
   .phone-fields {
-    grid-template-columns: 72px 10px minmax(0, 1fr) 10px minmax(0, 1fr);
+    grid-template-columns:
+      72px
+      10px
+      minmax(0, 1fr)
+      10px
+      minmax(0, 1fr);
+
     gap: 4px;
+  }
+
+  .phone-fields button {
+    grid-column: 1 / -1;
+    width: 100%;
+    margin-top: 4px;
   }
 
   .email-fields {
@@ -431,6 +443,7 @@
   .email-fields select,
   .email-fields button {
     grid-column: auto;
+    width: 100%;
   }
 
   .signup-actions {
