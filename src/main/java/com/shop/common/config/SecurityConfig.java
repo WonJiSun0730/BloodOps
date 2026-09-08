@@ -217,30 +217,63 @@ public class SecurityConfig {
 
                             String errorCode = "oauth_failed";
 
-                            if (
-                                    exception
-                                            instanceof org.springframework.security.oauth2.core.OAuth2AuthenticationException oauthException
-                            ) {
-                                String oauthErrorCode =
-                                        oauthException
-                                                .getError()
-                                                .getErrorCode();
+                            /*
+                             * OAuth 처리 과정에서 예외가 다른 예외로 감싸질 수 있으므로
+                             * cause 체인까지 확인합니다.
+                             */
+                            Throwable currentException = exception;
+
+                            while (currentException != null) {
 
                                 if (
-                                        "duplicate_email".equals(
-                                                oauthErrorCode
-                                        )
+                                        currentException
+                                                instanceof org.springframework.security.oauth2.core.OAuth2AuthenticationException oauthException
                                 ) {
-                                    errorCode =
-                                            "duplicate_email";
-                                } else if (
-                                        "duplicate_phone".equals(
-                                                oauthErrorCode
-                                        )
-                                ) {
-                                    errorCode =
-                                            "duplicate_phone";
+                                    String oauthErrorCode =
+                                            oauthException
+                                                    .getError()
+                                                    .getErrorCode();
+
+                                    if ("duplicate_email".equals(oauthErrorCode)) {
+                                        errorCode = "duplicate_email";
+                                        break;
+                                    }
+
+                                    if ("duplicate_phone".equals(oauthErrorCode)) {
+                                        errorCode = "duplicate_phone";
+                                        break;
+                                    }
                                 }
+
+                                /*
+                                 * Spring Security가 OAuth 예외를 감싸면서
+                                 * 원래 오류 코드가 message에 남는 경우도 대응합니다.
+                                 */
+                                String exceptionMessage =
+                                        currentException.getMessage();
+
+                                if (
+                                        exceptionMessage != null
+                                                && exceptionMessage.contains(
+                                                "duplicate_email"
+                                        )
+                                ) {
+                                    errorCode = "duplicate_email";
+                                    break;
+                                }
+
+                                if (
+                                        exceptionMessage != null
+                                                && exceptionMessage.contains(
+                                                "duplicate_phone"
+                                        )
+                                ) {
+                                    errorCode = "duplicate_phone";
+                                    break;
+                                }
+
+                                currentException =
+                                        currentException.getCause();
                             }
 
                             response.sendRedirect(

@@ -514,3 +514,7 @@
 .verification-timer.expired {
   color: var(--color-text-muted);
 }
+
+.verification-row-single {
+  grid-template-columns: auto;
+}

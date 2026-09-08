@@ -1,9 +1,13 @@
-.login-page {
+.page-content > main.login-page {
   position: relative;
   display: grid;
 
+  width: 100%;
+  max-width: none;
   min-height:
     calc(100vh - 140px);
+
+  margin: 0;
 
   padding:
     56px
@@ -491,7 +495,7 @@
 }
 
 @media (max-width: 768px) {
-  .login-page {
+  .page-content > main.login-page {
     min-height: auto;
 
     padding:

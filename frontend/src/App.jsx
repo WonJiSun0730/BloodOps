@@ -104,10 +104,16 @@ import NotFoundPage
 import SearchPage
   from './pages/search/SearchPage.jsx'
 
+import SiteDisclaimerModal
+  from './components/SiteDisclaimerModal.jsx'
+
 
 function App() {
   return (
-    <Routes>
+    <>
+      <SiteDisclaimerModal />
+
+      <Routes>
       <Route element={<MainLayout />}>
 
         <Route
@@ -348,7 +354,8 @@ function App() {
         />
 
       </Route>
-    </Routes>
+      </Routes>
+    </>
   )
 }
 

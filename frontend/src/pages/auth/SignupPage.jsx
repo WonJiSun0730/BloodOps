@@ -1262,18 +1262,20 @@ function SignupPage() {
 
             {!emailVerificationSent
               && !emailVerified && (
-              <button
-                type="button"
-                disabled={
-                  isSendingEmailCode
-                  || emailStatus !== 'available'
-                }
-                onClick={handleSendEmailVerificationCode}
-              >
-                {isSendingEmailCode
-                  ? '발송 중...'
-                  : '인증번호 발송'}
-              </button>
+              <div className="verification-row verification-row-single">
+                <button
+                  type="button"
+                  disabled={
+                    isSendingEmailCode
+                    || emailStatus !== 'available'
+                  }
+                  onClick={handleSendEmailVerificationCode}
+                >
+                  {isSendingEmailCode
+                    ? '발송 중...'
+                    : '인증번호 발송'}
+                </button>
+              </div>
             )}
 
             {emailVerificationSent && (
