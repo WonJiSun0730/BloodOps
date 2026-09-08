@@ -23,6 +23,8 @@ public record QuestionnaireSubmitRequest(
         )
         String residentRegistrationNumber,
 
+        Long donationCenterId,
+
         @NotEmpty(message = "모든 문진 항목에 답변해주세요.")
         Map<String, String> answers,
 

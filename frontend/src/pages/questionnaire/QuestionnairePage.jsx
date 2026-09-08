@@ -2,6 +2,8 @@ import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 
 import {
+  getCenters,
+  getCurrentUser,
   getQuestionnaireQuestions,
   submitQuestionnaire,
 } from '../../api/apiClient.js'
@@ -82,6 +84,11 @@ function QuestionnairePage() {
     donorName: '', residentFront: '', residentBack: '',
   })
   const [weightKg, setWeightKg] = useState('')
+  const [isGuest, setIsGuest] = useState(false)
+  const [centerKeyword, setCenterKeyword] = useState('')
+  const [centerOptions, setCenterOptions] = useState([])
+  const [selectedCenter, setSelectedCenter] = useState(null)
+  const [centerSearching, setCenterSearching] = useState(false)
   const [consented, setConsented] = useState(false)
   const [step, setStep] = useState(0)
   const [latest, setLatest] = useState(null)
@@ -92,10 +99,14 @@ function QuestionnairePage() {
   useEffect(() => {
     let mounted = true
 
-    getQuestionnaireQuestions()
-      .then((questionData) => {
+    Promise.all([
+      getQuestionnaireQuestions(),
+      getCurrentUser().then(() => false).catch(() => true),
+    ])
+      .then(([questionData, guest]) => {
         if (!mounted) return
         setQuestions(questionData)
+        setIsGuest(guest)
       })
       .catch((requestError) => {
         if (mounted) setError(requestError.message)
@@ -106,6 +117,25 @@ function QuestionnairePage() {
 
     return () => { mounted = false }
   }, [])
+
+  useEffect(() => {
+    if (!isGuest || selectedCenter || centerKeyword.trim().length < 2) {
+      setCenterOptions([])
+      return undefined
+    }
+
+    const timer = window.setTimeout(() => {
+      setCenterSearching(true)
+      getCenters(centerKeyword)
+        .then((data) => setCenterOptions(
+          (Array.isArray(data) ? data : []).filter((center) => center.active).slice(0, 10)
+        ))
+        .catch(() => setCenterOptions([]))
+        .finally(() => setCenterSearching(false))
+    }, 250)
+
+    return () => window.clearTimeout(timer)
+  }, [centerKeyword, isGuest, selectedCenter])
 
   const totalQuestionSteps = Math.ceil(questions.length / STEP_SIZE)
   const totalSteps = totalQuestionSteps + 2
@@ -148,6 +178,10 @@ function QuestionnairePage() {
         setError(weightError || '체중을 입력해주세요.')
         return
       }
+      if (isGuest && !selectedCenter) {
+        setError('방문하실 헌혈 장소를 검색한 후 목록에서 선택해주세요.')
+        return
+      }
     }
     if (visibleQuestions.length && !currentQuestionsAnswered) {
       setError('현재 단계의 모든 항목에 답변해주세요.')
@@ -171,6 +205,7 @@ function QuestionnairePage() {
         donorName: identity.donorName.trim(),
         residentRegistrationNumber:
           `${identity.residentFront}-${identity.residentBack}`,
+        donationCenterId: isGuest ? selectedCenter?.id : null,
         answers,
         answerDetails,
         weightKg: Number(weightKg),
@@ -201,6 +236,7 @@ function QuestionnairePage() {
           <dl className="submission-summary">
             <div><dt>접수번호</dt><dd>{latest.receiptCode}</dd></div>
             <div><dt>작성자</dt><dd>{latest.donorName} ({latest.maskedResidentRegistrationNumber})</dd></div>
+            {latest.donationCenterName && <div><dt>방문 장소</dt><dd>{latest.donationCenterName}</dd></div>}
             <div><dt>제출 시각</dt><dd>{formatDateTime(latest.submittedAt)}</dd></div>
             <div><dt>유효 시각</dt><dd>{formatDateTime(latest.expiresAt)}</dd></div>
           </dl>
@@ -213,7 +249,7 @@ function QuestionnairePage() {
           <div className="questionnaire-actions">
             <Link className="questionnaire-button secondary" to="/">홈으로</Link>
             <button className="questionnaire-button" type="button" onClick={() => {
-              setAnswers({}); setAnswerDetails({}); setIdentity({ donorName: '', residentFront: '', residentBack: '' }); setIdentityTouched(false); setWeightKg(''); setConsented(false); setStep(0)
+              setAnswers({}); setAnswerDetails({}); setIdentity({ donorName: '', residentFront: '', residentBack: '' }); setIdentityTouched(false); setWeightKg(''); setCenterKeyword(''); setCenterOptions([]); setSelectedCenter(null); setConsented(false); setStep(0)
             }}>새 문진 작성</button>
           </div>
         </section>
@@ -247,6 +283,51 @@ function QuestionnairePage() {
                 <li>문진 결과와 관계없이 현장 검진에서 헌혈이 제한될 수 있습니다.</li>
               </ul>
             </div>
+            {isGuest && (
+              <div className="guest-center-field">
+                <label htmlFor="guest-center-search">어디서 헌혈하실 예정인가요?</label>
+                <p>센터명이나 주소를 2자 이상 입력하고 방문할 장소를 선택해주세요.</p>
+                <input
+                  id="guest-center-search"
+                  type="search"
+                  value={centerKeyword}
+                  placeholder="예: 강남, 서울역, 부산"
+                  autoComplete="off"
+                  aria-expanded={!selectedCenter && centerOptions.length > 0}
+                  aria-controls="guest-center-options"
+                  onChange={(event) => {
+                    setCenterKeyword(event.target.value)
+                    setSelectedCenter(null)
+                  }}
+                />
+                {selectedCenter ? (
+                  <div className="selected-center">
+                    <span><strong>{selectedCenter.centerName}</strong>{selectedCenter.address}</span>
+                    <button type="button" onClick={() => {
+                      setSelectedCenter(null)
+                      setCenterKeyword('')
+                    }}>다시 선택</button>
+                  </div>
+                ) : (
+                  <div className="center-search-results" id="guest-center-options">
+                    {centerSearching && <span>헌혈 장소를 검색하는 중입니다.</span>}
+                    {!centerSearching && centerKeyword.trim().length >= 2 && centerOptions.length === 0 && (
+                      <span>검색 결과가 없습니다. 센터명이나 주소를 다시 확인해주세요.</span>
+                    )}
+                    {centerOptions.map((center) => (
+                      <button key={center.id} type="button" onClick={() => {
+                        setSelectedCenter(center)
+                        setCenterKeyword(center.centerName)
+                        setCenterOptions([])
+                      }}>
+                        <strong>{center.centerName}</strong>
+                        <span>{center.address}</span>
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
             <div className="questionnaire-identity-grid">
               <label className="identity-field">
                 <span className="identity-field-label">성명</span>

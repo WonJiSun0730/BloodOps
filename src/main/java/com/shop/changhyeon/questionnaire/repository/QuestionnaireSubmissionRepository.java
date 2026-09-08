@@ -38,6 +38,7 @@ public interface QuestionnaireSubmissionRepository
         where submission.expiresAt > :now
           and (
             :centerId is null
+            or submission.donationCenter.id = :centerId
             or exists (
               select reservation.id
               from Reservation reservation
