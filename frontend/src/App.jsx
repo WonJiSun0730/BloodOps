@@ -13,6 +13,8 @@ import MainPage
   from './pages/main/MainPage.jsx'
 import BloodStatusPage
   from './pages/blood-status/BloodStatusPage.jsx'
+import DonationTipsPage
+from './pages/donation-tip/DonationTipsPage.jsx'
 
 import LoginPage
   from './pages/auth/LoginPage.jsx'
@@ -41,6 +43,12 @@ import MyPointsPage
   from './pages/mypage/MyPointsPage.jsx'
 import MyRewardOrdersPage
   from './pages/mypage/MyRewardOrdersPage.jsx'
+import BloodHoldCheckPage
+  from './pages/bloodhold/BloodHoldCheckPage.jsx'
+import BloodHoldGuidePage
+  from './pages/bloodhold/BloodHoldGuidePage.jsx'
+import ConditionCheckPage
+  from './pages/condition/ConditionCheckPage.jsx'
 
 import QuestionnairePage
   from './pages/questionnaire/QuestionnairePage.jsx'
@@ -93,6 +101,9 @@ import MemberRoute
 import NotFoundPage
   from './pages/NotFoundPage.jsx'
 
+import SearchPage
+  from './pages/search/SearchPage.jsx'
+
 
 function App() {
   return (
@@ -105,8 +116,18 @@ function App() {
         />
 
         <Route
+          path="/search"
+          element={<SearchPage />}
+        />
+
+        <Route
           path="/blood-status"
           element={<BloodStatusPage />}
+        />
+
+        <Route
+          path="/donation-tips"
+          element={<DonationTipsPage />}
         />
 
         <Route
@@ -155,6 +176,15 @@ function App() {
         />
 
         <Route
+          path="/condition-check/:donationHistoryId"
+          element={
+            <MemberRoute>
+              <ConditionCheckPage />
+            </MemberRoute>
+          }
+        />
+
+        <Route
           path="/questionnaire"
           element={<QuestionnairePage />}
         />
@@ -196,6 +226,20 @@ function App() {
             path="/mypage/results"
             element={
               <TestResultsPage />
+            }
+          />
+
+          <Route
+            path="/mypage/blood-hold/check"
+            element={
+              <BloodHoldCheckPage />
+            }
+          />
+
+          <Route
+            path="/mypage/blood-hold"
+            element={
+              <BloodHoldGuidePage />
             }
           />
 

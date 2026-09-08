@@ -5,11 +5,7 @@ const menuItems = [
     title: '헌혈지식',
     items: [
       { label: '헌혈의 필요성', to: '/knowledge/need' },
-      { label: '오늘의 혈액정보', to: '/blood-status' },
-      { label: '헌혈과정', to: '/knowledge/process' },
-      { label: '혈액 검사·제제·공급', to: '/knowledge/blood' },
-      { label: '혈액관리시스템', to: '/knowledge/system' },
-      { label: '혈액상식', to: '/knowledge/common' },
+      { label: '헌혈 팁', to: '/donation-tips' },
       { label: '헌혈증서', to: '/certificate' },
     ],
   },
@@ -26,7 +22,7 @@ const menuItems = [
     items: [
       { label: '헌혈내역 조회', to: '/mypage/records' },
       { label: '증명서 발급', to: '/certificate' },
-      { label: '혈액 사용 보류신청', to: '/blood-hold' },
+      { label: '혈액 사용 보류신청', to: '/mypage/blood-hold/check' },
     ],
   },
   {

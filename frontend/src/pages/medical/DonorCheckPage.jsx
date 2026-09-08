@@ -1,12 +1,13 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link, Navigate, useParams } from 'react-router-dom'
 import {
+  apiRequest,
+  getCsrfToken,
   getMedicalDonorConfirmation,
   getMedicalDonorQuestionnaire,
   getCurrentUser,
   updateMedicalDonorConfirmation,
 } from '../../api/apiClient.js'
-import './DonorCheckPage.css'
 
 const initialForm = {
   donorName: '',
@@ -49,6 +50,7 @@ function DonorCheckPage() {
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
   const [questionnaire, setQuestionnaire] = useState(null)
+  const [completingDonation, setCompletingDonation] = useState(false)
 
   useEffect(() => {
     let mounted = true

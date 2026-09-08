@@ -11,6 +11,11 @@ export default defineConfig({
         changeOrigin: true,
       },
 
+      '/uploads': {
+        target: 'http://localhost:80',
+        changeOrigin: true,
+      },
+
       // 소셜 로그인 시작 요청을 Spring으로 전달합니다.
       '/oauth2': {
         target: 'http://127.0.0.1:80',

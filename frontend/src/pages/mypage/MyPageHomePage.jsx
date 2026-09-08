@@ -9,6 +9,7 @@ import {
 
 import {
   getFavoriteCenters,
+  getMyDonationSummary,
 } from '../../api/apiClient.js'
 
 import './MyPagePages.css'
@@ -27,6 +28,12 @@ const myPageServices = [
       '예약 일정의 조회·변경·취소를 관리합니다.',
     to: '/reservations',
   },
+  {
+    title: '나의 포인트',
+    description:
+      '헌혈 참여로 적립된 포인트와 이용 내역을 확인합니다.',
+    to: '/mypage/points',
+  },
 ]
 
 
@@ -44,6 +51,21 @@ function MyPageHomePage() {
   const [
     favoriteError,
     setFavoriteError,
+  ] = useState('')
+
+  const [
+    donationSummary,
+    setDonationSummary,
+  ] = useState(null)
+
+  const [
+    summaryLoading,
+    setSummaryLoading,
+  ] = useState(true)
+
+  const [
+    summaryError,
+    setSummaryError,
   ] = useState('')
 
 
@@ -88,24 +110,124 @@ function MyPageHomePage() {
     }
   }, [])
 
+  useEffect(() => {
+    let cancelled = false
+
+    async function loadDonationSummary() {
+      try {
+        setSummaryLoading(true)
+        setSummaryError('')
+
+        const data =
+          await getMyDonationSummary()
+
+        if (!cancelled) {
+          setDonationSummary(data)
+        }
+      } catch (error) {
+        if (!cancelled) {
+          setDonationSummary(null)
+
+          setSummaryError(
+            error.message
+            || '헌혈 활동 정보를 불러오지 못했습니다.'
+          )
+        }
+      } finally {
+        if (!cancelled) {
+          setSummaryLoading(false)
+        }
+      }
+    }
+
+    loadDonationSummary()
+
+    return () => {
+      cancelled = true
+    }
+  }, [])
 
   return (
     <div className="mypage-page">
 
       <section className="mypage-intro-card">
-        <div>
+        <div className="mypage-activity-copy">
           <span>
             MY ACTIVITY
           </span>
 
           <h3>
-            나의 헌혈 활동
+            {donationSummary?.memberName
+              ? `${donationSummary.memberName}님! 헌혈에 참여해 주셔서 감사합니다.`
+              : '나의 헌혈 활동'}
           </h3>
 
           <p>
-            헌혈기록과 예약 내역을 한곳에서 확인할 수 있습니다.
+            앞으로도 지속적인 관심과 참여 부탁드립니다.
           </p>
         </div>
+
+
+        {summaryLoading ? (
+          <div className="mypage-donation-summary-loading">
+            헌혈 활동을 불러오는 중입니다.
+          </div>
+        ) : summaryError ? (
+          <div className="mypage-donation-summary-loading">
+            {summaryError}
+          </div>
+        ) : donationSummary && (
+          <div className="mypage-donation-summary">
+            <div className="mypage-donation-total">
+              <span>
+                총 헌혈횟수
+              </span>
+
+              <strong>
+                {donationSummary.totalCount}
+              </strong>
+
+              <em>
+                회
+              </em>
+            </div>
+
+
+            <div className="mypage-donation-types">
+              <div>
+                <span>전혈</span>
+                <strong>
+                  {donationSummary.wholeBloodCount}
+                  <small>회</small>
+                </strong>
+              </div>
+
+              <div>
+                <span>혈장</span>
+                <strong>
+                  {donationSummary.plasmaCount}
+                  <small>회</small>
+                </strong>
+              </div>
+
+              <div>
+                <span>혈소판</span>
+                <strong>
+                  {donationSummary.plateletCount}
+                  <small>회</small>
+                </strong>
+              </div>
+
+              <div>
+                <span>혈소판혈장</span>
+                <strong>
+                  {donationSummary.plateletPlasmaCount}
+                  <small>회</small>
+                </strong>
+              </div>
+            </div>
+          </div>
+        )}
       </section>
 
 

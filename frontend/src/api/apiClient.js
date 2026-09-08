@@ -201,6 +201,59 @@ export async function confirmEmailVerificationCode(
 }
 
 /*
+ * 회원가입 화면에서
+ * 휴대전화 인증번호를 발송합니다.
+ */
+export async function sendPhoneVerificationCode(
+  phone
+) {
+  const csrf = await getCsrfToken()
+
+  return apiRequest(
+    '/api/members/phone-verification/send',
+    {
+      method: 'POST',
+
+      headers: {
+        'Content-Type': 'application/json',
+        [csrf.headerName]: csrf.token,
+      },
+
+      body: JSON.stringify({
+        phone,
+      }),
+    }
+  )
+}
+
+/*
+ * 문자로 받은 6자리 인증번호를 확인합니다.
+ */
+export async function confirmPhoneVerificationCode(
+  phone,
+  code
+) {
+  const csrf = await getCsrfToken()
+
+  return apiRequest(
+    '/api/members/phone-verification/confirm',
+    {
+      method: 'POST',
+
+      headers: {
+        'Content-Type': 'application/json',
+        [csrf.headerName]: csrf.token,
+      },
+
+      body: JSON.stringify({
+        phone,
+        code,
+      }),
+    }
+  )
+}
+
+/*
  * 아이디 중복 여부를 확인합니다.
  *
  * 반환 예:
@@ -884,6 +937,58 @@ export function getMyDonationHistory() {
 }
 
 /*
+ * 메인화면 명예의전당에 표시할
+ * 헌혈 종류별 TOP 3 랭킹을 조회합니다.
+ */
+export function getDonationRankings() {
+  return apiRequest(
+    '/api/public/donation-rankings'
+  )
+}
+
+
+/*
+ * 로그인한 회원의 누적 헌혈횟수를
+ * 전체 및 헌혈 종류별로 조회합니다.
+ */
+export function getMyDonationSummary() {
+  return apiRequest(
+    '/api/donations/me/summary'
+  )
+}
+
+/*
+ * 로그인한 회원이 완료된 헌혈 기록에 대해
+ * 헌혈 후 컨디션 체크를 저장합니다.
+ */
+export async function createConditionCheck(
+  donationHistoryId,
+  conditionData
+) {
+  const csrf = await getCsrfToken()
+
+  return apiRequest(
+    `/api/condition-checks/${encodeURIComponent(donationHistoryId)}`,
+    {
+      method: 'POST',
+
+      headers: {
+        'Content-Type': 'application/json',
+        [csrf.headerName]: csrf.token,
+      },
+
+      body: JSON.stringify(conditionData),
+    }
+  )
+}
+
+export function verifyConditionCheckAccess(donationHistoryId) {
+  return apiRequest(
+    `/api/condition-checks/${donationHistoryId}/access`
+  )
+}
+
+/*
  * 의료진이 전체 회원의 완료된 헌혈기록을 조회합니다.
  */
 export function getMedicalDonationHistory(centerId = '') {
@@ -1281,11 +1386,249 @@ export async function removeFavoriteCenter(
   )
 }
 
+/*
+ * BloodOps AI 챗봇에 질문을 전송합니다.
+ */
+export async function sendChatbotMessage(
+  message,
+  history = []
+) {
+  const csrf = await getCsrfToken()
+
+  return apiRequest(
+    '/api/chatbot/messages',
+    {
+      method: 'POST',
+
+      headers: {
+        'Content-Type': 'application/json',
+        [csrf.headerName]: csrf.token,
+      },
+
+      body: JSON.stringify({
+        message,
+        history,
+      }),
+    }
+  )
+}
+
+/*
+ * 로그인한 회원의 최근 헌혈 기록을 기준으로
+ * 혈액사용 보류 연락처와 방문 안내 정보를 조회합니다.
+ */
+export function getMyBloodHoldGuide() {
+  return apiRequest(
+    '/api/blood-hold/me'
+  )
+}
+
+/*
+ * 혈액사용 보류 안내에 사용할
+ * 활성 혈액원 전체 목록을 조회합니다.
+ */
+export function getBloodHoldBloodCenters() {
+  return apiRequest(
+    '/api/blood-hold/blood-centers'
+  )
+}
+
+export async function getBloodHoldRoute({
+  startLatitude,
+  startLongitude,
+  goalLatitude,
+  goalLongitude,
+}) {
+  const csrf =
+    await getCsrfToken()
+
+  return apiRequest(
+    '/api/blood-hold/route',
+    {
+      method: 'POST',
+
+      headers: {
+        'Content-Type':
+          'application/json',
+
+        [csrf.headerName]:
+          csrf.token,
+      },
+
+      body: JSON.stringify({
+        startLatitude,
+        startLongitude,
+        goalLatitude,
+        goalLongitude,
+      }),
+    }
+  )
+}
 
 /*
  * 대한적십자사 혈액보유현황을 조회합니다.
  * 적혈구제제는 보유일수, 성분채혈혈소판은 보유율을 반환합니다.
  */
 export function getBloodStockStatus() {
-  return apiRequest('/api/public/blood-stock-status')
+  return apiRequest(
+    '/api/public/blood-stock-status'
+  )
+}
+
+export function getDonationTips(
+  category
+) {
+  const query =
+    category
+      ? `?category=${encodeURIComponent(category)}`
+      : ''
+
+  return apiRequest(
+    `/api/donation-tips${query}`
+  )
+}
+
+/*
+ * ADMIN이 헌혈팁에 사용할 이미지를 업로드합니다.
+ */
+export async function uploadDonationTipImage(
+  imageFile
+) {
+  const csrf =
+    await getCsrfToken()
+
+  const formData =
+    new FormData()
+
+  formData.append(
+    'image',
+    imageFile
+  )
+
+  return apiRequest(
+    '/api/donation-tips/images',
+    {
+      method: 'POST',
+
+      headers: {
+        [csrf.headerName]:
+          csrf.token,
+      },
+
+      body: formData,
+    }
+  )
+}
+
+/*
+ * 메인화면에 표시할
+ * 최신 헌혈팁 3개를 조회합니다.
+ */
+export function getLatestDonationTips() {
+  return apiRequest(
+    '/api/donation-tips/latest'
+  )
+}
+
+
+/*
+ * 헌혈팁 상세 내용을 조회합니다.
+ */
+export function getDonationTip(
+  tipId
+) {
+  return apiRequest(
+    `/api/donation-tips/${
+      encodeURIComponent(tipId)
+    }`
+  )
+}
+
+
+/*
+ * 로그인한 회원이
+ * 새로운 헌혈팁을 작성합니다.
+ */
+export async function createDonationTip(
+  tipData
+) {
+  const csrf =
+    await getCsrfToken()
+
+  return apiRequest(
+    '/api/donation-tips',
+    {
+      method: 'POST',
+
+      headers: {
+        'Content-Type':
+          'application/json',
+
+        [csrf.headerName]:
+          csrf.token,
+      },
+
+      body: JSON.stringify(
+        tipData
+      ),
+    }
+  )
+}
+
+
+/*
+ * 본인이 작성한 헌혈팁을 수정합니다.
+ */
+export async function updateDonationTip(
+  tipId,
+  tipData
+) {
+  const csrf =
+    await getCsrfToken()
+
+  return apiRequest(
+    `/api/donation-tips/${
+      encodeURIComponent(tipId)
+    }`,
+    {
+      method: 'PUT',
+
+      headers: {
+        'Content-Type':
+          'application/json',
+
+        [csrf.headerName]:
+          csrf.token,
+      },
+
+      body: JSON.stringify(
+        tipData
+      ),
+    }
+  )
+}
+
+
+/*
+ * 본인이 작성한 헌혈팁을 삭제합니다.
+ */
+export async function deleteDonationTip(
+  tipId
+) {
+  const csrf =
+    await getCsrfToken()
+
+  return apiRequest(
+    `/api/donation-tips/${
+      encodeURIComponent(tipId)
+    }`,
+    {
+      method: 'DELETE',
+
+      headers: {
+        [csrf.headerName]:
+          csrf.token,
+      },
+    }
+  )
 }

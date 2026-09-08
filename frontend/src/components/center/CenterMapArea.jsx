@@ -560,7 +560,7 @@ function updateMarkerIcons() {
 
     if (validCenters.length === 1) {
       mapRef.current.setZoom(
-        12,
+        17,
         false
       )
 
@@ -637,7 +637,7 @@ function updateMarkerIcons() {
      */
     mapRef.current.morph(
       selectedEntry.position,
-      12
+      17
     )
   }, [
     centers,

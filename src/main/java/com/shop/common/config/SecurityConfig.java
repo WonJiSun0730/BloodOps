@@ -34,7 +34,7 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http.authorizeHttpRequests(auth -> auth
-                .requestMatchers("/css/**", "/js/**", "/img/**", "/favicon.ico", "/error").permitAll()
+                .requestMatchers("/css/**", "/js/**", "/img/**", "/uploads/**", "/favicon.ico", "/error").permitAll()
                 .requestMatchers("/", "/item/**", "/images/**").permitAll()
                         .requestMatchers(
                                 "/api/public/**",
@@ -53,17 +53,39 @@ public class SecurityConfig {
                                 "/api/members/signup",
                                 "/api/members/check-login-id",
                                 "/api/members/check-email",
+                                "/api/members/email-verification/**",
+                                "/api/members/phone-verification/**",
+
                                 // 비회원도 전자문진 문항 조회와 제출 가능
                                 "/api/questionnaires/questions",
-                                "/api/questionnaires"
+                                "/api/questionnaires",
+
+                                // 사이트 이용 안내 AI 챗봇
+                                "/api/chatbot/**"
                         ).permitAll()
-                        // 비회원도 헌혈센터 목록과 상세를 조회할 수 있습니다.
+                        // 비회원도 헌혈센터 목록과 상세 정보를 조회할 수 있습니다.
+                        // 헌혈팁 목록·최신글·상세글도 비회원 조회가 가능합니다.
                         // QnA 질문은 본인 또는 관리자에게만 공개합니다.
                         .requestMatchers(
                                 org.springframework.http.HttpMethod.GET,
                                 "/api/centers",
-                                "/api/centers/**"
+                                "/api/centers/**",
+                                "/api/donation-tips",
+                                "/api/donation-tips/**"
                         ).permitAll()
+                        .requestMatchers(
+                                org.springframework.http.HttpMethod.POST,
+                                "/api/donation-tips",
+                                "/api/donation-tips/images"
+                        ).hasRole("ADMIN")
+                        .requestMatchers(
+                                org.springframework.http.HttpMethod.PUT,
+                                "/api/donation-tips/**"
+                        ).hasRole("ADMIN")
+                        .requestMatchers(
+                                org.springframework.http.HttpMethod.DELETE,
+                                "/api/donation-tips/**"
+                        ).hasRole("ADMIN")
                         // 관리자 전용 화면 및 API
                         .requestMatchers(
                                 "/admin/**",

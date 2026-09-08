@@ -33,7 +33,11 @@ const myPageMenuGroups = [
       {
         label: '헌혈기록',
         to: '/mypage/records',
-      }
+      },
+      {
+        label: '혈액사용 보류신청',
+        to: '/mypage/blood-hold/check',
+      },
     ],
   },
   {
@@ -96,6 +100,15 @@ function getCurrentPage(
     return {
       group: '헌혈내역',
       title: '헌혈기록',
+    }
+  }
+  if (
+    pathname === '/mypage/blood-hold/check'
+    || pathname === '/mypage/blood-hold'
+  ) {
+    return {
+      group: '헌혈내역',
+      title: '혈액사용 보류신청',
     }
   }
 

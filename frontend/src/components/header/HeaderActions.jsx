@@ -1,4 +1,7 @@
-import { useState } from 'react'
+import {
+  useRef,
+  useState,
+} from 'react'
 import { Link } from 'react-router-dom'
 
 import {
@@ -16,9 +19,18 @@ function HeaderActions({
   onThemeToggle,
   onSearchKeywordChange,
   onSearch,
+  onChatbotOpen,
 }) {
   const [accountMenuOpen, setAccountMenuOpen] =
     useState(false)
+
+  const [
+    mobileSearchOpen,
+    setMobileSearchOpen,
+  ] = useState(false)
+
+  const searchInputRef =
+    useRef(null)
 
   const isAdmin =
     currentUser?.roles?.includes('ROLE_ADMIN')
@@ -27,6 +39,31 @@ function HeaderActions({
   function handleAccountLogout() {
     setAccountMenuOpen(false)
     onLogout()
+  }
+
+  function handleSearchSubmit(event) {
+    const mobile =
+      window.matchMedia(
+        '(max-width: 768px)'
+      ).matches
+
+    if (
+      mobile
+      && !mobileSearchOpen
+    ) {
+      event.preventDefault()
+
+      setMobileSearchOpen(true)
+
+      requestAnimationFrame(() => {
+        searchInputRef.current
+          ?.focus()
+      })
+
+      return
+    }
+
+    onSearch(event)
   }
 
   return (
@@ -203,9 +240,9 @@ function HeaderActions({
         <button
           type="button"
           className="header-mobile-utility-button"
-          aria-label="AI 채팅"
-          title="AI 채팅 - 준비 중"
-          aria-disabled="true"
+          onClick={onChatbotOpen}
+          aria-label="AI 채팅 열기"
+          title="AI 채팅"
         >
           <span
             className="header-utility-icon"
@@ -247,11 +284,16 @@ function HeaderActions({
       </div>
 
       <form
-        className="header-search"
+        className={
+          mobileSearchOpen
+            ? 'header-search is-open'
+            : 'header-search'
+        }
         role="search"
-        onSubmit={onSearch}
+        onSubmit={handleSearchSubmit}
       >
         <input
+          ref={searchInputRef}
           type="search"
           value={searchKeyword}
           onChange={(event) =>
@@ -264,7 +306,12 @@ function HeaderActions({
         <button
           type="submit"
           className="header-search-submit"
-          aria-label="검색"
+          aria-label={
+              mobileSearchOpen
+                ? '검색 실행'
+                : '검색창 열기'
+            }
+          aria-expanded={mobileSearchOpen}
         >
           <span
             className="header-utility-icon"

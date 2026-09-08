@@ -4,6 +4,8 @@ import { Link } from 'react-router-dom'
 import {
   getBloodStockStatus,
   getCenterMapCenters,
+  getDonationRankings,
+  getLatestDonationTips,
 } from '../../api/apiClient.js'
 
 import {
@@ -152,7 +154,7 @@ const mainServices = [
     title: '혈액사용 보류신청',
     description:
       '필요한 경우 혈액 사용 보류를 신청할 수 있습니다.',
-    to: '/blood-hold',
+    to: '/mypage/blood-hold/check',
     icon: BloodHoldIcon,
   },
   {
@@ -221,55 +223,6 @@ const noticeSlides = [
   },
 ]
 
-const hallOfFame = [
-  {
-    id: 1,
-    rank: 1,
-    name: '김헌혈',
-    count: 128,
-    region: '서울중앙혈액원',
-  },
-  {
-    id: 2,
-    rank: 2,
-    name: '이생명',
-    count: 112,
-    region: '인천혈액원',
-  },
-  {
-    id: 3,
-    rank: 3,
-    name: '박나눔',
-    count: 104,
-    region: '경기혈액원',
-  },
-]
-
-
-const donationTips = [
-  {
-    id: 1,
-    category: 'BEFORE',
-    title: '헌혈 전에는 충분한 수분을 섭취하세요',
-    description:
-      '헌혈 전날과 당일에는 물을 충분히 마시고 과도한 음주는 피하는 것이 좋습니다.',
-  },
-  {
-    id: 2,
-    category: 'CHECK',
-    title: '신분증을 꼭 준비해주세요',
-    description:
-      '본인 확인이 가능한 신분증을 준비하면 헌혈 절차를 빠르게 진행할 수 있습니다.',
-  },
-  {
-    id: 3,
-    category: 'AFTER',
-    title: '헌혈 후에는 충분히 쉬어주세요',
-    description:
-      '헌혈 직후에는 잠시 휴식하고 무리한 운동이나 음주는 피해주세요.',
-  },
-]
-
 const promotions = [
   {
     id: 1,
@@ -319,6 +272,39 @@ const socialChannels = [
   },
 ]
 
+function RankingCrown({
+  rank,
+}) {
+  if (rank < 1 || rank > 3) {
+    return null
+  }
+
+  return (
+    <svg
+      className={`hall-rank-crown hall-rank-crown--${rank}`}
+      viewBox="0 0 32 24"
+      aria-hidden="true"
+    >
+      <path
+        d="
+          M3 19
+          L1.8 6
+          L9 11
+          L16 2.5
+          L23 11
+          L30.2 6
+          L29 19
+          Z
+        "
+      />
+
+      <path
+        className="hall-rank-crown-line"
+        d="M4 19.2 H28"
+      />
+    </svg>
+  )
+}
 
 function MainPage() {
   const [activeBanner, setActiveBanner] = useState(0)
@@ -343,6 +329,36 @@ function MainPage() {
 
   const [activeTip, setActiveTip] =
     useState(0)
+
+  const [
+    donationRankings,
+    setDonationRankings,
+  ] = useState([])
+
+  const [
+    activeRanking,
+    setActiveRanking,
+  ] = useState(0)
+
+  const [
+    rankingLoading,
+    setRankingLoading,
+  ] = useState(true)
+
+  const [
+    rankingError,
+    setRankingError,
+  ] = useState('')
+
+  const [
+    donationTips,
+    setDonationTips,
+  ] = useState([])
+
+  const [
+    donationTipsLoading,
+    setDonationTipsLoading,
+  ] = useState(true)
 
   const [
     nearestCenter,
@@ -409,6 +425,180 @@ function MainPage() {
       active = false
     }
   }, [])
+
+  useEffect(() => {
+    let active = true
+
+    async function loadDonationRankings() {
+      try {
+        setRankingLoading(true)
+        setRankingError('')
+
+        const data =
+          await getDonationRankings()
+
+        if (!active) {
+          return
+        }
+
+        setDonationRankings(
+          Array.isArray(data)
+            ? data
+            : []
+        )
+
+        setActiveRanking(0)
+      } catch (error) {
+        if (active) {
+          setDonationRankings([])
+
+          setRankingError(
+            error.message
+            || '헌혈 랭킹을 불러오지 못했습니다.'
+          )
+        }
+      } finally {
+        if (active) {
+          setRankingLoading(false)
+        }
+      }
+    }
+
+    loadDonationRankings()
+
+    return () => {
+      active = false
+    }
+  }, [])
+
+  useEffect(() => {
+    let active = true
+
+    async function loadDonationTips() {
+      try {
+        const data =
+          await getLatestDonationTips()
+
+        if (!active) {
+          return
+        }
+
+        setDonationTips(
+          Array.isArray(data)
+            ? data
+            : []
+        )
+
+        setActiveTip(0)
+      } catch {
+        if (active) {
+          setDonationTips([])
+        }
+      } finally {
+        if (active) {
+          setDonationTipsLoading(false)
+        }
+      }
+    }
+
+    loadDonationTips()
+
+    return () => {
+      active = false
+    }
+  }, [])
+
+  const donationTipItems =
+    donationTips
+      .slice()
+      .sort((first, second) => {
+        const categoryOrder = {
+          BEFORE: 0,
+          AFTER: 1,
+        }
+
+        return (
+          (categoryOrder[first.category] ?? 99)
+          - (categoryOrder[second.category] ?? 99)
+        )
+      })
+      .flatMap((tip) =>
+        (tip.items || [])
+          .slice()
+          .sort(
+            (first, second) =>
+              (first.itemOrder ?? 0)
+              - (second.itemOrder ?? 0)
+          )
+          .map((item) => ({
+            ...item,
+
+            category:
+              tip.category,
+
+            categoryLabel:
+              tip.categoryLabel,
+
+            postTitle:
+              tip.title,
+          }))
+      )
+
+  const currentDonationTip =
+    donationTipItems[
+      activeTip
+    ] || null
+
+  useEffect(() => {
+    if (
+      donationTipItems.length <= 1
+    ) {
+      return undefined
+    }
+
+    const timer =
+      setInterval(() => {
+        setActiveTip(
+          (current) =>
+            current
+            === donationTipItems.length - 1
+              ? 0
+              : current + 1
+        )
+      }, 5000)
+
+    return () => {
+      clearInterval(timer)
+    }
+  }, [donationTipItems.length])
+
+  useEffect(() => {
+    if (
+      donationRankings.length <= 1
+    ) {
+      return undefined
+    }
+
+    const timer =
+      setInterval(() => {
+        setActiveRanking(
+          (current) =>
+            current
+            === donationRankings.length - 1
+              ? 0
+              : current + 1
+        )
+      }, 5000)
+
+    return () => {
+      clearInterval(timer)
+    }
+  }, [donationRankings.length])
+
+  const currentRanking =
+    donationRankings[
+      activeRanking
+    ] || null
 
   const currentBanner =
     heroBanners[activeBanner]
@@ -1146,56 +1336,146 @@ function MainPage() {
                     HALL OF FAME
                   </span>
 
-                  <h2>
-                    명예의 전당
-                  </h2>
+                  <div className="hall-title-row">
+                    <h2>
+                      명예의 전당
+                    </h2>
+
+                    {!rankingLoading
+                      && !rankingError
+                      && currentRanking && (
+                        <strong className="hall-category-badge">
+                          {currentRanking.categoryLabel}
+                        </strong>
+                      )}
+                  </div>
                 </div>
 
-                <Link
-                  className="information-more"
-                  to="/hall-of-fame"
-                >
-                  전체보기
-                  <span aria-hidden="true">
-                    →
-                  </span>
-                </Link>
+
+                {!rankingLoading
+                  && !rankingError
+                  && currentRanking && (
+                    <div className="hall-ranking-controller">
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setActiveRanking((current) =>
+                            current === 0
+                              ? donationRankings.length - 1
+                              : current - 1
+                          )
+                        }
+                        aria-label="이전 헌혈 랭킹"
+                      >
+                        ←
+                      </button>
+
+                      <span>
+                        {String(activeRanking + 1).padStart(2, '0')}
+                        {' / '}
+                        {String(donationRankings.length).padStart(2, '0')}
+                      </span>
+
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setActiveRanking((current) =>
+                            current === donationRankings.length - 1
+                              ? 0
+                              : current + 1
+                          )
+                        }
+                        aria-label="다음 헌혈 랭킹"
+                      >
+                        →
+                      </button>
+                    </div>
+                  )}
               </div>
 
 
-              <div className="hall-of-fame-list">
-                {hallOfFame.map((member) => (
-                  <div
-                    key={member.id}
-                    className="hall-of-fame-item"
-                  >
-                    <div className="hall-rank">
-                      <span>
-                        {member.rank}
-                      </span>
-                    </div>
-
-                    <div className="hall-member">
-                      <strong>
-                        {member.name}
-                      </strong>
-
-                      <span>
-                        {member.region}
-                      </span>
-                    </div>
-
-                    <div className="hall-count">
-                      <strong>
-                        {member.count}
-                      </strong>
-
-                      <span>
-                        회
-                      </span>
-                    </div>
+              <div className="hall-of-fame-content-slot">
+                {rankingLoading ? (
+                  <div className="hall-of-fame-empty">
+                    헌혈 랭킹을 불러오는 중입니다.
                   </div>
-                ))}
+                ) : rankingError ? (
+                  <div className="hall-of-fame-empty">
+                    {rankingError}
+                  </div>
+                ) : !currentRanking ? (
+                  <div className="hall-of-fame-empty">
+                    등록된 헌혈 기록이 없습니다.
+                  </div>
+                ) : currentRanking.rankings.length === 0 ? (
+                  <div className="hall-of-fame-empty">
+                    아직 {currentRanking.categoryLabel} 헌혈 랭킹 기록이 없습니다.
+                  </div>
+                ) : (
+                  <div
+                    className="hall-of-fame-list"
+                    key={currentRanking.category}
+                  >
+                    {currentRanking.rankings.map(
+                      (member) => (
+                        <div
+                          key={
+                            `${currentRanking.category}-${member.memberId}`
+                          }
+                          className="hall-of-fame-item"
+                        >
+                          <div className="hall-rank">
+                            {member.rank <= 3 && (
+                              <svg
+                                className={`hall-rank-crown hall-rank-crown--${member.rank}`}
+                                viewBox="0 0 32 22"
+                                aria-hidden="true"
+                              >
+                                <path
+                                  d="
+                                    M3 18
+                                    L2 6
+                                    L9 11
+                                    L16 3
+                                    L23 11
+                                    L30 6
+                                    L29 18
+                                    Z
+                                  "
+                                />
+
+                                <path
+                                  className="hall-rank-crown-base"
+                                  d="M4 18.5 H28"
+                                />
+                              </svg>
+                            )}
+
+                            <span>
+                              {member.rank}
+                            </span>
+                          </div>
+
+                          <div className="hall-member">
+                            <strong>
+                              {member.name}
+                            </strong>
+                          </div>
+
+                          <div className="hall-count">
+                            <strong>
+                              {member.count}
+                            </strong>
+
+                            <span>
+                              회
+                            </span>
+                          </div>
+                        </div>
+                      )
+                    )}
+                  </div>
+                )}
               </div>
 
             </article>
@@ -1218,69 +1498,145 @@ function MainPage() {
                   </h2>
                 </div>
 
-                <div className="notice-count">
-                  <strong>
-                    {String(activeTip + 1).padStart(2, '0')}
-                  </strong>
+                <Link
+                  className="information-more"
+                  to="/donation-tips"
+                >
+                  전체보기
 
-                  <span>
-                    /
+                  <span aria-hidden="true">
+                    →
+                  </span>
+                </Link>
+              </div>
+
+              {donationTipsLoading ? (
+                <div className="donation-tip-card">
+                  <span className="donation-tip-category">
+                    LOADING
                   </span>
 
-                  <span>
-                    {String(donationTips.length).padStart(2, '0')}
-                  </span>
+                  <h3>
+                    헌혈팁을 불러오는 중입니다.
+                  </h3>
+
+                  <p>
+                    잠시만 기다려주세요.
+                  </p>
                 </div>
-              </div>
+              ) : donationTipItems.length === 0 ? (
+                <div className="donation-tip-card">
+                  <span className="donation-tip-category">
+                    DONATION GUIDE
+                  </span>
+
+                  <h3>
+                    등록된 헌혈 안내가 없습니다.
+                  </h3>
+
+                  <p>
+                    헌혈 전·후 주의사항이
+                    등록되면 이곳에서 확인할 수 있습니다.
+                  </p>
+                </div>
+              ) : (
+                <>
+                  <div
+                    className="donation-tip-card"
+                    key={
+                      `${currentDonationTip.category}-${currentDonationTip.id}`
+                    }
+                  >
+                    <div className="donation-tip-heading-row">
+                      <span className="donation-tip-category">
+                        {currentDonationTip.category === 'BEFORE'
+                          ? 'BEFORE'
+                          : 'AFTER'}
+                        {' · '}
+                        {String(
+                          currentDonationTip.itemOrder
+                        ).padStart(2, '0')}
+                      </span>
+
+                      {currentDonationTip.title && (
+                        <h3>
+                          {currentDonationTip.title}
+                        </h3>
+                      )}
+                    </div>
+
+                    <p>
+                      {currentDonationTip.content}
+                    </p>
+
+                    <Link
+                      className="notice-action"
+                      to="/donation-tips"
+                    >
+                      더 많은 헌혈팁 보기
+
+                      <span aria-hidden="true">
+                        →
+                      </span>
+                    </Link>
+                  </div>
 
 
-              <div
-                className="donation-tip-card"
-                key={donationTips[activeTip].id}
-              >
-                <span className="donation-tip-category">
-                  {donationTips[activeTip].category}
-                </span>
+                  {donationTipItems.length > 1 && (
+                    <div className="notice-controller">
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setActiveTip((current) =>
+                            current === 0
+                              ? donationTipItems.length - 1
+                              : current - 1
+                          )
+                        }
+                        aria-label="이전 헌혈팁"
+                      >
+                        ←
+                      </button>
 
-                <h3>
-                  {donationTips[activeTip].title}
-                </h3>
+                      <div
+                        className="notice-count"
+                        aria-label="헌혈팁 위치"
+                      >
+                        <strong>
+                          {String(
+                            activeTip + 1
+                          ).padStart(2, '0')}
+                        </strong>
 
-                <p>
-                  {donationTips[activeTip].description}
-                </p>
-              </div>
+                        <span>
+                          /
+                        </span>
 
+                        <span>
+                          {String(
+                            donationTipItems.length
+                          ).padStart(2, '0')}
+                        </span>
+                      </div>
 
-              <div className="notice-controller">
-                <button
-                  type="button"
-                  onClick={() =>
-                    setActiveTip((current) =>
-                      current === 0
-                        ? donationTips.length - 1
-                        : current - 1
-                    )
-                  }
-                  aria-label="이전 헌혈팁"
-                >
-                  ←
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() =>
-                    setActiveTip((current) =>
-                      current === donationTips.length - 1
-                        ? 0
-                        : current + 1
-                    )
-                  }
-                  aria-label="다음 헌혈팁"
-                >
-                  →
-                </button>
-              </div>
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setActiveTip((current) =>
+                            current ===
+                            donationTipItems.length - 1
+                              ? 0
+                              : current + 1
+                          )
+                        }
+                        aria-label="다음 헌혈팁"
+                      >
+                        →
+                      </button>
+                    </div>
+                  )}
+                </>
+              )}
 
             </aside>
 

@@ -19,7 +19,9 @@ import HeaderNavigation
 
 import './Header.css'
 
-function Header() {
+function Header({
+  onChatbotOpen,
+}) {
   const [
     currentUser,
     setCurrentUser,
@@ -147,6 +149,7 @@ function Header() {
             onThemeToggle={handleThemeToggle}
             onSearchKeywordChange={setSearchKeyword}
             onSearch={handleSearch}
+            onChatbotOpen={onChatbotOpen}
           />
         </div>
       </div>

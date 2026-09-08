@@ -15,6 +15,9 @@ import Header
 import Footer
   from '../components/footer/Footer.jsx'
 
+import ChatbotWidget
+  from '../components/chatbot/ChatbotWidget.jsx'
+
 import {
   getCurrentUser,
 } from '../api/apiClient.js'
@@ -29,6 +32,10 @@ function MainLayout() {
     setIsProfileChecking,
   ] = useState(true)
 
+const [
+  isChatbotOpen,
+  setIsChatbotOpen,
+] = useState(false)
 
   useEffect(() => {
     let isMounted = true
@@ -116,7 +123,11 @@ function MainLayout() {
 
   return (
     <div className="app">
-      <Header />
+      <Header
+        onChatbotOpen={() =>
+          setIsChatbotOpen(true)
+        }
+      />
 
       <div className="page-content">
         <Outlet />
@@ -128,6 +139,10 @@ function MainLayout() {
       </div>
 
       <Footer />
+      <ChatbotWidget
+        isOpen={isChatbotOpen}
+        onOpenChange={setIsChatbotOpen}
+      />
     </div>
   )
 }

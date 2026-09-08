@@ -229,30 +229,58 @@
 
 /* 휴대전화 */
 
-.phone-fields {
-  display: grid;
-  grid-template-columns: 110px 14px minmax(0, 1fr) 14px minmax(0, 1fr);
-  align-items: center;
-  gap: 8px;
-}
+ .phone-fields {
+   display: grid;
+   grid-template-columns:
+     90px
+     10px
+     120px
+     10px
+     120px
+     auto;
+   align-items: center;
+   justify-content: start;
+   gap: 6px;
+ }
 
-.phone-fields span,
-.email-fields > span {
-  color: var(--color-text-muted);
-  text-align: center;
-}
+ .phone-fields button {
+   min-height: 46px;
+   padding: 0 18px;
+   border: 1px solid var(--color-primary);
+   border-radius: 8px;
+   color: var(--color-primary);
+   background-color: transparent;
+   font-weight: 700;
+   cursor: pointer;
+   white-space: nowrap;
+ }
 
-/* 이메일 */
+ .phone-fields button:hover:not(:disabled) {
+   color: #ffffff;
+   background-color: var(--color-primary);
+ }
+
+ .phone-fields button:disabled {
+   cursor: not-allowed;
+   opacity: 0.55;
+ }
+
+ .phone-fields span,
+ .email-fields > span {
+   color: var(--color-text-muted);
+   text-align: center;
+ }
+
+ /* 이메일 */
 
 .email-fields {
   display: grid;
   grid-template-columns:
-    minmax(120px, 1fr)
+    280px
     auto
-    minmax(150px, 1fr)
-    150px
-    auto;
+    220px;
   align-items: center;
+  justify-content: start;
   gap: 10px;
 }
 
@@ -347,6 +375,18 @@
     grid-column: auto;
   }
 
+  .phone-fields {
+      grid-template-columns:
+        72px
+        8px
+        minmax(90px, 1fr)
+        8px
+        minmax(90px, 1fr)
+        auto;
+      gap: 5px;
+    }
+
+
   .email-fields {
     grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
   }
@@ -404,46 +444,44 @@
 
 /* 추가정보 이메일 인증 */
 
-.email-verification-row {
+.verification-row {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-columns: 240px auto auto;
   margin-top: 10px;
+  justify-content: start;
   gap: 10px;
 }
 
-.email-verification-row button {
+.verification-row button {
   min-height: 46px;
   padding: 0 18px;
-
   border: 1px solid var(--color-primary);
   border-radius: 8px;
-
   color: var(--color-primary);
   background-color: transparent;
-
   font-weight: 700;
   cursor: pointer;
   white-space: nowrap;
 }
 
-.email-verification-row button:hover:not(:disabled) {
+.verification-row button:hover:not(:disabled) {
   color: #ffffff;
   background-color: var(--color-primary);
 }
 
-.email-verification-row button:disabled,
+.verification-row button:disabled,
 .field-with-button button:disabled {
   cursor: not-allowed;
   opacity: 0.55;
 }
 
 @media (max-width: 480px) {
-  .email-verification-row,
+  .verification-row,
   .field-with-button {
     grid-template-columns: 1fr;
   }
 
-  .email-verification-row button,
+  .verification-row button,
   .field-with-button button {
     width: 100%;
   }

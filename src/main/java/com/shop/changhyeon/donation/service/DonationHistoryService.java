@@ -7,6 +7,7 @@ import com.shop.changhyeon.donation.dto.MedicalDonationHistoryResponseDto;
 import com.shop.changhyeon.donation.entity.DonationHistory;
 import com.shop.changhyeon.donation.repository.DonationHistoryRepository;
 import com.shop.changhyeon.reward.service.PointRewardService;
+import com.shop.condition.event.ConditionCheckNotificationEvent;
 import com.shop.member.entity.Member;
 import com.shop.member.repository.MemberRepository;
 import com.shop.member.service.MemberService;
@@ -15,6 +16,7 @@ import com.shop.reservation.constant.ReservationStatus;
 import com.shop.reservation.entity.Reservation;
 import com.shop.reservation.repository.ReservationRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -32,6 +34,7 @@ public class DonationHistoryService {
     private final MemberRepository memberRepository;
     private final PointRewardService pointRewardService;
     private final MemberService memberService;
+    private final ApplicationEventPublisher eventPublisher;
 
     public DonationHistoryResponseDto completeDonation(Long reservationId, LocalDate donationDate) {
         Reservation reservation = reservationRepository.findById(reservationId)
@@ -69,6 +72,12 @@ public class DonationHistoryService {
                 reservation.getSlot().getDonationType()
         );
         reservation.setStatus(ReservationStatus.COMPLETED);
+        eventPublisher.publishEvent(
+                new ConditionCheckNotificationEvent(
+                        savedHistory.getId(),
+                        reservation.getMember().getPhone()
+                )
+        );
         return DonationHistoryResponseDto.from(savedHistory);
     }
 
