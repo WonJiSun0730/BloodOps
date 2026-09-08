@@ -4,6 +4,8 @@ import com.solapi.sdk.SolapiClient;
 import com.solapi.sdk.message.model.Message;
 import com.solapi.sdk.message.service.DefaultMessageService;
 import jakarta.servlet.http.HttpSession;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -12,6 +14,9 @@ import java.time.Instant;
 
 @Service
 public class PhoneVerificationService {
+
+    private static final Logger log =
+            LoggerFactory.getLogger(PhoneVerificationService.class);
 
     private static final String SESSION_PHONE =
             "PHONE_VERIFICATION_PHONE";
@@ -179,6 +184,16 @@ public class PhoneVerificationService {
             );
 
         } catch (Exception exception) {
+
+            /*
+             * API Key, Secret, 인증번호 등의 민감정보는
+             * 로그에 직접 출력하지 않습니다.
+             */
+            log.error(
+                    "[휴대전화 인증] SOLAPI 발송 실패 - type={}, message={}",
+                    exception.getClass().getName(),
+                    exception.getMessage()
+            );
 
             /*
              * 발송 실패 시 방금 생성한 인증정보는
