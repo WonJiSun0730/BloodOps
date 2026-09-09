@@ -364,9 +364,9 @@ public class QuestionnaireService {
 
     private QuestionnaireSubmissionDto toDto(QuestionnaireSubmission submission) {
         Reservation reservation = resolveReservation(submission);
-        Center donationCenter = submission.getDonationCenter() != null
-                ? submission.getDonationCenter()
-                : reservation == null ? null : reservation.getSlot().getCenter();
+        Center donationCenter = reservation != null
+                ? reservation.getSlot().getCenter()
+                : submission.getDonationCenter();
         QuestionnaireVisitType visitType = submission.getVisitType() != null
                 ? submission.getVisitType()
                 : reservation == null
