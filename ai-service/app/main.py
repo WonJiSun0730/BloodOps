@@ -1,6 +1,8 @@
 from fastapi import FastAPI
 
-from app.classifier import DomainIntentClassifier
+from app.hybrid_classifier import (
+    HybridIntentClassifier,
+)
 from app.schemas import (
     AnalyzeRequest,
     AnalyzeResponse,
@@ -16,7 +18,7 @@ app = FastAPI(
     version="1.0.0",
 )
 
-intent_classifier = DomainIntentClassifier()
+intent_classifier = HybridIntentClassifier()
 
 
 @app.get("/health")
