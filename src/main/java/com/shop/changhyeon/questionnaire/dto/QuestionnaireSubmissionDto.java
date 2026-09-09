@@ -4,7 +4,9 @@ import com.shop.changhyeon.questionnaire.constant.QuestionnaireStatus;
 import com.shop.changhyeon.questionnaire.constant.QuestionnaireVisitType;
 import com.shop.reservation.constant.ReservationStatus;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.List;
 import java.util.Map;
 
@@ -24,7 +26,12 @@ public record QuestionnaireSubmissionDto(
         Long donationCenterId,
         String donationCenterName,
         String donationCenterAddress,
+        LocalDate reservationDate,
+        LocalTime reservationStartTime,
+        LocalTime reservationEndTime,
         ReservationStatus reservationStatus,
+        boolean reservationWithinValidity,
+        String reservationConnectionType,
         Map<String, String> answers,
         Map<String, String> answerDetails,
         List<String> reviewReasons,
