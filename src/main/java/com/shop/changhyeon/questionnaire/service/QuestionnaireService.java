@@ -10,6 +10,9 @@ import com.shop.changhyeon.questionnaire.entity.QuestionnaireSubmission;
 import com.shop.changhyeon.questionnaire.repository.QuestionnaireSubmissionRepository;
 import com.shop.member.entity.Member;
 import com.shop.member.repository.MemberRepository;
+import com.shop.reservation.constant.ReservationStatus;
+import com.shop.reservation.entity.Reservation;
+import com.shop.reservation.repository.ReservationRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -45,6 +48,7 @@ public class QuestionnaireService {
     private final QuestionnaireSubmissionRepository submissionRepository;
     private final MemberRepository memberRepository;
     private final CenterRepository centerRepository;
+    private final ReservationRepository reservationRepository;
     private final ResidentNumberHashService residentNumberHashService;
 
     @Transactional(readOnly = true)
@@ -239,7 +243,14 @@ public class QuestionnaireService {
     }
 
     private Center resolveDonationCenter(Member member, Long donationCenterId) {
-        if (member != null) return null;
+        if (member != null) {
+            return reservationRepository
+                    .findFirstByMember_IdAndStatusAndSlot_ReservationDateGreaterThanEqualOrderBySlot_ReservationDateAscSlot_StartTimeAscIdAsc(
+                            member.getId(), ReservationStatus.RESERVED, LocalDate.now(KOREA_ZONE)
+                    )
+                    .map(reservation -> reservation.getSlot().getCenter())
+                    .orElse(null);
+        }
         if (donationCenterId == null) {
             throw new IllegalArgumentException("방문하실 헌혈 장소를 선택해주세요.");
         }
@@ -269,18 +280,41 @@ public class QuestionnaireService {
     }
 
     private QuestionnaireSubmissionDto toDto(QuestionnaireSubmission submission) {
+        Reservation reservation = resolveReservation(submission);
+        Center donationCenter = submission.getDonationCenter() != null
+                ? submission.getDonationCenter()
+                : reservation == null ? null : reservation.getSlot().getCenter();
+
         return new QuestionnaireSubmissionDto(
                 submission.getId(), submission.getReceiptCode(), submission.getDonorName(),
                 submission.getResidentNumberMasked(), submission.getStatus(),
                 submission.getSubmittedAt(), submission.getExpiresAt(), submission.getWeightKg(),
                 submission.getContactPhoneSnapshot(), submission.getContactEmailSnapshot(),
-                submission.getDonationCenter() == null ? null : submission.getDonationCenter().getId(),
-                submission.getDonationCenter() == null ? null : submission.getDonationCenter().getCenterName(),
-                submission.getDonationCenter() == null ? null : submission.getDonationCenter().getAddress(),
+                donationCenter == null ? null : donationCenter.getId(),
+                donationCenter == null ? null : donationCenter.getCenterName(),
+                donationCenter == null ? null : donationCenter.getAddress(),
+                reservation == null ? null : reservation.getStatus(),
                 new LinkedHashMap<>(submission.getAnswers()),
                 new LinkedHashMap<>(submission.getAnswerDetails()),
                 List.copyOf(submission.getReviewReasons()), submission.getVerifiedAt() != null, NOTICE
         );
+    }
+
+    private Reservation resolveReservation(QuestionnaireSubmission submission) {
+        if (submission.getMember() == null) {
+            return null;
+        }
+        if (submission.getDonationCenter() != null) {
+            return reservationRepository
+                    .findFirstByMember_IdAndSlot_Center_IdOrderByIdDesc(
+                            submission.getMember().getId(),
+                            submission.getDonationCenter().getId()
+                    )
+                    .orElse(null);
+        }
+        return reservationRepository
+                .findFirstByMember_IdOrderByIdDesc(submission.getMember().getId())
+                .orElse(null);
     }
 
     private enum Gender { MALE, FEMALE }
