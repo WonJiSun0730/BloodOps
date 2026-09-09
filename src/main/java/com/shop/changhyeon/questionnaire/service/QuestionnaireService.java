@@ -7,12 +7,12 @@ import com.shop.changhyeon.management.entity.DonorConfirmation;
 import com.shop.changhyeon.questionnaire.constant.QuestionnaireStatus;
 import com.shop.changhyeon.questionnaire.dto.*;
 import com.shop.changhyeon.questionnaire.entity.QuestionnaireSubmission;
+import com.shop.changhyeon.questionnaire.repository.QuestionnaireReservationRepository;
 import com.shop.changhyeon.questionnaire.repository.QuestionnaireSubmissionRepository;
 import com.shop.member.entity.Member;
 import com.shop.member.repository.MemberRepository;
 import com.shop.reservation.constant.ReservationStatus;
 import com.shop.reservation.entity.Reservation;
-import com.shop.reservation.repository.ReservationRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -48,7 +48,7 @@ public class QuestionnaireService {
     private final QuestionnaireSubmissionRepository submissionRepository;
     private final MemberRepository memberRepository;
     private final CenterRepository centerRepository;
-    private final ReservationRepository reservationRepository;
+    private final QuestionnaireReservationRepository reservationRepository;
     private final ResidentNumberHashService residentNumberHashService;
 
     @Transactional(readOnly = true)
