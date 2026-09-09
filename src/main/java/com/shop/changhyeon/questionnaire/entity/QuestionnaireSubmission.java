@@ -1,9 +1,11 @@
 package com.shop.changhyeon.questionnaire.entity;
 
 import com.shop.changhyeon.questionnaire.constant.QuestionnaireStatus;
+import com.shop.changhyeon.questionnaire.constant.QuestionnaireVisitType;
 import com.shop.center.entity.Center;
 import com.shop.common.entity.BaseEntity;
 import com.shop.member.entity.Member;
+import com.shop.reservation.entity.Reservation;
 import com.shop.changhyeon.management.entity.DonorConfirmation;
 import jakarta.persistence.*;
 import lombok.*;
@@ -70,6 +72,14 @@ public class QuestionnaireSubmission extends BaseEntity {
 
     @Column(name = "contact_email_snapshot", length = 255)
     private String contactEmailSnapshot;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "visit_type", length = 20)
+    private QuestionnaireVisitType visitType;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "reservation_id")
+    private Reservation reservation;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "donation_center_id")
