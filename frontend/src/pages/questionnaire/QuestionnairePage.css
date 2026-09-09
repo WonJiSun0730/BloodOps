@@ -363,3 +363,96 @@
   }
 }
 
+
+.visit-type-field {
+  margin: 24px 0 0;
+  padding: 0;
+  border: 0;
+}
+
+.visit-type-field legend,
+.reservation-visit-field > label {
+  margin-bottom: 10px;
+  font-weight: 800;
+}
+
+.visit-type-options {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+}
+
+.visit-type-options > label {
+  display: flex;
+  min-height: 88px;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 16px;
+  cursor: pointer;
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  background: var(--color-background);
+}
+
+.visit-type-options > label:hover {
+  background: var(--color-surface-hover);
+}
+
+.visit-type-options > label.selected {
+  border-color: var(--questionnaire-red);
+  box-shadow: 0 0 0 1px var(--questionnaire-red);
+}
+
+.visit-type-options input {
+  width: 18px;
+  height: 18px;
+  flex: 0 0 18px;
+  margin-top: 2px;
+  accent-color: var(--questionnaire-red);
+}
+
+.visit-type-options span {
+  display: grid;
+  gap: 6px;
+}
+
+.visit-type-options small,
+.reservation-visit-field p {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: .8rem;
+  font-weight: 500;
+  line-height: 1.5;
+}
+
+.reservation-visit-field {
+  display: grid;
+  gap: 8px;
+  margin-top: 18px;
+}
+
+.reservation-visit-field select {
+  width: 100%;
+  min-height: 48px;
+  padding: 0 14px;
+  border: 1px solid var(--color-border);
+  border-radius: 9px;
+  color: var(--color-text);
+  background: var(--color-background);
+  font: inherit;
+}
+
+.reservation-visit-field select:focus-visible {
+  outline: 2px solid var(--questionnaire-red);
+  outline-offset: 2px;
+}
+
+@media (max-width: 768px) {
+  .visit-type-options {
+    grid-template-columns: 1fr;
+  }
+
+  .visit-type-options > label {
+    min-height: 44px;
+  }
+}
