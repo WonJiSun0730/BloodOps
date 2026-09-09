@@ -9,6 +9,8 @@ import com.shop.center.dto.CenterResponseDto;
 import com.shop.center.service.CenterService;
 import com.shop.changhyeon.donation.dto.DonationHistoryResponseDto;
 import com.shop.changhyeon.donation.service.DonationHistoryService;
+import com.shop.chatbot.client.BloodOpsAiClient;
+import com.shop.chatbot.dto.AiAnalyzeResponse;
 import com.shop.chatbot.dto.ChatbotAction;
 import com.shop.chatbot.dto.ChatbotHistoryMessage;
 import com.shop.chatbot.dto.ChatbotResponse;
@@ -31,6 +33,7 @@ public class ChatbotService {
 
     private final String apiKey;
     private final String model;
+    private final BloodOpsAiClient bloodOpsAiClient;
     private final CenterService centerService;
     private final ReservationService reservationService;
     private final ReservationSlotService reservationSlotService;
@@ -50,6 +53,7 @@ public class ChatbotService {
     public ChatbotService(
             @Value("${gemini.api-key}") String apiKey,
             @Value("${gemini.model}") String model,
+            BloodOpsAiClient bloodOpsAiClient,
             CenterService centerService,
             ReservationService reservationService,
             ReservationSlotService reservationSlotService,
@@ -60,6 +64,7 @@ public class ChatbotService {
     ) {
         this.apiKey = apiKey;
         this.model = model;
+        this.bloodOpsAiClient = bloodOpsAiClient;
         this.centerService = centerService;
         this.reservationService = reservationService;
         this.reservationSlotService = reservationSlotService;
@@ -130,20 +135,45 @@ public class ChatbotService {
 
         /*
          * 2차:
-         * 규칙으로 판별하기 어려운 구어체, 오타, 비표준 표현은
-         * Gemini에게 답변을 맡기지 않고 "의도 분류"만 요청합니다.
+         * 명확한 규칙으로 처리되지 않은 질문은
+         * Python 기반 BloodOps 자체 AI에 전달합니다.
+         *
+         * Python AI는 의도 분류, 검색어 추출,
+         * 검증된 일반 헌혈 지식 검색을 담당합니다.
          */
-        IntentClassification classification =
-                classifyIntentWithGemini(
-                        message,
-                        history
-                );
+        AiAnalyzeResponse aiAnalysis =
+                bloodOpsAiClient
+                        .analyze(
+                                message,
+                                null,
+                                null
+                        )
+                        .orElse(null);
 
-        if (!classification.aiAvailable()) {
+
+        /*
+         * Python AI 장애가 Spring 전체 장애로
+         * 전파되지 않도록 안전한 안내를 반환합니다.
+         */
+        if (aiAnalysis == null) {
 
             return createAiUnavailableResponse();
         }
 
+
+        IntentClassification classification =
+                new IntentClassification(
+                        aiAnalysis.intent(),
+                        aiAnalysis.keyword(),
+                        aiAnalysis.answer(),
+                        true
+                );
+
+
+        /*
+         * 예약, 센터, 헌혈기록 등 기능 의도는
+         * 기존 BloodOps Service와 DB로 연결합니다.
+         */
         ChatbotResponse routedResponse =
                 routeClassifiedIntent(
                         classification,
@@ -156,30 +186,24 @@ public class ChatbotService {
 
 
         /*
-         * Gemini가 일반 헌혈 질문으로 분류한 경우
-         * 첫 번째 호출에서 함께 생성한 답변을 그대로 사용합니다.
-         *
-         * 따라서 의도 분류 + 일반 답변을 위해
-         * Gemini를 두 번 호출하지 않습니다.
+         * 일반 헌혈 질문은 Python AI가 검색한
+         * 검증된 지식 답변과 출처만 사용합니다.
          */
         if (
                 "GENERAL_DONATION".equals(
-                        classification.intent()
+                        aiAnalysis.intent()
                 )
-                        && classification.answer() != null
-                        && !classification.answer().isBlank()
+                        && aiAnalysis.answer() != null
+                        && !aiAnalysis.answer().isBlank()
         ) {
 
             return new ChatbotResponse(
-                    classification.answer(),
+                    aiAnalysis.answer(),
                     "GENERAL_DONATION",
                     List.of(),
-                    List.of(
-                            "Gemini AI 일반 헌혈 안내"
-                    )
+                    aiAnalysis.sources()
             );
         }
-
 
         return new ChatbotResponse(
                 """
@@ -1133,23 +1157,32 @@ public class ChatbotService {
                 "헌혈센터",
                 "헌혈 센터",
                 "센터",
-                "찾아줘",
-                "찾아 줘",
                 "찾아주세요",
                 "찾아 주세요",
+                "찾아줘",
+                "찾아 줘",
                 "찾아",
-                "검색해줘",
-                "검색해 줘",
+                "찾기",
                 "검색해주세요",
                 "검색해 주세요",
+                "검색해줘",
+                "검색해 줘",
                 "검색",
-                "어디야",
+                "어디서 해",
+                "어디서",
                 "어디 있어",
                 "어디있어",
-                "알려줘",
-                "알려 줘",
+                "어딨어",
+                "어딧어",
+                "어디 있음",
+                "어디있음",
+                "어딧음",
+                "어디야",
+                "어디",
                 "알려주세요",
-                "알려 주세요"
+                "알려 주세요",
+                "알려줘",
+                "알려 줘"
         };
 
 
