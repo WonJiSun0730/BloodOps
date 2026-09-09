@@ -21,15 +21,9 @@ public interface QuestionnaireReservationRepository
             Long centerId
     );
 
-    Optional<Reservation> findFirstByMember_IdAndStatusAndSlot_ReservationDateBetweenOrderBySlot_ReservationDateAscSlot_StartTimeAscIdAsc(
+    List<Reservation> findByMember_IdAndStatusAndSlot_ReservationDateBetweenOrderBySlot_ReservationDateAscSlot_StartTimeAscIdAsc(
             Long memberId,
             ReservationStatus status,
-            LocalDate startDate,
-            LocalDate endDate
-    );
-
-    Optional<Reservation> findFirstByMember_IdAndSlot_ReservationDateBetweenOrderBySlot_ReservationDateAscSlot_StartTimeAscIdAsc(
-            Long memberId,
             LocalDate startDate,
             LocalDate endDate
     );
