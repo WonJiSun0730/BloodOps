@@ -10,10 +10,19 @@ import java.util.Optional;
 public interface QuestionnaireReservationRepository
         extends Repository<Reservation, Long> {
 
-    Optional<Reservation> findFirstByMember_IdAndStatusAndSlot_ReservationDateGreaterThanEqualOrderBySlot_ReservationDateAscSlot_StartTimeAscIdAsc(
+    Optional<Reservation> findById(Long reservationId);
+
+    Optional<Reservation> findFirstByMember_IdAndStatusAndSlot_ReservationDateBetweenOrderBySlot_ReservationDateAscSlot_StartTimeAscIdAsc(
             Long memberId,
             ReservationStatus status,
-            LocalDate reservationDate
+            LocalDate startDate,
+            LocalDate endDate
+    );
+
+    Optional<Reservation> findFirstByMember_IdAndSlot_ReservationDateBetweenOrderBySlot_ReservationDateAscSlot_StartTimeAscIdAsc(
+            Long memberId,
+            LocalDate startDate,
+            LocalDate endDate
     );
 
     Optional<Reservation> findFirstByMember_IdOrderByIdDesc(
