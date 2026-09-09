@@ -119,6 +119,7 @@ public class QuestionnaireService {
                 .findFirstByDonorNameAndResidentNumberHashAndExpiresAtAfterOrderBySubmittedAtDesc(
                         donorName.trim(), residentNumberHash, LocalDateTime.now())
                 .map(submission -> {
+                    linkGuestSubmissionToReservation(submission);
                     submission.setDonorConfirmation(confirmation);
                     submission.setVerifiedAt(LocalDateTime.now());
                     submission.setVerifiedBy(verifiedBy);
@@ -296,6 +297,44 @@ public class QuestionnaireService {
                 reservation,
                 reservation.getSlot().getCenter()
         );
+    }
+
+    private void linkGuestSubmissionToReservation(
+            QuestionnaireSubmission submission
+    ) {
+        if (submission.getMember() != null
+                || submission.getReservation() != null
+                || submission.getDonationCenter() == null) {
+            return;
+        }
+
+        List<Reservation> matches = reservationRepository
+                .findByDonorNameAndResidentNumberHashAndSlot_ReservationDateAndStatusAndSlot_Center_Id(
+                        submission.getDonorName(),
+                        submission.getResidentNumberHash(),
+                        LocalDate.now(KOREA_ZONE),
+                        ReservationStatus.RESERVED,
+                        submission.getDonationCenter().getId()
+                );
+
+        if (matches.size() != 1) {
+            return;
+        }
+
+        Reservation reservation = matches.getFirst();
+        Member member = reservation.getMember();
+        submission.setMember(member);
+        submission.setReservation(reservation);
+        submission.setVisitType(QuestionnaireVisitType.RESERVATION);
+
+        if (submission.getContactPhoneSnapshot() == null
+                || submission.getContactPhoneSnapshot().isBlank()) {
+            submission.setContactPhoneSnapshot(member.getPhone());
+        }
+        if (submission.getContactEmailSnapshot() == null
+                || submission.getContactEmailSnapshot().isBlank()) {
+            submission.setContactEmailSnapshot(member.getEmail());
+        }
     }
 
     private Center findActiveCenter(Long centerId) {
