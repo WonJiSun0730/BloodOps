@@ -1,6 +1,7 @@
 package com.shop.changhyeon.questionnaire.dto;
 
 import com.shop.changhyeon.questionnaire.constant.QuestionnaireStatus;
+import com.shop.changhyeon.questionnaire.constant.QuestionnaireVisitType;
 import com.shop.reservation.constant.ReservationStatus;
 
 import java.time.LocalDateTime;
@@ -18,6 +19,8 @@ public record QuestionnaireSubmissionDto(
         Double weightKg,
         String contactPhone,
         String contactEmail,
+        QuestionnaireVisitType visitType,
+        Long reservationId,
         Long donationCenterId,
         String donationCenterName,
         String donationCenterAddress,
