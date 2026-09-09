@@ -7,6 +7,19 @@ import './MedicalWorkspaceListPage.css'
 
 const PAGE_SIZE = 10
 
+const reservationStatusLabel = {
+  RESERVED: '예약 대기',
+  COMPLETED: '헌혈 완료',
+  CANCELED: '예약 취소',
+}
+
+function getReservationLabel(item) {
+  if (item.reservationStatus) {
+    return reservationStatusLabel[item.reservationStatus] || item.reservationStatus
+  }
+  return item.donationCenterName ? '현장 방문' : '예약 정보 없음'
+}
+
 function MedicalQuestionnaireListPage() {
   const [centers, setCenters] = useState([])
   const [centerId, setCenterId] = useState('')
@@ -79,9 +92,13 @@ function MedicalQuestionnaireListPage() {
         ) : (
           <div className="workspace-card-list">
             {items.map((item) => (
-              <button type="button" className="workspace-data-card" key={item.id} onClick={() => setSelected(selected?.id === item.id ? null : item)} aria-expanded={selected?.id === item.id}>
+              <button type="button" className="workspace-data-card questionnaire-data-card" key={item.id} onClick={() => setSelected(selected?.id === item.id ? null : item)} aria-expanded={selected?.id === item.id}>
                 <strong>{item.donorName}</strong>
                 <span>{item.receiptCode}</span>
+                <span className="workspace-reservation">
+                  <strong>{item.donationCenterName || '방문 장소 미지정'}</strong>
+                  <small>{getReservationLabel(item)}</small>
+                </span>
                 <span>{String(item.submittedAt).replace('T', ' ').slice(0, 16)}</span>
                 <em>{item.status === 'REVIEW_REQUIRED' ? '현장 확인 필요' : '제출 완료'}</em>
               </button>
@@ -96,7 +113,8 @@ function MedicalQuestionnaireListPage() {
               <div><dt>체중</dt><dd>{selected.weightKg} kg</dd></div>
               <div><dt>연락처</dt><dd>{selected.contactPhone || '-'}</dd></div>
               <div><dt>이메일</dt><dd>{selected.contactEmail || '-'}</dd></div>
-              <div><dt>방문 예정 장소</dt><dd>{selected.donationCenterName ? `${selected.donationCenterName} · ${selected.donationCenterAddress || ''}` : '회원 예약 센터 기준'}</dd></div>
+              <div><dt>방문 예정 장소</dt><dd>{selected.donationCenterName ? `${selected.donationCenterName} · ${selected.donationCenterAddress || ''}` : '방문 장소 미지정'}</dd></div>
+              <div><dt>예약 상태</dt><dd>{getReservationLabel(selected)}</dd></div>
             </dl>
             {selected.reviewReasons?.length > 0 && (
               <><h3>현장 확인 항목</h3><ul>{selected.reviewReasons.map((reason) => <li key={reason}>{reason}</li>)}</ul></>
