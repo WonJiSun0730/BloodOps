@@ -1,5 +1,6 @@
 from fastapi import FastAPI
 
+from app.classifier import DomainIntentClassifier
 from app.schemas import (
     AnalyzeRequest,
     AnalyzeResponse,
@@ -14,6 +15,8 @@ app = FastAPI(
     ),
     version="1.0.0",
 )
+
+intent_classifier = DomainIntentClassifier()
 
 
 @app.get("/health")
@@ -31,15 +34,15 @@ def health() -> dict[str, str]:
 def analyze(
     request: AnalyzeRequest,
 ) -> AnalyzeResponse:
-    """
-    현재 단계에서는 API 계약만 검증합니다.
+    classification = intent_classifier.classify(
+        message=request.message,
+        context=request.context,
+    )
 
-    실제 의도 분류기는 다음 구현 단계에서 연결합니다.
-    """
     return AnalyzeResponse(
-        intent="OTHER",
-        confidence=0.0,
-        keyword=None,
-        knowledge_id=None,
-        matched_by="FALLBACK",
+        intent=classification.intent.value,
+        confidence=classification.confidence,
+        keyword=classification.keyword,
+        knowledge_id=classification.knowledge_id,
+        matched_by=classification.matched_by,
     )
