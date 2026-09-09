@@ -286,10 +286,8 @@ public class QuestionnaireService {
             throw new IllegalArgumentException("예약 대기 상태의 예약만 선택할 수 있습니다.");
         }
 
-        LocalDate reservationDate = reservation.getSlot().getReservationDate();
-        if (reservationDate.isBefore(submittedAt.toLocalDate())
-                || reservationDate.isAfter(expiresAt.toLocalDate())) {
-            throw new IllegalArgumentException("전자문진 유효기간 안의 예약을 선택해주세요.");
+        if (!isReservationWithinValidity(reservation, submittedAt, expiresAt)) {
+            throw new IllegalArgumentException("전자문진 유효시간 안의 예약을 선택해주세요.");
         }
 
         return new VisitPlan(
@@ -325,6 +323,7 @@ public class QuestionnaireService {
         Member member = reservation.getMember();
         submission.setMember(member);
         submission.setReservation(reservation);
+        submission.setReservationAutoLinked(true);
         submission.setVisitType(QuestionnaireVisitType.RESERVATION);
 
         if (submission.getContactPhoneSnapshot() == null
@@ -383,7 +382,14 @@ public class QuestionnaireService {
                 donationCenter == null ? null : donationCenter.getId(),
                 donationCenter == null ? null : donationCenter.getCenterName(),
                 donationCenter == null ? null : donationCenter.getAddress(),
+                reservation == null ? null : reservation.getSlot().getReservationDate(),
+                reservation == null ? null : reservation.getSlot().getStartTime(),
+                reservation == null ? null : reservation.getSlot().getEndTime(),
                 reservation == null ? null : reservation.getStatus(),
+                reservation == null || isReservationWithinValidity(
+                        reservation, submission.getSubmittedAt(), submission.getExpiresAt()
+                ),
+                resolveReservationConnectionType(submission, reservation),
                 new LinkedHashMap<>(submission.getAnswers()),
                 new LinkedHashMap<>(submission.getAnswerDetails()),
                 List.copyOf(submission.getReviewReasons()), submission.getVerifiedAt() != null, NOTICE
@@ -399,12 +405,47 @@ public class QuestionnaireService {
             return null;
         }
         return reservationRepository
-                .findFirstByMember_IdAndSlot_ReservationDateBetweenOrderBySlot_ReservationDateAscSlot_StartTimeAscIdAsc(
+                .findByMember_IdAndStatusAndSlot_ReservationDateBetweenOrderBySlot_ReservationDateAscSlot_StartTimeAscIdAsc(
                         submission.getMember().getId(),
+                        ReservationStatus.RESERVED,
                         submission.getSubmittedAt().toLocalDate(),
                         submission.getExpiresAt().toLocalDate()
                 )
+                .stream()
+                .filter(reservation -> isReservationWithinValidity(
+                        reservation, submission.getSubmittedAt(), submission.getExpiresAt()
+                ))
+                .findFirst()
                 .orElse(null);
+    }
+
+    static boolean isReservationWithinValidity(
+            Reservation reservation,
+            LocalDateTime submittedAt,
+            LocalDateTime expiresAt
+    ) {
+        LocalDateTime reservationAt = LocalDateTime.of(
+                reservation.getSlot().getReservationDate(),
+                reservation.getSlot().getStartTime()
+        );
+        return !reservationAt.isBefore(submittedAt)
+                && reservationAt.isBefore(expiresAt);
+    }
+
+    private String resolveReservationConnectionType(
+            QuestionnaireSubmission submission,
+            Reservation reservation
+    ) {
+        if (reservation == null) {
+            return "NONE";
+        }
+        if (Boolean.TRUE.equals(submission.getReservationAutoLinked())) {
+            return "AUTO_IDENTITY";
+        }
+        if (submission.getReservation() != null) {
+            return "SELECTED";
+        }
+        return "AUTO_CURRENT";
     }
 
     private enum Gender { MALE, FEMALE }
