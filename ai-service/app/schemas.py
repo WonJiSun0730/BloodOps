@@ -30,6 +30,10 @@ class AnalyzeResponse(BaseModel):
     )
     keyword: str | None = None
     knowledge_id: str | None = None
+    answer: str | None = None
+    sources: list[str] = Field(
+        default_factory=list,
+    )
     matched_by: Literal[
         "RULE",
         "SIMILARITY",
