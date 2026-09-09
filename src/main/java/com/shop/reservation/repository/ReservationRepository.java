@@ -10,7 +10,6 @@ import org.springframework.data.repository.query.Param;
 
 import java.time.LocalDate;
 import java.util.List;
-import java.util.Optional;
 
 public interface ReservationRepository
         extends JpaRepository<Reservation, Long> {
@@ -107,21 +106,6 @@ public interface ReservationRepository
 
     List<Reservation> findByMember_EmailOrderByIdDesc(
             String email
-    );
-
-    Optional<Reservation> findFirstByMember_IdAndStatusAndSlot_ReservationDateGreaterThanEqualOrderBySlot_ReservationDateAscSlot_StartTimeAscIdAsc(
-            Long memberId,
-            ReservationStatus status,
-            LocalDate reservationDate
-    );
-
-    Optional<Reservation> findFirstByMember_IdOrderByIdDesc(
-            Long memberId
-    );
-
-    Optional<Reservation> findFirstByMember_IdAndSlot_Center_IdOrderByIdDesc(
-            Long memberId,
-            Long centerId
     );
 
     @Query("""
