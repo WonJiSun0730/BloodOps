@@ -17,7 +17,8 @@ function getReservationLabel(item) {
   if (item.reservationStatus) {
     return reservationStatusLabel[item.reservationStatus] || item.reservationStatus
   }
-  return item.donationCenterName ? '현장 방문' : '예약 정보 없음'
+  if (item.visitType === 'WALK_IN') return '현장 방문'
+  return item.visitType === 'UNDECIDED' ? '방문 방식 미정' : '예약 정보 없음'
 }
 
 function MedicalQuestionnaireListPage() {
@@ -113,6 +114,7 @@ function MedicalQuestionnaireListPage() {
               <div><dt>체중</dt><dd>{selected.weightKg} kg</dd></div>
               <div><dt>연락처</dt><dd>{selected.contactPhone || '-'}</dd></div>
               <div><dt>이메일</dt><dd>{selected.contactEmail || '-'}</dd></div>
+              <div><dt>방문 방식</dt><dd>{selected.visitType === 'RESERVATION' ? '예약 방문' : selected.visitType === 'WALK_IN' ? '현장 방문' : '미정'}</dd></div>
               <div><dt>방문 예정 장소</dt><dd>{selected.donationCenterName ? `${selected.donationCenterName} · ${selected.donationCenterAddress || ''}` : '방문 장소 미지정'}</dd></div>
               <div><dt>예약 상태</dt><dd>{getReservationLabel(selected)}</dd></div>
             </dl>
