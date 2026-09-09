@@ -14,11 +14,28 @@ const reservationStatusLabel = {
 }
 
 function getReservationLabel(item) {
+  if (item.reservationId && item.reservationWithinValidity === false) {
+    return '문진 유효시간 외 예약'
+  }
   if (item.reservationStatus) {
     return reservationStatusLabel[item.reservationStatus] || item.reservationStatus
   }
   if (item.visitType === 'WALK_IN') return '현장 방문'
   return item.visitType === 'UNDECIDED' ? '방문 방식 미정' : '예약 정보 없음'
+}
+
+function getReservationDateTime(item) {
+  if (!item.reservationDate) return ''
+  const startTime = item.reservationStartTime?.slice(0, 5) || ''
+  const endTime = item.reservationEndTime?.slice(0, 5) || ''
+  return `${item.reservationDate} ${startTime}${endTime ? `~${endTime}` : ''}`.trim()
+}
+
+function getConnectionLabel(type) {
+  if (type === 'SELECTED') return '문진 작성 시 직접 연결'
+  if (type === 'AUTO_IDENTITY') return '신분정보로 회원 예약 자동 연결'
+  if (type === 'AUTO_CURRENT') return '문진 제출 후 회원 예약 자동 반영'
+  return '예약 연결 없음'
 }
 
 function MedicalQuestionnaireListPage() {
@@ -98,6 +115,7 @@ function MedicalQuestionnaireListPage() {
                 <span>{item.receiptCode}</span>
                 <span className="workspace-reservation">
                   <strong>{item.donationCenterName || '방문 장소 미지정'}</strong>
+                  {getReservationDateTime(item) && <small>{getReservationDateTime(item)}</small>}
                   <small>{getReservationLabel(item)}</small>
                 </span>
                 <span>{String(item.submittedAt).replace('T', ' ').slice(0, 16)}</span>
@@ -116,7 +134,9 @@ function MedicalQuestionnaireListPage() {
               <div><dt>이메일</dt><dd>{selected.contactEmail || '-'}</dd></div>
               <div><dt>방문 방식</dt><dd>{selected.visitType === 'RESERVATION' ? '예약 방문' : selected.visitType === 'WALK_IN' ? '현장 방문' : '미정'}</dd></div>
               <div><dt>방문 예정 장소</dt><dd>{selected.donationCenterName ? `${selected.donationCenterName} · ${selected.donationCenterAddress || ''}` : '방문 장소 미지정'}</dd></div>
+              <div><dt>예약 일시</dt><dd>{getReservationDateTime(selected) || '-'}</dd></div>
               <div><dt>예약 상태</dt><dd>{getReservationLabel(selected)}</dd></div>
+              <div><dt>연결 방식</dt><dd>{getConnectionLabel(selected.reservationConnectionType)}</dd></div>
             </dl>
             {selected.reviewReasons?.length > 0 && (
               <><h3>현장 확인 항목</h3><ul>{selected.reviewReasons.map((reason) => <li key={reason}>{reason}</li>)}</ul></>
