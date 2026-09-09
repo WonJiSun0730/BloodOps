@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom'
 import {
   getCenters,
   getCurrentUser,
+  getMyReservations,
   getQuestionnaireQuestions,
   submitQuestionnaire,
 } from '../../api/apiClient.js'
@@ -85,6 +86,9 @@ function QuestionnairePage() {
   })
   const [weightKg, setWeightKg] = useState('')
   const [isGuest, setIsGuest] = useState(false)
+  const [visitType, setVisitType] = useState('')
+  const [reservations, setReservations] = useState([])
+  const [reservationId, setReservationId] = useState('')
   const [centerKeyword, setCenterKeyword] = useState('')
   const [centerOptions, setCenterOptions] = useState([])
   const [selectedCenter, setSelectedCenter] = useState(null)
@@ -101,12 +105,20 @@ function QuestionnairePage() {
 
     Promise.all([
       getQuestionnaireQuestions(),
-      getCurrentUser().then(() => false).catch(() => true),
+      getCurrentUser()
+        .then(() => getMyReservations())
+        .then((reservationData) => ({
+          guest: false,
+          reservations: Array.isArray(reservationData) ? reservationData : [],
+        }))
+        .catch(() => ({ guest: true, reservations: [] })),
     ])
-      .then(([questionData, guest]) => {
+      .then(([questionData, userState]) => {
         if (!mounted) return
         setQuestions(questionData)
-        setIsGuest(guest)
+        setIsGuest(userState.guest)
+        setVisitType(userState.guest ? 'WALK_IN' : '')
+        setReservations(userState.reservations)
       })
       .catch((requestError) => {
         if (mounted) setError(requestError.message)
@@ -119,7 +131,7 @@ function QuestionnairePage() {
   }, [])
 
   useEffect(() => {
-    if (!isGuest || selectedCenter || centerKeyword.trim().length < 2) {
+    if (!(isGuest || visitType === 'WALK_IN') || selectedCenter || centerKeyword.trim().length < 2) {
       setCenterOptions([])
       return undefined
     }
@@ -135,7 +147,17 @@ function QuestionnairePage() {
     }, 250)
 
     return () => window.clearTimeout(timer)
-  }, [centerKeyword, isGuest, selectedCenter])
+  }, [centerKeyword, isGuest, selectedCenter, visitType])
+
+  const todayText = new Date(Date.now() + (9 * 60 * 60 * 1000)).toISOString().slice(0, 10)
+  const expiresDate = new Date(`${todayText}T00:00:00+09:00`)
+  expiresDate.setDate(expiresDate.getDate() + 3)
+  const expiresDateText = expiresDate.toISOString().slice(0, 10)
+  const eligibleReservations = reservations.filter((reservation) => (
+    reservation.status === 'RESERVED'
+    && reservation.reservationDate >= todayText
+    && reservation.reservationDate <= expiresDateText
+  ))
 
   const totalQuestionSteps = Math.ceil(questions.length / STEP_SIZE)
   const totalSteps = totalQuestionSteps + 2
@@ -178,8 +200,16 @@ function QuestionnairePage() {
         setError(weightError || '체중을 입력해주세요.')
         return
       }
-      if (isGuest && !selectedCenter) {
-        setError('방문하실 헌혈 장소를 검색한 후 목록에서 선택해주세요.')
+      if (!visitType) {
+        setError('방문 방식을 선택해주세요.')
+        return
+      }
+      if (visitType === 'RESERVATION' && !reservationId) {
+        setError('전자문진 유효기간 안의 예약을 선택해주세요.')
+        return
+      }
+      if (visitType === 'WALK_IN' && !selectedCenter) {
+        setError('현장 방문할 헌혈 장소를 검색한 후 목록에서 선택해주세요.')
         return
       }
     }
@@ -205,7 +235,9 @@ function QuestionnairePage() {
         donorName: identity.donorName.trim(),
         residentRegistrationNumber:
           `${identity.residentFront}-${identity.residentBack}`,
-        donationCenterId: isGuest ? selectedCenter?.id : null,
+        visitType,
+        reservationId: visitType === 'RESERVATION' ? Number(reservationId) : null,
+        donationCenterId: visitType === 'WALK_IN' ? selectedCenter?.id : null,
         answers,
         answerDetails,
         weightKg: Number(weightKg),
@@ -236,6 +268,7 @@ function QuestionnairePage() {
           <dl className="submission-summary">
             <div><dt>접수번호</dt><dd>{latest.receiptCode}</dd></div>
             <div><dt>작성자</dt><dd>{latest.donorName} ({latest.maskedResidentRegistrationNumber})</dd></div>
+            <div><dt>방문 방식</dt><dd>{latest.visitType === 'RESERVATION' ? '예약 방문' : latest.visitType === 'WALK_IN' ? '현장 방문' : '방문 방식 미정'}</dd></div>
             {latest.donationCenterName && <div><dt>방문 장소</dt><dd>{latest.donationCenterName}</dd></div>}
             <div><dt>제출 시각</dt><dd>{formatDateTime(latest.submittedAt)}</dd></div>
             <div><dt>유효 시각</dt><dd>{formatDateTime(latest.expiresAt)}</dd></div>
@@ -249,7 +282,7 @@ function QuestionnairePage() {
           <div className="questionnaire-actions">
             <Link className="questionnaire-button secondary" to="/">홈으로</Link>
             <button className="questionnaire-button" type="button" onClick={() => {
-              setAnswers({}); setAnswerDetails({}); setIdentity({ donorName: '', residentFront: '', residentBack: '' }); setIdentityTouched(false); setWeightKg(''); setCenterKeyword(''); setCenterOptions([]); setSelectedCenter(null); setConsented(false); setStep(0)
+              setAnswers({}); setAnswerDetails({}); setIdentity({ donorName: '', residentFront: '', residentBack: '' }); setIdentityTouched(false); setWeightKg(''); setVisitType(isGuest ? 'WALK_IN' : ''); setReservationId(''); setCenterKeyword(''); setCenterOptions([]); setSelectedCenter(null); setConsented(false); setStep(0)
             }}>새 문진 작성</button>
           </div>
         </section>
@@ -283,7 +316,43 @@ function QuestionnairePage() {
                 <li>문진 결과와 관계없이 현장 검진에서 헌혈이 제한될 수 있습니다.</li>
               </ul>
             </div>
-            {isGuest && (
+            {!isGuest && (
+              <fieldset className="visit-type-field">
+                <legend>방문 방식</legend>
+                <div className="visit-type-options">
+                  <label className={visitType === 'RESERVATION' ? 'selected' : ''}>
+                    <input type="radio" name="visitType" value="RESERVATION" checked={visitType === 'RESERVATION'} onChange={() => { setVisitType('RESERVATION'); setSelectedCenter(null) }} />
+                    <span><strong>예약한 센터 방문</strong><small>전자문진 유효기간 안의 예약과 연결합니다.</small></span>
+                  </label>
+                  <label className={visitType === 'WALK_IN' ? 'selected' : ''}>
+                    <input type="radio" name="visitType" value="WALK_IN" checked={visitType === 'WALK_IN'} onChange={() => { setVisitType('WALK_IN'); setReservationId('') }} />
+                    <span><strong>예약 없이 현장 방문</strong><small>방문할 센터를 직접 선택합니다.</small></span>
+                  </label>
+                  <label className={visitType === 'UNDECIDED' ? 'selected' : ''}>
+                    <input type="radio" name="visitType" value="UNDECIDED" checked={visitType === 'UNDECIDED'} onChange={() => { setVisitType('UNDECIDED'); setReservationId(''); setSelectedCenter(null) }} />
+                    <span><strong>아직 정하지 않음</strong><small>유효기간 안에 예약하면 의료진 화면에 자동 반영됩니다.</small></span>
+                  </label>
+                </div>
+              </fieldset>
+            )}
+            {!isGuest && visitType === 'RESERVATION' && (
+              <div className="reservation-visit-field">
+                <label htmlFor="questionnaire-reservation">연결할 예약</label>
+                {eligibleReservations.length > 0 ? (
+                  <select id="questionnaire-reservation" value={reservationId} onChange={(event) => setReservationId(event.target.value)}>
+                    <option value="">예약을 선택해주세요.</option>
+                    {eligibleReservations.map((reservation) => (
+                      <option key={reservation.id} value={reservation.id}>
+                        {reservation.reservationDate} {reservation.startTime?.slice(0, 5)} · {reservation.centerName}
+                      </option>
+                    ))}
+                  </select>
+                ) : (
+                  <p>전자문진 유효기간 안에 예약 대기 상태인 예약이 없습니다.</p>
+                )}
+              </div>
+            )}
+            {(isGuest || visitType === 'WALK_IN') && (
               <div className="guest-center-field">
                 <label htmlFor="guest-center-search">어디서 헌혈하실 예정인가요?</label>
                 <p>센터명이나 주소를 2자 이상 입력하고 방문할 장소를 선택해주세요.</p>
