@@ -81,6 +81,10 @@ public class QuestionnaireSubmission extends BaseEntity {
     @JoinColumn(name = "reservation_id")
     private Reservation reservation;
 
+    @Column(name = "reservation_auto_linked")
+    @Builder.Default
+    private Boolean reservationAutoLinked = false;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "donation_center_id")
     private Center donationCenter;
