@@ -150,9 +150,9 @@ function QuestionnairePage() {
   }, [centerKeyword, isGuest, selectedCenter, visitType])
 
   const todayText = new Date(Date.now() + (9 * 60 * 60 * 1000)).toISOString().slice(0, 10)
-  const expiresDate = new Date(`${todayText}T00:00:00+09:00`)
-  expiresDate.setDate(expiresDate.getDate() + 3)
-  const expiresDateText = expiresDate.toISOString().slice(0, 10)
+  const expiresDateText = new Date(
+    Date.now() + (9 * 60 * 60 * 1000) + (3 * 24 * 60 * 60 * 1000)
+  ).toISOString().slice(0, 10)
   const eligibleReservations = reservations.filter((reservation) => (
     reservation.status === 'RESERVED'
     && reservation.reservationDate >= todayText
