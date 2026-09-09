@@ -1391,7 +1391,8 @@ export async function removeFavoriteCenter(
  */
 export async function sendChatbotMessage(
   message,
-  history = []
+  history = [],
+  conversationId = null
 ) {
   const csrf = await getCsrfToken()
 
@@ -1408,6 +1409,7 @@ export async function sendChatbotMessage(
       body: JSON.stringify({
         message,
         history,
+        conversationId,
       }),
     }
   )

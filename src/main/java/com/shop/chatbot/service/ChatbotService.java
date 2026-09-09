@@ -34,6 +34,7 @@ public class ChatbotService {
     private final String apiKey;
     private final String model;
     private final BloodOpsAiClient bloodOpsAiClient;
+    private final AiConversationMemoryService aiConversationMemoryService;
     private final CenterService centerService;
     private final ReservationService reservationService;
     private final ReservationSlotService reservationSlotService;
@@ -54,6 +55,7 @@ public class ChatbotService {
             @Value("${gemini.api-key}") String apiKey,
             @Value("${gemini.model}") String model,
             BloodOpsAiClient bloodOpsAiClient,
+            AiConversationMemoryService aiConversationMemoryService,
             CenterService centerService,
             ReservationService reservationService,
             ReservationSlotService reservationSlotService,
@@ -65,6 +67,7 @@ public class ChatbotService {
         this.apiKey = apiKey;
         this.model = model;
         this.bloodOpsAiClient = bloodOpsAiClient;
+        this.aiConversationMemoryService = aiConversationMemoryService;
         this.centerService = centerService;
         this.reservationService = reservationService;
         this.reservationSlotService = reservationSlotService;
@@ -77,7 +80,8 @@ public class ChatbotService {
     public ChatbotResponse chat(
             String message,
             List<ChatbotHistoryMessage> history,
-            String authenticationIdentifier
+            String authenticationIdentifier,
+            String conversationId
     ) {
 
         /*
@@ -141,12 +145,28 @@ public class ChatbotService {
          * Python AI는 의도 분류, 검색어 추출,
          * 검증된 일반 헌혈 지식 검색을 담당합니다.
          */
+        AiConversationMemoryService
+                .ConversationMemory conversationMemory =
+                aiConversationMemoryService
+                        .find(conversationId)
+                        .orElse(null);
+
+        String lastIntent =
+                conversationMemory == null
+                        ? null
+                        : conversationMemory.lastIntent();
+
+        String lastKeyword =
+                conversationMemory == null
+                        ? null
+                        : conversationMemory.lastKeyword();
+
         AiAnalyzeResponse aiAnalysis =
                 bloodOpsAiClient
                         .analyze(
                                 message,
-                                null,
-                                null
+                                lastIntent,
+                                lastKeyword
                         )
                         .orElse(null);
 
@@ -160,6 +180,19 @@ public class ChatbotService {
             return createAiUnavailableResponse();
         }
 
+        if (
+                "CENTER_SEARCH".equals(
+                        aiAnalysis.intent()
+                )
+                        && aiAnalysis.keyword() != null
+                        && !aiAnalysis.keyword().isBlank()
+        ) {
+            aiConversationMemoryService.save(
+                    conversationId,
+                    aiAnalysis.intent(),
+                    aiAnalysis.keyword()
+            );
+        }
 
         IntentClassification classification =
                 new IntentClassification(
