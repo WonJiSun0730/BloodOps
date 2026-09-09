@@ -82,6 +82,32 @@
     "source_url": "https://bloodinfo.net/knrcbs/cm/cntnts/cntntsView.do?cntntsId=1013&mi=1124"
   },
   {
+    "id": "DONATION_AFTER_NUTRITION",
+    "questions": [
+      "헌혈 후에는 뭘 먹어야 해",
+      "피 뽑은 뒤 뭐 먹는 게 좋아",
+      "헌혈하고 바로 밥 먹어도 돼",
+      "헌혈 뒤 단백질을 챙겨야 해",
+      "채혈 후 물을 많이 마셔야 해",
+      "헌혈한 날 추천 음식 알려줘"
+    ],
+    "keywords": [
+      "밥",
+      "식사",
+      "뭐 먹",
+      "먹는 게",
+      "음식",
+      "단백질",
+      "물",
+      "수분",
+      "이온음료",
+      "간식"
+    ],
+    "answer": "헌혈 후에는 충분한 수분을 섭취하고 휴식을 취해주세요. 특별한 음식만 반드시 먹기보다는 평소처럼 균형 잡힌 식사를 하는 것이 좋습니다. 어지럼증이나 불편한 증상이 있다면 즉시 앉거나 눕고, 증상이 계속되면 헌혈기관 또는 의료기관에 문의해주세요.",
+    "source": "대한적십자사 혈액관리본부 · 헌혈 후 유의사항",
+    "source_url": "https://bloodinfo.net/knrcbs/cm/cntnts/cntntsView.do?cntntsId=1013&mi=1124"
+  },
+  {
     "id": "DONATION_BEFORE_MEAL",
     "questions": [
       "헌혈 전에 밥 먹어야 해",

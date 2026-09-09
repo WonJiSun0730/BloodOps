@@ -38,5 +38,6 @@ class AnalyzeResponse(BaseModel):
         "RULE",
         "SIMILARITY",
         "HYBRID",
+        "DOMAIN_FEATURE",
         "FALLBACK",
     ]

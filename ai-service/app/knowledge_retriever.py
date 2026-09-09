@@ -111,6 +111,24 @@ class DomainKnowledgeRetriever:
             ),
         )
 
+    def find_by_id(
+        self,
+        knowledge_id: str,
+    ) -> KnowledgeMatch | None:
+        for entry in self.document_entries:
+            if entry["id"] != knowledge_id:
+                continue
+
+            return KnowledgeMatch(
+                knowledge_id=entry["id"],
+                answer=entry["answer"],
+                source=entry["source"],
+                source_url=entry["source_url"],
+                similarity=1.0,
+            )
+
+        return None
+
     @staticmethod
     def _matches_required_keyword(
         normalized_message: str,

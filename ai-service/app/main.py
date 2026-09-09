@@ -1,5 +1,9 @@
 from fastapi import FastAPI
 
+from app.domain_feature_analyzer import (
+    DomainFeatureAnalyzer,
+)
+
 from app.hybrid_classifier import (
     HybridIntentClassifier,
 )
@@ -22,6 +26,7 @@ app = FastAPI(
     version="1.0.0",
 )
 
+domain_feature_analyzer = DomainFeatureAnalyzer()
 intent_classifier = HybridIntentClassifier()
 knowledge_retriever = DomainKnowledgeRetriever()
 
@@ -41,6 +46,43 @@ def health() -> dict[str, str]:
 def analyze(
     request: AnalyzeRequest,
 ) -> AnalyzeResponse:
+    feature_match = domain_feature_analyzer.analyze(
+        request.message
+    )
+
+    if feature_match is not None:
+        if feature_match.knowledge_id is not None:
+            knowledge_match = (
+                knowledge_retriever.find_by_id(
+                    feature_match.knowledge_id
+                )
+            )
+
+            if knowledge_match is not None:
+                return AnalyzeResponse(
+                    intent=feature_match.intent.value,
+                    confidence=feature_match.confidence,
+                    keyword=None,
+                    knowledge_id=(
+                        knowledge_match.knowledge_id
+                    ),
+                    answer=knowledge_match.answer,
+                    sources=[
+                        knowledge_match.source,
+                    ],
+                    matched_by="DOMAIN_FEATURE",
+                )
+
+        return AnalyzeResponse(
+            intent=feature_match.intent.value,
+            confidence=feature_match.confidence,
+            keyword=None,
+            knowledge_id=feature_match.knowledge_id,
+            answer=None,
+            sources=[],
+            matched_by="DOMAIN_FEATURE",
+        )
+
     knowledge_match = knowledge_retriever.search(
         request.message
     )
