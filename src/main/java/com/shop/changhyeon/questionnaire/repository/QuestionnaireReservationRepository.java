@@ -5,12 +5,21 @@ import com.shop.reservation.entity.Reservation;
 import org.springframework.data.repository.Repository;
 
 import java.time.LocalDate;
+import java.util.List;
 import java.util.Optional;
 
 public interface QuestionnaireReservationRepository
         extends Repository<Reservation, Long> {
 
     Optional<Reservation> findById(Long reservationId);
+
+    List<Reservation> findByDonorNameAndResidentNumberHashAndSlot_ReservationDateAndStatusAndSlot_Center_Id(
+            String donorName,
+            String residentNumberHash,
+            LocalDate reservationDate,
+            ReservationStatus status,
+            Long centerId
+    );
 
     Optional<Reservation> findFirstByMember_IdAndStatusAndSlot_ReservationDateBetweenOrderBySlot_ReservationDateAscSlot_StartTimeAscIdAsc(
             Long memberId,
