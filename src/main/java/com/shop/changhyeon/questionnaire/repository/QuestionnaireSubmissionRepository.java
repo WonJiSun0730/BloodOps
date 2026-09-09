@@ -35,25 +35,27 @@ public interface QuestionnaireSubmissionRepository
     @Query("""
         select submission
         from QuestionnaireSubmission submission
+        left join submission.reservation linkedReservation
+        left join linkedReservation.slot linkedSlot
+        left join linkedSlot.center linkedCenter
+        left join submission.donationCenter selectedCenter
         where submission.expiresAt > :now
           and (
             :centerId is null
+            or linkedCenter.id = :centerId
             or (
-              submission.reservation is not null
-              and submission.reservation.slot.center.id = :centerId
+              linkedReservation is null
+              and selectedCenter.id = :centerId
             )
             or (
-              submission.reservation is null
-              and submission.donationCenter.id = :centerId
-            )
-            or (
-              submission.reservation is null
-              and submission.donationCenter is null
+              linkedReservation is null
+              and selectedCenter is null
               and exists (
                 select reservation.id
                 from Reservation reservation
                 where reservation.member = submission.member
                   and reservation.slot.center.id = :centerId
+                  and reservation.status = com.shop.reservation.constant.ReservationStatus.RESERVED
               )
             )
           )
