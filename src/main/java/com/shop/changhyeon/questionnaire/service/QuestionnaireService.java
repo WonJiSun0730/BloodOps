@@ -5,11 +5,15 @@ import com.shop.center.entity.Center;
 import com.shop.center.repository.CenterRepository;
 import com.shop.changhyeon.management.entity.DonorConfirmation;
 import com.shop.changhyeon.questionnaire.constant.QuestionnaireStatus;
+import com.shop.changhyeon.questionnaire.constant.QuestionnaireVisitType;
 import com.shop.changhyeon.questionnaire.dto.*;
 import com.shop.changhyeon.questionnaire.entity.QuestionnaireSubmission;
+import com.shop.changhyeon.questionnaire.repository.QuestionnaireReservationRepository;
 import com.shop.changhyeon.questionnaire.repository.QuestionnaireSubmissionRepository;
 import com.shop.member.entity.Member;
 import com.shop.member.repository.MemberRepository;
+import com.shop.reservation.constant.ReservationStatus;
+import com.shop.reservation.entity.Reservation;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -45,6 +49,7 @@ public class QuestionnaireService {
     private final QuestionnaireSubmissionRepository submissionRepository;
     private final MemberRepository memberRepository;
     private final CenterRepository centerRepository;
+    private final QuestionnaireReservationRepository reservationRepository;
     private final ResidentNumberHashService residentNumberHashService;
 
     @Transactional(readOnly = true)
@@ -54,7 +59,9 @@ public class QuestionnaireService {
 
     public QuestionnaireSubmissionDto submit(QuestionnaireSubmitRequest request, String email) {
         Member member = findMember(email);
-        Center donationCenter = resolveDonationCenter(member, request.donationCenterId());
+        LocalDateTime submittedAt = LocalDateTime.now(KOREA_ZONE);
+        LocalDateTime expiresAt = submittedAt.plusDays(3);
+        VisitPlan visitPlan = resolveVisitPlan(member, request, submittedAt, expiresAt);
         validateAnswers(request.answers(), request.answerDetails());
         ResidentIdentity residentIdentity = validateResidentIdentity(request.residentRegistrationNumber());
         validateWeight(request.weightKg(), residentIdentity.gender());
@@ -67,7 +74,6 @@ public class QuestionnaireService {
         QuestionnaireStatus status = reasons.isEmpty()
                 ? QuestionnaireStatus.NO_REVIEW_NEEDED
                 : QuestionnaireStatus.REVIEW_REQUIRED;
-        LocalDateTime submittedAt = LocalDateTime.now();
 
         QuestionnaireSubmission saved = submissionRepository.save(
                 QuestionnaireSubmission.builder()
@@ -78,11 +84,13 @@ public class QuestionnaireService {
                         .residentNumberMasked(residentNumberHashService.mask(request.residentRegistrationNumber()))
                         .status(status)
                         .submittedAt(submittedAt)
-                        .expiresAt(submittedAt.plusDays(3))
+                        .expiresAt(expiresAt)
                         .weightKg(request.weightKg())
                         .contactPhoneSnapshot(member == null ? null : member.getPhone())
                         .contactEmailSnapshot(member == null ? null : member.getEmail())
-                        .donationCenter(donationCenter)
+                        .visitType(visitPlan.visitType())
+                        .reservation(visitPlan.reservation())
+                        .donationCenter(visitPlan.donationCenter())
                         .answers(new LinkedHashMap<>(request.answers()))
                         .answerDetails(normalizedDetails)
                         .reviewReasons(new ArrayList<>(reasons))
@@ -111,6 +119,7 @@ public class QuestionnaireService {
                 .findFirstByDonorNameAndResidentNumberHashAndExpiresAtAfterOrderBySubmittedAtDesc(
                         donorName.trim(), residentNumberHash, LocalDateTime.now())
                 .map(submission -> {
+                    linkGuestSubmissionToReservation(submission);
                     submission.setDonorConfirmation(confirmation);
                     submission.setVerifiedAt(LocalDateTime.now());
                     submission.setVerifiedBy(verifiedBy);
@@ -238,13 +247,97 @@ public class QuestionnaireService {
         return reasons;
     }
 
-    private Center resolveDonationCenter(Member member, Long donationCenterId) {
-        if (member != null) return null;
-        if (donationCenterId == null) {
-            throw new IllegalArgumentException("방문하실 헌혈 장소를 선택해주세요.");
+    private VisitPlan resolveVisitPlan(
+            Member member,
+            QuestionnaireSubmitRequest request,
+            LocalDateTime submittedAt,
+            LocalDateTime expiresAt
+    ) {
+        QuestionnaireVisitType visitType = member == null
+                ? QuestionnaireVisitType.WALK_IN
+                : request.visitType();
+
+        if (visitType == QuestionnaireVisitType.WALK_IN) {
+            if (request.donationCenterId() == null) {
+                throw new IllegalArgumentException("현장 방문할 헌혈 장소를 선택해주세요.");
+            }
+            Center center = findActiveCenter(request.donationCenterId());
+            return new VisitPlan(visitType, null, center);
         }
 
-        Center center = centerRepository.findById(donationCenterId)
+        if (member == null) {
+            throw new IllegalArgumentException("비회원은 현장 방문 장소를 선택해주세요.");
+        }
+
+        if (visitType == QuestionnaireVisitType.UNDECIDED) {
+            return new VisitPlan(visitType, null, null);
+        }
+
+        if (request.reservationId() == null) {
+            throw new IllegalArgumentException("전자문진 유효기간 안의 예약을 선택해주세요.");
+        }
+
+        Reservation reservation = reservationRepository.findById(request.reservationId())
+                .orElseThrow(() -> new IllegalArgumentException("선택한 예약을 찾을 수 없습니다."));
+        if (!Objects.equals(reservation.getMember().getId(), member.getId())) {
+            throw new IllegalArgumentException("본인의 예약만 선택할 수 있습니다.");
+        }
+        if (reservation.getStatus() != ReservationStatus.RESERVED) {
+            throw new IllegalArgumentException("예약 대기 상태의 예약만 선택할 수 있습니다.");
+        }
+
+        if (!isReservationWithinValidity(reservation, submittedAt, expiresAt)) {
+            throw new IllegalArgumentException("전자문진 유효시간 안의 예약을 선택해주세요.");
+        }
+
+        return new VisitPlan(
+                visitType,
+                reservation,
+                reservation.getSlot().getCenter()
+        );
+    }
+
+    private void linkGuestSubmissionToReservation(
+            QuestionnaireSubmission submission
+    ) {
+        if (submission.getMember() != null
+                || submission.getReservation() != null
+                || submission.getDonationCenter() == null) {
+            return;
+        }
+
+        List<Reservation> matches = reservationRepository
+                .findByDonorNameAndResidentNumberHashAndSlot_ReservationDateAndStatusAndSlot_Center_Id(
+                        submission.getDonorName(),
+                        submission.getResidentNumberHash(),
+                        LocalDate.now(KOREA_ZONE),
+                        ReservationStatus.RESERVED,
+                        submission.getDonationCenter().getId()
+                );
+
+        if (matches.size() != 1) {
+            return;
+        }
+
+        Reservation reservation = matches.getFirst();
+        Member member = reservation.getMember();
+        submission.setMember(member);
+        submission.setReservation(reservation);
+        submission.setReservationAutoLinked(true);
+        submission.setVisitType(QuestionnaireVisitType.RESERVATION);
+
+        if (submission.getContactPhoneSnapshot() == null
+                || submission.getContactPhoneSnapshot().isBlank()) {
+            submission.setContactPhoneSnapshot(member.getPhone());
+        }
+        if (submission.getContactEmailSnapshot() == null
+                || submission.getContactEmailSnapshot().isBlank()) {
+            submission.setContactEmailSnapshot(member.getEmail());
+        }
+    }
+
+    private Center findActiveCenter(Long centerId) {
+        Center center = centerRepository.findById(centerId)
                 .orElseThrow(() -> new IllegalArgumentException("선택한 헌혈 장소를 찾을 수 없습니다."));
         if (!center.isActive()) {
             throw new IllegalArgumentException("현재 운영 중인 헌혈 장소를 선택해주세요.");
@@ -269,21 +362,99 @@ public class QuestionnaireService {
     }
 
     private QuestionnaireSubmissionDto toDto(QuestionnaireSubmission submission) {
+        Reservation reservation = resolveReservation(submission);
+        Center donationCenter = reservation != null
+                ? reservation.getSlot().getCenter()
+                : submission.getDonationCenter();
+        QuestionnaireVisitType visitType = submission.getVisitType() != null
+                ? submission.getVisitType()
+                : reservation == null
+                ? (donationCenter == null ? QuestionnaireVisitType.UNDECIDED : QuestionnaireVisitType.WALK_IN)
+                : QuestionnaireVisitType.RESERVATION;
+
         return new QuestionnaireSubmissionDto(
                 submission.getId(), submission.getReceiptCode(), submission.getDonorName(),
                 submission.getResidentNumberMasked(), submission.getStatus(),
                 submission.getSubmittedAt(), submission.getExpiresAt(), submission.getWeightKg(),
                 submission.getContactPhoneSnapshot(), submission.getContactEmailSnapshot(),
-                submission.getDonationCenter() == null ? null : submission.getDonationCenter().getId(),
-                submission.getDonationCenter() == null ? null : submission.getDonationCenter().getCenterName(),
-                submission.getDonationCenter() == null ? null : submission.getDonationCenter().getAddress(),
+                visitType,
+                reservation == null ? null : reservation.getId(),
+                donationCenter == null ? null : donationCenter.getId(),
+                donationCenter == null ? null : donationCenter.getCenterName(),
+                donationCenter == null ? null : donationCenter.getAddress(),
+                reservation == null ? null : reservation.getSlot().getReservationDate(),
+                reservation == null ? null : reservation.getSlot().getStartTime(),
+                reservation == null ? null : reservation.getSlot().getEndTime(),
+                reservation == null ? null : reservation.getStatus(),
+                reservation == null || isReservationWithinValidity(
+                        reservation, submission.getSubmittedAt(), submission.getExpiresAt()
+                ),
+                resolveReservationConnectionType(submission, reservation),
                 new LinkedHashMap<>(submission.getAnswers()),
                 new LinkedHashMap<>(submission.getAnswerDetails()),
                 List.copyOf(submission.getReviewReasons()), submission.getVerifiedAt() != null, NOTICE
         );
     }
 
+    private Reservation resolveReservation(QuestionnaireSubmission submission) {
+        if (submission.getReservation() != null) {
+            return submission.getReservation();
+        }
+        if (submission.getMember() == null
+                || submission.getVisitType() == QuestionnaireVisitType.WALK_IN) {
+            return null;
+        }
+        return reservationRepository
+                .findByMember_IdAndStatusAndSlot_ReservationDateBetweenOrderBySlot_ReservationDateAscSlot_StartTimeAscIdAsc(
+                        submission.getMember().getId(),
+                        ReservationStatus.RESERVED,
+                        submission.getSubmittedAt().toLocalDate(),
+                        submission.getExpiresAt().toLocalDate()
+                )
+                .stream()
+                .filter(reservation -> isReservationWithinValidity(
+                        reservation, submission.getSubmittedAt(), submission.getExpiresAt()
+                ))
+                .findFirst()
+                .orElse(null);
+    }
+
+    static boolean isReservationWithinValidity(
+            Reservation reservation,
+            LocalDateTime submittedAt,
+            LocalDateTime expiresAt
+    ) {
+        LocalDateTime reservationAt = LocalDateTime.of(
+                reservation.getSlot().getReservationDate(),
+                reservation.getSlot().getStartTime()
+        );
+        return !reservationAt.isBefore(submittedAt)
+                && reservationAt.isBefore(expiresAt);
+    }
+
+    private String resolveReservationConnectionType(
+            QuestionnaireSubmission submission,
+            Reservation reservation
+    ) {
+        if (reservation == null) {
+            return "NONE";
+        }
+        if (Boolean.TRUE.equals(submission.getReservationAutoLinked())) {
+            return "AUTO_IDENTITY";
+        }
+        if (submission.getReservation() != null) {
+            return "SELECTED";
+        }
+        return "AUTO_CURRENT";
+    }
+
     private enum Gender { MALE, FEMALE }
 
     private record ResidentIdentity(Gender gender) { }
+
+    private record VisitPlan(
+            QuestionnaireVisitType visitType,
+            Reservation reservation,
+            Center donationCenter
+    ) { }
 }

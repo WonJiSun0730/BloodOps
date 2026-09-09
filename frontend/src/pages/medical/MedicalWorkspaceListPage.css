@@ -12,6 +12,10 @@
 .workspace-card-list { display: grid; gap: 12px; }
 .workspace-data-card { display: grid; grid-template-columns: 1.2fr 1fr 1fr auto; align-items: center; gap: 12px; width: 100%; padding: 16px; color: inherit; text-align: left; border: 1px solid var(--color-border); border-radius: 12px; background: var(--color-surface-hover); }
 button.workspace-data-card { cursor: pointer; }
+.questionnaire-data-card { grid-template-columns: minmax(110px, 1fr) minmax(130px, 1fr) minmax(180px, 1.4fr) minmax(140px, 1fr) auto; }
+.workspace-reservation { display: grid; gap: 4px; min-width: 0; }
+.workspace-reservation strong { overflow: hidden; color: var(--color-text); text-overflow: ellipsis; white-space: nowrap; }
+.workspace-reservation small { color: var(--color-text-muted); font-size: .76rem; font-weight: 700; }
 .workspace-data-card:hover { border-color: var(--color-primary); }
 .workspace-data-card:focus-visible { outline: 2px solid var(--color-primary); outline-offset: 3px; }
 .workspace-data-card em { color: var(--color-primary-hover); font-style: normal; font-weight: 700; }
@@ -26,8 +30,8 @@ button.workspace-data-card { cursor: pointer; }
 .workspace-detail dd { margin: 4px 0 0; }
 .workspace-state { padding: 24px; color: var(--color-text-muted); text-align: center; }
 .workspace-state.is-error { color: var(--color-text); border: 1px solid var(--color-primary); background: color-mix(in srgb, var(--color-primary) 12%, transparent); }
-@media (max-width: 1024px) { .workspace-center-filter { grid-template-columns: 1fr; } .workspace-data-card { grid-template-columns: 1fr 1fr; } }
-@media (max-width: 768px) { .workspace-center-filter { padding: 20px; } .workspace-panel { padding: 16px; } .workspace-data-card { grid-template-columns: 1fr; min-height: 44px; } .workspace-detail dl { grid-template-columns: 1fr; } }
+@media (max-width: 1024px) { .workspace-center-filter { grid-template-columns: 1fr; } .workspace-data-card, .questionnaire-data-card { grid-template-columns: 1fr 1fr; } }
+@media (max-width: 768px) { .workspace-center-filter { padding: 20px; } .workspace-panel { padding: 16px; } .workspace-data-card, .questionnaire-data-card { grid-template-columns: 1fr; min-height: 44px; } .workspace-detail dl { grid-template-columns: 1fr; } }
 @media (max-width: 480px) { .workspace-center-filter { padding: 18px; } .workspace-panel { padding: 12px; } .workspace-data-card { padding: 14px; } }
 
 .workspace-pagination { display: flex; margin-top: 20px; align-items: center; justify-content: center; gap: 14px; }
