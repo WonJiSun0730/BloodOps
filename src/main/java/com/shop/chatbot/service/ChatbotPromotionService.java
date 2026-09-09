@@ -23,11 +23,6 @@ public class ChatbotPromotionService {
         this.promotionService = promotionService;
     }
 
-
-    /*
-     * 사용자의 명확한 프로모션 관련 질문을
-     * Gemini 호출 전에 빠르게 처리합니다.
-     */
     public ChatbotResponse tryHandle(
             String message
     ) {
@@ -37,6 +32,30 @@ public class ChatbotPromotionService {
                         .toLowerCase(Locale.ROOT);
 
 
+        /*
+         * "DIY", "헌혈 포인트 데이"처럼
+         * 프로모션 관련 단어가 생략된 질문도
+         * 실제 진행 중인 프로모션 제목과 먼저 비교합니다.
+         */
+        PromotionResponse matchedPromotion =
+                findMatchedPromotion(
+                        normalized
+                );
+
+
+        if (matchedPromotion != null) {
+
+            return createPromotionDetailResponse(
+                    matchedPromotion
+            );
+        }
+
+
+        /*
+         * 실제 제목과 일치하지 않고
+         * 프로모션 관련 표현도 없다면
+         * 다른 챗봇 처리 단계로 넘깁니다.
+         */
         if (
                 !containsAny(
                         normalized,
@@ -53,23 +72,8 @@ public class ChatbotPromotionService {
         }
 
 
-        PromotionResponse matchedPromotion =
-                findMatchedPromotion(
-                        normalized
-                );
-
-
-        if (matchedPromotion != null) {
-
-            return createPromotionDetailResponse(
-                    matchedPromotion
-            );
-        }
-
-
         /*
-         * "지금 이벤트 있어?", "현재 프로모션 알려줘"처럼
-         * 목록 자체를 묻는 질문만 전체 목록으로 보냅니다.
+         * 현재 진행 중인 목록을 묻는 질문입니다.
          */
         if (isPromotionListQuestion(normalized)) {
 
@@ -78,13 +82,11 @@ public class ChatbotPromotionService {
 
 
         /*
-         * 특정 이벤트의 조건/경품/내용 등을 묻는데
-         * 실제 DB에서 일치하는 프로모션을 찾지 못한 경우
-         * 존재하지 않는 이벤트 내용을 임의로 안내하지 않습니다.
+         * 특정 행사를 물었지만 실제 DB에서
+         * 일치하는 프로모션을 찾지 못했습니다.
          */
         return createPromotionNotFoundResponse();
     }
-
 
     /*
      * Gemini가 PROMOTION_CURRENT로 분류한 경우에도
@@ -326,9 +328,27 @@ public class ChatbotPromotionService {
             String message
     ) {
 
+        /*
+         * "프로모션", "행사"처럼 목록을 의미하는
+         * 단독 질문도 현재 진행 중인 전체 목록으로 처리합니다.
+         */
+        if (
+                List.of(
+                        "프로모션",
+                        "이벤트",
+                        "행사",
+                        "혜택",
+                        "경품"
+                ).contains(message)
+        ) {
+            return true;
+        }
+
         return containsAny(
                 message,
                 "지금 이벤트",
+                "지금 무슨 행사",
+                "지금 하는 행사",
                 "지금 프로모션",
                 "현재 이벤트",
                 "현재 프로모션",
@@ -336,17 +356,26 @@ public class ChatbotPromotionService {
                 "진행중인 이벤트",
                 "진행 중인 프로모션",
                 "진행중인 프로모션",
+                "하고 있는 이벤트",
+                "하고있는 이벤트",
+                "하고 있는 프로모션",
+                "하고있는 프로모션",
+                "진행하는 행사",
                 "이벤트 있어",
                 "프로모션 있어",
                 "행사 있어",
                 "이벤트 뭐 있어",
                 "프로모션 뭐 있어",
+                "행사 뭐 있어",
                 "어떤 이벤트",
                 "어떤 프로모션",
+                "어떤 행사",
                 "이벤트 목록",
                 "프로모션 목록",
+                "행사 목록",
                 "전체 이벤트",
-                "전체 프로모션"
+                "전체 프로모션",
+                "전체 행사"
         );
     }
 
