@@ -4,6 +4,8 @@ import com.shop.member.entity.Member;
 import com.shop.member.oauth.CustomOAuth2UserService;
 import com.shop.member.service.MemberService;
 import jakarta.servlet.http.HttpServletResponse;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -18,6 +20,11 @@ import org.springframework.beans.factory.annotation.Value;
 @Configuration  // 설정 클래스
 @EnableWebSecurity  // 웹 보안 가능하게 하는 클래스
 public class SecurityConfig {
+
+    private static final Logger log =
+            LoggerFactory.getLogger(
+                    SecurityConfig.class
+            );
 
     // application.properties에 설정한 React 주소를 가져옵니다.
     @Value("${app.frontend-url}")
@@ -215,6 +222,47 @@ public class SecurityConfig {
                                             "OAUTH_RETURN_TO"
                                     );
 
+                            /*
+                             * 개인정보나 OAuth 인증값은 남기지 않고
+                             * 예외 클래스와 OAuth 오류 코드만 기록합니다.
+                             */
+                            StringBuilder exceptionChain =
+                                    new StringBuilder();
+
+                            Throwable diagnosticException =
+                                    exception;
+
+                            while (diagnosticException != null) {
+
+                                if (exceptionChain.length() > 0) {
+                                    exceptionChain.append(" -> ");
+                                }
+
+                                exceptionChain.append(
+                                        diagnosticException
+                                                .getClass()
+                                                .getName()
+                                );
+
+                                if (
+                                        diagnosticException
+                                                instanceof org.springframework.security.oauth2.core.OAuth2AuthenticationException oauthException
+                                ) {
+                                    exceptionChain.append(
+                                                    "[oauthErrorCode="
+                                            )
+                                            .append(
+                                                    oauthException
+                                                            .getError()
+                                                            .getErrorCode()
+                                            )
+                                            .append("]");
+                                }
+
+                                diagnosticException =
+                                        diagnosticException.getCause();
+                            }
+
                             String errorCode = "oauth_failed";
 
                             /*
@@ -275,7 +323,11 @@ public class SecurityConfig {
                                 currentException =
                                         currentException.getCause();
                             }
-
+                            log.warn(
+                                    "OAuth login failed: resolvedErrorCode={}, exceptionChain={}",
+                                    errorCode,
+                                    exceptionChain
+                            );
                             response.sendRedirect(
                                     frontendUrl
                                             + "/login?oauthError="
