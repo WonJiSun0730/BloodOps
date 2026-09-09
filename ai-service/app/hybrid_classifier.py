@@ -10,6 +10,8 @@ from app.similarity_classifier import (
 
 
 class HybridIntentClassifier:
+    SIMILARITY_MIN_CONFIDENCE = 0.45
+
     def __init__(self) -> None:
         self.rule_classifier = (
             DomainIntentClassifier()
@@ -51,5 +53,23 @@ class HybridIntentClassifier:
                 )
 
             return rule_result
+
+        if (
+            similarity_result.intent
+            == Intent.OTHER
+        ):
+            return similarity_result
+
+        if (
+            similarity_result.confidence
+            < self.SIMILARITY_MIN_CONFIDENCE
+        ):
+            return ClassificationResult(
+                intent=Intent.OTHER,
+                confidence=0.0,
+                keyword=None,
+                knowledge_id=None,
+                matched_by="FALLBACK",
+            )
 
         return similarity_result

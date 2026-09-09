@@ -283,6 +283,10 @@ RULES = (
             "헌혈센터",
             "센터 찾",
             "센터 검색",
+            "헌혈 어디",
+            "헌혈 장소",
+            "헌혈할 곳",
+            "헌혈하는 곳",
             "어디서 헌혈",
             "어디 가서 헌혈",
         ),
@@ -292,6 +296,7 @@ RULES = (
             "센터",
             "위치",
             "지역",
+            "장소",
         ),
         minimum_score=4.0,
         priority=58,
@@ -336,6 +341,29 @@ class DomainIntentClassifier:
         "그 센터",
     )
 
+    CENTER_SEARCH_EXCLUDED_PREFIXES = (
+        "오늘",
+        "내일",
+        "이번주",
+        "주말",
+        "처음",
+        "다음",
+        "다시",
+        "전혈",
+        "혈장",
+        "혈소판",
+        "일반",
+        "단체",
+    )
+
+    CENTER_LOCATION_SUFFIXES = (
+        "근처에서",
+        "쪽에서",
+        "에서",
+        "근처",
+        "쪽",
+    )
+
     def classify(
         self,
         message: str,
@@ -344,8 +372,27 @@ class DomainIntentClassifier:
         normalized = normalize_text(message)
         compact = compact_text(message)
 
+        center_keyword = (
+            self._extract_center_search_keyword(
+                normalized
+            )
+        )
+
+        if center_keyword is not None:
+            return ClassificationResult(
+                intent=Intent.CENTER_SEARCH,
+                confidence=0.91,
+                keyword=center_keyword,
+                knowledge_id=None,
+                matched_by="PATTERN",
+            )
+
         candidates: list[
-            tuple[float, int, IntentRule]
+            tuple[
+                float,
+                int,
+                IntentRule,
+            ]
         ] = []
 
         for rule in RULES:
@@ -382,7 +429,9 @@ class DomainIntentClassifier:
             reverse=True,
         )
 
-        best_score, _, best_rule = candidates[0]
+        best_score, _, best_rule = (
+            candidates[0]
+        )
 
         confidence = min(
             0.99,
@@ -405,6 +454,49 @@ class DomainIntentClassifier:
             knowledge_id=None,
             matched_by="RULE",
         )
+
+    def _extract_center_search_keyword(
+        self,
+        normalized: str,
+    ) -> str | None:
+        suffix = " 헌혈"
+
+        if not normalized.endswith(suffix):
+            return None
+
+        keyword = normalized[
+            :-len(suffix)
+        ].strip()
+
+        if not keyword:
+            return None
+
+        for location_suffix in (
+            self.CENTER_LOCATION_SUFFIXES
+        ):
+            if keyword.endswith(location_suffix):
+                keyword = keyword[
+                    :-len(location_suffix)
+                ].strip()
+                break
+
+        if not keyword:
+            return None
+
+        if (
+            len(keyword) < 2
+            or len(keyword) > 15
+        ):
+            return None
+
+        if any(
+            excluded in keyword
+            for excluded
+            in self.CENTER_SEARCH_EXCLUDED_PREFIXES
+        ):
+            return None
+
+        return keyword
 
     def _calculate_score(
         self,
