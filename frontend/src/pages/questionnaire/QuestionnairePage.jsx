@@ -149,15 +149,18 @@ function QuestionnairePage() {
     return () => window.clearTimeout(timer)
   }, [centerKeyword, isGuest, selectedCenter, visitType])
 
-  const todayText = new Date(Date.now() + (9 * 60 * 60 * 1000)).toISOString().slice(0, 10)
-  const expiresDateText = new Date(
-    Date.now() + (9 * 60 * 60 * 1000) + (3 * 24 * 60 * 60 * 1000)
-  ).toISOString().slice(0, 10)
-  const eligibleReservations = reservations.filter((reservation) => (
-    reservation.status === 'RESERVED'
-    && reservation.reservationDate >= todayText
-    && reservation.reservationDate <= expiresDateText
-  ))
+  const submittedAtMillis = Date.now()
+  const expiresAtMillis = submittedAtMillis + (3 * 24 * 60 * 60 * 1000)
+  const eligibleReservations = reservations.filter((reservation) => {
+    if (reservation.status !== 'RESERVED'
+      || !reservation.reservationDate
+      || !reservation.startTime) return false
+    const reservationAtMillis = new Date(
+      `${reservation.reservationDate}T${reservation.startTime}+09:00`
+    ).getTime()
+    return reservationAtMillis >= submittedAtMillis
+      && reservationAtMillis < expiresAtMillis
+  })
 
   const totalQuestionSteps = Math.ceil(questions.length / STEP_SIZE)
   const totalSteps = totalQuestionSteps + 2
