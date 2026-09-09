@@ -38,12 +38,23 @@ public interface QuestionnaireSubmissionRepository
         where submission.expiresAt > :now
           and (
             :centerId is null
-            or submission.donationCenter.id = :centerId
-            or exists (
-              select reservation.id
-              from Reservation reservation
-              where reservation.member = submission.member
-                and reservation.slot.center.id = :centerId
+            or (
+              submission.reservation is not null
+              and submission.reservation.slot.center.id = :centerId
+            )
+            or (
+              submission.reservation is null
+              and submission.donationCenter.id = :centerId
+            )
+            or (
+              submission.reservation is null
+              and submission.donationCenter is null
+              and exists (
+                select reservation.id
+                from Reservation reservation
+                where reservation.member = submission.member
+                  and reservation.slot.center.id = :centerId
+              )
             )
           )
         order by submission.submittedAt desc, submission.id desc
