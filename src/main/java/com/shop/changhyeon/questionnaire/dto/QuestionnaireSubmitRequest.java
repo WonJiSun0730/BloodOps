@@ -1,5 +1,7 @@
 package com.shop.changhyeon.questionnaire.dto;
 
+import com.shop.changhyeon.questionnaire.constant.QuestionnaireVisitType;
+
 import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
@@ -22,6 +24,11 @@ public record QuestionnaireSubmitRequest(
                 message = "주민등록번호 형식을 확인해주세요."
         )
         String residentRegistrationNumber,
+
+        @NotNull(message = "방문 방식을 선택해주세요.")
+        QuestionnaireVisitType visitType,
+
+        Long reservationId,
 
         Long donationCenterId,
 
