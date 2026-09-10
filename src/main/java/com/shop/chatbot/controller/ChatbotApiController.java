@@ -42,7 +42,8 @@ public class ChatbotApiController {
                 chatbotService.chat(
                         request.message(),
                         request.history(),
-                        authenticationIdentifier
+                        authenticationIdentifier,
+                        request.conversationId()
                 );
 
         return ResponseEntity.ok(

@@ -28,12 +28,32 @@ const DEFAULT_MESSAGES = [
 const CHATBOT_STORAGE_KEY =
   'bloodops-chatbot-messages'
 
+const CHATBOT_CONVERSATION_STORAGE_KEY =
+  'bloodops-chatbot-conversation-id'
+
 const RECOMMENDED_QUESTIONS = [
   '현재 혈액 보유량 알려줘',
   '가장 빠르게 예약 가능한 센터 찾아줘',
   '헌혈확인증명서는 어떻게 발급해?',
   '지금 진행 중인 프로모션 알려줘',
 ]
+
+function createConversationId() {
+  if (
+    typeof crypto !== 'undefined'
+    && typeof crypto.randomUUID === 'function'
+  ) {
+    return crypto.randomUUID()
+  }
+
+  return [
+    'conversation',
+    Date.now(),
+    Math.random()
+      .toString(36)
+      .slice(2, 10),
+  ].join('-')
+}
 
 function ChatbotRobotIcon() {
   return (
@@ -108,6 +128,32 @@ function ChatbotWidget({
 }) {
   const navigate = useNavigate()
 
+    const [
+      conversationId,
+      setConversationId,
+    ] = useState(() => {
+      try {
+        const savedConversationId =
+          sessionStorage.getItem(
+            CHATBOT_CONVERSATION_STORAGE_KEY
+          )
+
+        if (
+          savedConversationId
+          && /^[a-zA-Z0-9_-]+$/.test(
+            savedConversationId
+          )
+        ) {
+          return savedConversationId
+        }
+      } catch {
+        // sessionStorage를 사용할 수 없는 경우
+        // 현재 화면에서만 대화 ID를 유지합니다.
+      }
+
+      return createConversationId()
+    })
+
   const [
     input,
     setInput,
@@ -160,6 +206,18 @@ function ChatbotWidget({
       // 현재 화면에서만 대화를 유지합니다.
     }
   }, [messages])
+
+  useEffect(() => {
+    try {
+      sessionStorage.setItem(
+        CHATBOT_CONVERSATION_STORAGE_KEY,
+        conversationId
+      )
+    } catch {
+      // sessionStorage를 사용할 수 없는 경우
+      // 현재 화면에서만 대화 ID를 유지합니다.
+    }
+  }, [conversationId])
 
   useEffect(() => {
     if (!isOpen) {
@@ -225,11 +283,12 @@ function ChatbotWidget({
         }))
 
     try {
-      const response =
-        await sendChatbotMessage(
-          message,
-          history
-        )
+    const response =
+      await sendChatbotMessage(
+        message,
+        history,
+        conversationId
+      )
 
       setMessages((current) => [
         ...current,
@@ -332,6 +391,10 @@ function ChatbotWidget({
       sessionStorage.removeItem(
         CHATBOT_STORAGE_KEY
       )
+
+      sessionStorage.removeItem(
+        CHATBOT_CONVERSATION_STORAGE_KEY
+      )
     } catch {
       // sessionStorage를 사용할 수 없어도
       // 현재 화면의 대화는 초기화합니다.
@@ -341,6 +404,10 @@ function ChatbotWidget({
       DEFAULT_MESSAGES.map((message) => ({
         ...message,
       }))
+    )
+
+    setConversationId(
+      createConversationId()
     )
 
     setInput('')
